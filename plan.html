@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lịch đăng 30 ngày · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/theme.js"></script>
+</head>
+<body data-page="plan">
+<main id="page" hidden>
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="step-dot">4</span>Lịch đăng</div>
+      <h1>Lịch đăng 30 ngày</h1>
+      <p class="subtitle" id="sub"></p>
+    </div>
+    <div class="actions">
+      <div style="position:relative">
+        <button class="btn" id="export-btn" aria-haspopup="menu" aria-expanded="false"><i data-icon="download"></i>Xuất file<i data-icon="down" class="sm"></i></button>
+        <div class="popover" id="export-menu" hidden style="right:0;left:auto;top:42px;width:240px;padding:6px">
+          <button class="btn ghost block" style="justify-content:flex-start" data-export="xlsx"><i data-icon="table"></i>Excel (.xlsx)</button>
+          <button class="btn ghost block" style="justify-content:flex-start" data-export="csv"><i data-icon="file"></i>CSV — mở được bằng Notion</button>
+        </div>
+      </div>
+      <button class="btn primary" id="gen-all"><i data-icon="sparkles"></i>Sinh toàn bộ nội dung</button>
+    </div>
+  </div>
+
+  <div id="auto-banner"></div>
+  <div id="alerts" class="stack mb-4"></div>
+
+  <div class="grid c4 mb-4" id="pillar-check"></div>
+
+  <div class="card">
+    <div class="card-head" style="flex-wrap:wrap">
+      <div class="segmented" role="group" aria-label="Chế độ xem">
+        <button data-view="table" aria-pressed="true"><i data-icon="table" class="sm"></i>Bảng</button>
+        <button data-view="cal" aria-pressed="false"><i data-icon="calendar" class="sm"></i>Lịch</button>
+      </div>
+      <div class="row wrap">
+        <div class="chips" id="pf" role="group" aria-label="Lọc pillar"></div>
+        <select class="select" id="cf" style="width:auto;min-height:32px;height:32px;padding:0 8px" aria-label="Lọc kênh"></select>
+      </div>
+    </div>
+    <div id="view-table" class="table-wrap"></div>
+    <div id="view-cal" hidden></div>
+    <div class="card-foot" style="justify-content:space-between"><span class="subtle"><i data-icon="grip" class="sm"></i> Kéo-thả để đổi ngày · thay đổi được lưu ngay</span><span class="subtle" id="count"></span></div>
+  </div>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.shell({ active: 'plan', crumbs: ['Quy trình', 'Lịch đăng 30 ngày'] });
+  const PL = state.plan;
+  let view = 'table', fPillar = new Set(Object.keys(D.PILLARS)), fChannel = 'all';
+  try { view = localStorage.getItem('mp-plan-view') || 'table'; } catch (e) {}
+
+  function hrefOf(it) { return 'post.html?id=' + it.id; }
+  function visible() { return MP.items().filter(i => fPillar.has(i.pillar) && (fChannel === 'all' || i.channel === fChannel)); }
+
+  function header() {
+    const all = MP.items(); const end = D.addDays(PL.start, 29);
+    document.getElementById('sub').innerHTML = `${MP.fmtDate(PL.start, 'short')} → ${MP.fmtDate(end, 'short')} · ${PL.frequency} bài/tuần · ${PL.channels.map(c => D.CHANNELS[c].name).join(', ')} · <a href="strategy.html#pillars">Đổi tần suất/kênh</a>`;
+    const planned = all.filter(i => i.status === 'planned').length;
+    const g = document.getElementById('gen-all');
+    g.innerHTML = icon('sparkles') + (planned ? `Sinh nội dung ${planned} bài còn lại` : 'Đã sinh đủ nội dung'); g.disabled = !planned;
+  }
+
+  // ---------- Kiểm tỷ lệ pillar (US-302) ----------
+  function pillarCheck() {
+    const all = MP.items(); const n = all.length;
+    document.getElementById('pillar-check').innerHTML = state.strategy.pillars.map(p => {
+      const P = D.PILLARS[p.id]; const c = all.filter(i => i.pillar === p.id).length; const pct = Math.round(c / n * 100); const dev = Math.abs(pct - p.ratio);
+      return `<div class="card card-pad"><div class="row between"><span class="badge pillar-${p.id}">${icon(P.icon)}${P.name}</span>${dev <= 5 ? `<span class="badge success" title="Lệch ${dev}%">${icon('check')}Đúng tỷ lệ</span>` : `<span class="badge warning">${icon('alert')}Lệch ${dev}%</span>`}</div>
+        <div class="row mt-2" style="align-items:baseline"><b style="font-size:22px">${c}</b><span class="subtle">bài · ${pct}% (mục tiêu ${p.ratio}%)</span></div>
+        <div class="progress mt-2"><span class="bg-${p.id}" style="width:${Math.min(100, pct / Math.max(p.ratio, 1) * 100)}%"></span></div></div>`;
+    }).join('');
+  }
+
+  // ---------- Cảnh báo trùng ý (US-303) ----------
+  function alerts() {
+    const box = document.getElementById('alerts'); const all = MP.items();
+    const flagged = all.filter(i => i.flag);
+    box.innerHTML = flagged.map(it => {
+      const other = all.find(x => x.id === it.flag.similarTo);
+      return `<div class="callout warning">${icon('alert')}<div class="grow"><b>Hai bài gần giống ý nhau</b> — Ngày ${it.day} “${esc(it.title)}” và Ngày ${other ? other.day : '?'} “${esc(other ? other.title : '')}” (độ tương đồng ${String(it.flag.score).replace('.', ',')} &gt; ngưỡng 0,88). Hệ thống đã thử sinh lại 3 lần, bạn quyết định giúp nhé.
+        <div class="row mt-2 wrap"><button class="btn sm primary" data-refix="${it.id}">${icon('refresh', 'sm')}Tạo lại ngày ${it.day}</button><button class="btn sm ghost" data-keep="${it.id}">Giữ cả hai</button></div></div></div>`;
+    }).join('');
+    box.querySelectorAll('[data-keep]').forEach(b => b.onclick = () => { delete MP.poolItem(b.dataset.keep).flag; MP.save(); render(); });
+    box.querySelectorAll('[data-refix]').forEach(b => b.onclick = () => {
+      const p = MP.poolItem(b.dataset.refix);
+      b.disabled = true; b.innerHTML = icon('refresh', 'sm') + 'Đang tạo lại…';
+      setTimeout(() => {
+        p.title = 'Da kích ứng mùa nồm: 5 phút xử lý trước khi đi ngủ'; p.hook = 'Trời ẩm, da đỏ, mặt ngứa? Làm đúng 5 phút này tối nay.';
+        delete p.flag; if (p.content) p.content = D.genContent(p, state.brand, 1);
+        MP.save(); render(); MP.toast('Đã tạo lại · độ tương đồng mới 0,62');
+      }, 1200);
+    });
+  }
+
+  // ---------- Bảng ----------
+  function table() {
+    const rows = visible();
+    if (!rows.length) { document.getElementById('view-table').innerHTML = `<div class="empty"><div class="em-ic">${icon('filter', 'xl')}</div><h3>Không có bài nào khớp bộ lọc</h3><p>Bật lại pillar hoặc chọn “Tất cả kênh”.</p></div>`; return; }
+    const t = MP.today();
+    document.getElementById('view-table').innerHTML = `<table class="table"><thead><tr><th style="width:28px"><span class="sr-only">Kéo</span></th><th>Ngày</th><th>Pillar</th><th>Angle</th><th>Kênh · giờ đăng</th><th>Tiêu đề & hook</th><th>Trạng thái</th></tr></thead><tbody>` +
+      rows.map(it => `<tr draggable="true" data-id="${it.id}" data-href="${hrefOf(it)}">
+        <td><span class="grip" title="Kéo để đổi ngày">${icon('grip', 'sm')}</span></td>
+        <td class="nowrap"><b>Ngày ${it.day}</b><div class="subtle">${MP.fmtDate(it.date)}${it.date === t ? ' · <b style="color:var(--primary-soft-text)">Hôm nay</b>' : ''}</div></td>
+        <td>${MP.pillarBadge(it.pillar)}</td>
+        <td><span class="subtle">${esc(it.angle)}</span> <span class="truncate" style="display:inline-block;max-width:150px;vertical-align:bottom">${esc(MP.angleName(it.angle))}</span></td>
+        <td><div class="row wrap" style="gap:4px">${MP.channelBadge(it.channel)}${MP.formatBadge(it.format)}</div><div class="row mt-1" style="gap:4px" title="${esc(MP.autoInfo(it).text)}"><span class="c-${MP.autoInfo(it).kind === 'auto' ? 'edu' : 'fun'}" style="display:inline-flex">${icon(MP.autoInfo(it).icon, 'sm')}</span><span class="subtle">${it.time} · ${({ auto: 'tự đăng', manual: 'đăng tay', approval: 'chờ duyệt', done: 'đã đăng', nocontent: 'chưa có bài', off: 'tắt tự động', missed: 'quá giờ', failed: 'lỗi' })[MP.autoInfo(it).kind]}</span></div></td>
+        <td><div class="cell-title">${esc(it.title)}${it.flag ? ' <span class="badge warning">' + icon('alert') + 'Gần trùng</span>' : ''}</div><div class="cell-hook">${esc(MP.quoteHook(it.hook))}</div></td>
+        <td>${MP.statusBadge(it.status)}</td></tr>`).join('') + '</tbody></table>';
+    const tb = document.querySelector('#view-table tbody');
+    let dragId = null;
+    tb.querySelectorAll('tr').forEach(tr => {
+      tr.onclick = () => { location.href = tr.dataset.href; };
+      tr.addEventListener('dragstart', e => { dragId = tr.dataset.id; tr.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {} });
+      tr.addEventListener('dragend', () => { tr.classList.remove('dragging'); tb.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target')); });
+      tr.addEventListener('dragover', e => { e.preventDefault(); tb.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target')); if (tr.dataset.id !== dragId) tr.classList.add('drop-target'); });
+      tr.addEventListener('drop', e => { e.preventDefault(); if (dragId && dragId !== tr.dataset.id) swap(Number(dragId), Number(tr.dataset.id)); });
+    });
+  }
+
+  function swap(a, b) {
+    const sa = PL.schedule.find(s => s.id === a), sb = PL.schedule.find(s => s.id === b);
+    const d = sa.date; sa.date = sb.date; sb.date = d; MP.save(); render();
+    MP.toast('Đã đổi ngày: ' + MP.fmtDate(sb.date, 'short') + ' ↔ ' + MP.fmtDate(sa.date, 'short'));
+  }
+  function moveTo(id, date) {
+    const other = PL.schedule.find(s => s.date === date); const me = PL.schedule.find(s => s.id === id);
+    if (other && other.id === id) return;
+    if (other) { swap(id, other.id); return; }
+    me.date = date; MP.save(); render(); MP.toast('Đã dời sang ' + MP.fmtDate(date));
+  }
+
+  // ---------- Lịch (US-307) ----------
+  function cal() {
+    const rows = visible(); const byDate = {}; rows.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+    const start = new Date(PL.start + 'T00:00:00'); const off = (start.getDay() + 6) % 7;
+    const first = D.addDays(PL.start, -off); const last = D.addDays(PL.start, 29);
+    const cells = []; let d = first;
+    while (d <= last || cells.length % 7) { cells.push(d); d = D.addDays(d, 1); }
+    const t = MP.today();
+    document.getElementById('view-cal').innerHTML = '<div class="cal">' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => `<div class="cal-h">${x}</div>`).join('') +
+      cells.map(c => {
+        const inR = c >= PL.start && c <= last; const its = byDate[c] || [];
+        return `<div class="cal-d ${inR ? '' : 'out'} ${c === t ? 'today' : ''}" data-date="${inR ? c : ''}">
+          <div class="cal-n"><b>${Number(c.slice(8))}${c.slice(8) === '01' || c === first ? '/' + Number(c.slice(5, 7)) : ''}</b>${inR ? `<span>N${MP.dayNo(c)}</span>` : ''}</div>
+          ${its.map(it => `<a class="ci ${it.pillar}" draggable="true" data-id="${it.id}" href="${hrefOf(it)}" title="${esc(it.title)}">
+            <span class="row" style="gap:4px">${MP.pillarBadge(it.pillar, true)}<span class="subtle">${D.CHANNELS[it.channel].short} · ${D.FORMATS[it.format].name.replace(' ngắn', '')}</span></span>
+            <span class="t" style="color:var(--text)">${esc(it.title)}</span>
+            <span class="row" style="gap:4px">${it.status === 'published' ? '<span class="badge success" style="height:18px">' + icon('checkCircle') + 'Đã đăng</span>' : it.status === 'approved' ? '<span class="badge primary" style="height:18px">' + icon('clock') + it.time + '</span>' : it.status === 'planned' ? '<span class="badge" style="height:18px">Khung</span>' : '<span class="badge info" style="height:18px">Có nội dung</span>'}${it.flag ? '<span class="badge warning" style="height:18px">' + icon('alert') + '</span>' : ''}</span></a>`).join('')}
+        </div>`;
+      }).join('') + '</div>';
+    const root = document.getElementById('view-cal'); let dragId = null;
+    root.querySelectorAll('.ci').forEach(ci => ci.addEventListener('dragstart', e => { dragId = Number(ci.dataset.id); try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {} }));
+    root.querySelectorAll('.cal-d[data-date]').forEach(cell => {
+      if (!cell.dataset.date) return;
+      cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('over'); });
+      cell.addEventListener('dragleave', () => cell.classList.remove('over'));
+      cell.addEventListener('drop', e => { e.preventDefault(); cell.classList.remove('over'); if (dragId) moveTo(dragId, cell.dataset.date); });
+    });
+  }
+
+  // ---------- Bộ lọc & view ----------
+  function filters() {
+    document.getElementById('pf').innerHTML = Object.values(D.PILLARS).map(p => `<button class="chip" style="min-height:30px;padding:3px 10px;font-size:12.5px" data-pf="${p.id}" aria-pressed="${fPillar.has(p.id)}"><span class="c-${p.id}">${icon(p.icon, 'sm')}</span>${p.name}</button>`).join('');
+    document.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { const id = b.dataset.pf; fPillar.has(id) ? fPillar.delete(id) : fPillar.add(id); render(); });
+    const cf = document.getElementById('cf');
+    cf.innerHTML = '<option value="all">Tất cả kênh</option>' + PL.channels.map(c => `<option value="${c}" ${fChannel === c ? 'selected' : ''}>${D.CHANNELS[c].name}</option>`).join('');
+    cf.onchange = () => { fChannel = cf.value; render(); };
+  }
+  document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { view = b.dataset.view; try { localStorage.setItem('mp-plan-view', view); } catch (e) {} render(); });
+
+  function autoBanner() {
+    const A = state.automation; const all = MP.items(); const t = MP.today();
+    const next = all.filter(i => i.date >= t && i.status !== 'published');
+    const needAppr = next.filter(i => i.content && i.status !== 'approved' && i.date <= D.addDays(t, 2)).length;
+    const off = Object.entries(A.connections).filter(([k, c]) => !c.connected && PL.channels.includes(k)).map(([k]) => D.CHANNELS[k].name);
+    document.getElementById('auto-banner').innerHTML = `<div class="card card-pad mb-4 row wrap" style="gap:14px">
+      <span class="ic-box ${A.enabled ? 'primary' : ''}">${icon(A.enabled ? 'zap' : 'pause')}</span>
+      <div class="grow" style="min-width:220px"><b>Tự động đăng ${A.enabled ? 'đang bật' : 'đang tắt'}</b><div class="subtle">${A.enabled ? 'Bài đã duyệt sẽ tự lên kênh đúng giờ đăng.' : 'Bài sẽ không tự lên kênh.'}${needAppr ? ` · <b style="color:var(--warning)">${needAppr} bài trong 3 ngày tới chưa duyệt</b>` : ''}${off.length ? ` · ${off.join(', ')} chưa kết nối (sẽ nhắc đăng tay)` : ''}</div></div>
+      <a class="btn sm" href="automation.html">${icon('branch', 'sm')}Xem workflow</a></div>`;
+  }
+
+  function render() {
+    header(); autoBanner(); pillarCheck(); alerts(); filters();
+    document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
+    document.getElementById('view-table').hidden = view !== 'table'; document.getElementById('view-cal').hidden = view !== 'cal';
+    view === 'table' ? table() : cal();
+    const all = MP.items(); document.getElementById('count').textContent = `${visible().length}/${all.length} bài · ${all.filter(i => i.status !== 'planned').length} bài có nội dung`;
+  }
+
+  // ---------- Sinh toàn bộ (US-403) ----------
+  document.getElementById('gen-all').onclick = () => {
+    const todo = MP.items().filter(i => i.status === 'planned');
+    if (!todo.length) return;
+    const failIds = new Set(todo.filter((_, i) => i % 7 === 3).slice(0, 2).map(i => i.id));
+    const m = MP.modal({ title: `Đang sinh nội dung ${todo.length} bài`, subtitle: 'Chạy nền tối đa 5 bài cùng lúc. Bạn có thể đóng cửa sổ này — xong sẽ có thông báo.', wide: false,
+      body: `<div class="batch-grid" id="bg">${todo.map(i => `<div class="batch-cell" data-c="${i.id}" title="Ngày ${i.day}">${i.day}</div>`).join('')}</div>
+        <div class="progress lg mt-4"><span id="bp" style="width:0"></span></div><div class="row between mt-2"><span class="subtle" id="bt">0/${todo.length}</span><span class="subtle" id="bcost">Chi phí ước tính: 0đ</span></div><div id="bres" class="mt-3"></div>`,
+      foot: '<button class="btn" data-close>Chạy nền</button>' });
+    let done = 0, running = 0, idx = 0, fails = [];
+    const cell = id => m.el.querySelector('[data-c="' + id + '"]');
+    function finishOne(it, ok) {
+      running--; done++;
+      const c = cell(it.id); if (c) { c.classList.remove('running'); c.classList.add(ok ? 'done' : 'fail'); c.innerHTML = ok ? icon('check', 'sm') : icon('x', 'sm'); }
+      if (ok) { const p = MP.poolItem(it.id); p.status = 'generated'; p.content = D.genContent(p, state.brand, 0); } else fails.push(it);
+      const bp = m.el.querySelector('#bp'); if (bp) bp.style.width = (done / todo.length * 100) + '%';
+      const bt = m.el.querySelector('#bt'); if (bt) bt.textContent = done + '/' + todo.length + ' bài';
+      const bc = m.el.querySelector('#bcost'); if (bc) bc.textContent = 'Chi phí ước tính: ' + (done * 410).toLocaleString('vi-VN') + 'đ';
+      pump();
+    }
+    function pump() {
+      while (running < 5 && idx < todo.length) {
+        const it = todo[idx++]; running++; const c = cell(it.id); if (c) c.classList.add('running');
+        setTimeout(() => finishOne(it, !failIds.has(it.id)), 350 + Math.random() * 700);
+      }
+      if (done === todo.length) complete();
+    }
+    function complete() {
+      MP.save(); render();
+      state.activity.unshift({ t: 0, icon: 'sparkles', text: `Sinh nội dung ${todo.length - fails.length} bài` }); MP.save();
+      const res = m.el.querySelector('#bres'); if (!res) { MP.toast(`Xong: ${todo.length - fails.length} bài có nội dung${fails.length ? ', ' + fails.length + ' bài lỗi' : ''}`); return; }
+      if (!fails.length) { res.innerHTML = `<div class="callout success">${icon('checkCircle')}<div>Xong ${todo.length} bài.</div></div>`; return; }
+      res.innerHTML = `<div class="callout warning">${icon('alert')}<div class="grow"><b>${todo.length - fails.length} bài xong, ${fails.length} bài lỗi</b> (${fails.map(f => 'ngày ' + f.day).join(', ')}) do nhà cung cấp AI quá tải. Các bài đã xong vẫn dùng được bình thường.<div class="mt-2"><button class="btn sm primary" id="retry">${icon('refresh', 'sm')}Thử lại ${fails.length} bài lỗi</button></div></div></div>`;
+      res.querySelector('#retry').onclick = () => {
+        const f = fails.slice(); fails = []; res.innerHTML = '<p class="subtle">Đang thử lại qua nhà cung cấp dự phòng…</p>';
+        f.forEach((it, k) => { const c = cell(it.id); c.className = 'batch-cell running'; c.textContent = it.day; setTimeout(() => {
+          c.className = 'batch-cell done'; c.innerHTML = icon('check', 'sm'); const p = MP.poolItem(it.id); p.status = 'generated'; p.content = D.genContent(p, state.brand, 0);
+          if (k === f.length - 1) { MP.save(); render(); res.innerHTML = `<div class="callout success">${icon('checkCircle')}<div>Đã sinh đủ ${todo.length} bài.</div></div>`; }
+        }, 700 + k * 300); });
+      };
+    }
+    pump();
+  };
+
+  // ---------- Xuất file (US-305) ----------
+  const menu = document.getElementById('export-menu'); const eb = document.getElementById('export-btn');
+  eb.onclick = e => { e.stopPropagation(); menu.hidden = !menu.hidden; eb.setAttribute('aria-expanded', !menu.hidden); };
+  document.addEventListener('click', e => { if (!menu.contains(e.target)) { menu.hidden = true; eb.setAttribute('aria-expanded', 'false'); } });
+  function rowsForExport() {
+    return MP.items().map(it => ({
+      'Ngày': it.day, 'Ngày đăng': MP.fmtDate(it.date, 'short') + '/' + it.date.slice(0, 4), 'Thứ': MP.fmtDate(it.date).split(',')[0],
+      'Pillar': D.PILLARS[it.pillar].name, 'Angle': MP.angleName(it.angle), 'Kênh': D.CHANNELS[it.channel].name, 'Định dạng': D.FORMATS[it.format].name,
+      'Giờ đăng': it.time, 'Tiêu đề': it.title, 'Hook': it.hook, 'Trạng thái': D.STATUSES[it.status].name,
+      'Caption': it.content ? it.content.caption : '', 'Hashtag': it.content ? it.content.hashtags.join(' ') : '', 'Gợi ý hình': it.content ? it.content.imageBrief : ''
+    }));
+  }
+  const fname = ext => 'ke-hoach-30-ngay-' + (state.brand.answers.q1.value || 'brand').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-') + '.' + ext;
+  function exportCSV() {
+    const rows = rowsForExport(); const cols = Object.keys(rows[0]);
+    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const csv = '﻿' + cols.map(q).join(',') + '\r\n' + rows.map(r => cols.map(c => q(r[c])).join(',')).join('\r\n');
+    MP.download(fname('csv'), csv, 'text/csv;charset=utf-8'); MP.toast('Đã xuất CSV · ' + rows.length + ' dòng');
+  }
+  function exportXLSX() {
+    const go = () => {
+      const ws = XLSX.utils.json_to_sheet(rowsForExport());
+      ws['!cols'] = [6, 12, 6, 12, 26, 11, 12, 9, 44, 44, 16, 60, 34, 40].map(w => ({ wch: w }));
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Kế hoạch 30 ngày');
+      XLSX.writeFile(wb, fname('xlsx')); MP.toast('Đã xuất Excel');
+    };
+    if (window.XLSX) return go();
+    const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = go; s.onerror = () => { MP.toast('Không tải được thư viện Excel — xuất CSV thay thế', 'alert'); exportCSV(); };
+    document.head.appendChild(s);
+  }
+  document.querySelectorAll('[data-export]').forEach(b => b.onclick = () => { menu.hidden = true; b.dataset.export === 'csv' ? exportCSV() : exportXLSX(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brand Brain · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/theme.js"></script>
+</head>
+<body data-page="brand">
+<main id="page" hidden>
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="step-dot">2</span>Bước 2 · sau onboarding</div>
+      <h1>Brand Brain</h1>
+      <p class="subtitle">Hồ sơ thương hiệu được lưu lại vĩnh viễn. Mọi chiến lược, bài viết và kịch bản đều lấy thông tin từ đây — sửa ở đây là các lần sinh sau dùng bản mới.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="onboarding.html?fresh=1"><i data-icon="refresh"></i>Làm lại từ đầu</a>
+      <button class="btn primary" id="regen-strategy"><i data-icon="sparkles"></i>Tạo lại chiến lược</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="profile"><i data-icon="brain" class="sm"></i>Hồ sơ · 12 trường</button>
+    <button role="tab" aria-selected="false" data-tab="voice"><i data-icon="message" class="sm"></i>Giọng thương hiệu</button>
+  </div>
+
+  <section data-panel="profile">
+    <div class="split" id="profile-grid">
+      <div class="stack lg" id="groups"></div>
+      <aside class="stack" id="side"></aside>
+    </div>
+  </section>
+
+  <section data-panel="voice" hidden>
+    <div class="stack lg">
+      <div class="card">
+        <div class="card-head"><h3><i data-icon="message"></i>Giọng điệu</h3><span class="subtle">US-501</span></div>
+        <div class="card-body stack">
+          <div class="options" id="tones" role="group" aria-label="Chọn giọng"></div>
+          <div class="grid c2 mt-2">
+            <div><div class="field-label mb-2">Câu mẫu</div><div class="callout" id="tone-sample"></div></div>
+            <div><div class="field-label mb-2">Mở đầu bài “ngày 1” sẽ thành</div><div class="card card-pad content-block" id="tone-preview" style="font-size:13.5px;background:var(--surface-2)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3><i data-icon="ban"></i>Từ và cụm từ không được dùng</h3><span class="subtle">US-502</span></div>
+        <div class="card-body stack">
+          <p class="muted">Bài nào chứa các từ này sẽ tự động sinh lại (tối đa 2 lần). Hữu ích cho quy định quảng cáo mỹ phẩm.</p>
+          <div class="chips" id="forbidden"></div>
+          <form class="input-group" id="add-forbidden" style="max-width:480px">
+            <input class="input" id="fw" placeholder="Thêm từ cấm, vd: “trắng bật tông”" aria-label="Thêm từ cấm">
+            <button class="btn" type="submit"><i data-icon="plus" class="sm"></i>Thêm</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3><i data-icon="wand"></i>Bắt chước giọng từ bài cũ của bạn</h3><span class="subtle">US-503</span></div>
+        <div class="card-body stack">
+          <p class="muted">Dán 3 bài bạn từng đăng và thấy “đúng chất mình”. Hệ thống trích đặc điểm giọng và dùng cho mọi lần sinh sau.</p>
+          <div class="grid c3" id="samples"></div>
+          <div class="row wrap"><button class="btn primary" id="analyze"><i data-icon="sparkles" class="sm"></i>Phân tích giọng</button><button class="btn ghost" id="fill-samples">Dán 3 bài mẫu</button></div>
+          <div id="traits"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.shell({ active: 'brand', crumbs: ['Quy trình', 'Brand Brain'] });
+  const B = state.brand;
+
+  // Tabs
+  document.querySelectorAll('[data-tab]').forEach(t => t.onclick = () => {
+    document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
+    document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
+  });
+  if (location.hash === '#voice') document.querySelector('[data-tab="voice"]').click();
+
+  // ---------- Hồ sơ ----------
+  const SRC = { user: ['Bạn nhập', ''], scraped: ['Bóc từ link', 'info'], inferred: ['AI suy ra', 'primary'] };
+  const label = q => (q.labelBy && q.labelBy[B.industry]) || q.label;
+  function display(q) {
+    const a = B.answers[q.id]; if (!a || (Array.isArray(a.value) ? !a.value.length : !a.value)) return '<span class="subtle">Chưa có — bấm sửa để bổ sung</span>';
+    if (q.type === 'tone') return esc((D.TONES.find(t => t.id === a.value) || {}).name);
+    if (q.type === 'money') return esc(D.fmtPrice(a.value));
+    if (Array.isArray(a.value)) return '<div class="chips">' + a.value.map(v => '<span class="badge outline">' + esc(v) + '</span>').join('') + '</div>';
+    return esc(a.value);
+  }
+  function srcBadge(q) { const a = B.answers[q.id]; if (!a) return ''; const s = SRC[a.source] || SRC.user; return '<span class="badge ' + s[1] + ' src-badge">' + s[0] + '</span>'; }
+
+  function renderGroups() {
+    let n = 0;
+    document.getElementById('groups').innerHTML = D.QUESTION_GROUPS.map(g => `<div class="card">
+      <div class="card-head"><h3>${esc(g.title)}</h3></div>
+      <div class="card-body"><div class="list">${D.QUESTIONS.filter(q => q.group === g.id).map(q => { n = D.QUESTIONS.indexOf(q) + 1; return `
+        <div class="list-item" style="align-items:flex-start" id="row-${q.id}">
+          <span class="q-num">${n}</span>
+          <div class="grow stack sm" style="gap:4px">
+            <div class="row wrap"><span class="subtle">${esc(label(q))}</span>${srcBadge(q)}<span class="subtle">· dùng ở bước ${q.uses.join(' ')}</span></div>
+            <div class="val" style="font-weight:500">${display(q)}</div>
+          </div>
+          <button class="btn ghost sm" data-edit="${q.id}">${icon('pencil', 'sm')}Sửa</button>
+        </div>`; }).join('')}</div></div></div>`).join('');
+    document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => edit(b.dataset.edit));
+  }
+
+  function edit(id) {
+    const q = D.QUESTIONS.find(x => x.id === id); const row = document.getElementById('row-' + id);
+    const val = row.querySelector('.val'); const a = B.answers[id] || { value: q.type === 'multi' ? [] : '' };
+    let tmp = Array.isArray(a.value) ? a.value.slice() : a.value;
+    let html = '';
+    if (q.type === 'text' || q.type === 'money') html = `<input class="input" value="${esc(tmp)}">`;
+    else if (q.type === 'textarea') html = `<textarea class="textarea" rows="3">${esc(tmp)}</textarea>`;
+    else if (q.type === 'multi') html = `<div class="chips">${q.options.map(o => `<button type="button" class="chip" data-v="${esc(o)}" aria-pressed="${tmp.includes(o)}">${esc(o)}</button>`).join('')}</div>`;
+    else if (q.type === 'single') html = `<div class="chips">${q.options.map(o => `<button type="button" class="chip" data-v="${esc(o.v)}" aria-pressed="${tmp === o.v}">${esc(o.v)}</button>`).join('')}</div>`;
+    else if (q.type === 'tone') html = `<div class="chips">${D.TONES.map(t => `<button type="button" class="chip" data-v="${t.id}" aria-pressed="${tmp === t.id}">${t.name}</button>`).join('')}</div>`;
+    val.innerHTML = html + `<div class="row mt-2"><button class="btn primary sm" data-save>${icon('check', 'sm')}Lưu</button><button class="btn ghost sm" data-cancel>Huỷ</button></div>`;
+    row.querySelector('[data-edit]').hidden = true;
+    const inp = val.querySelector('.input, .textarea'); if (inp) inp.focus();
+    val.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+      if (q.type === 'multi') { const on = tmp.includes(c.dataset.v); tmp = on ? tmp.filter(x => x !== c.dataset.v) : tmp.concat(c.dataset.v); c.setAttribute('aria-pressed', !on); }
+      else { tmp = c.dataset.v; val.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === c)); }
+    });
+    val.querySelector('[data-cancel]').onclick = renderGroups;
+    val.querySelector('[data-save]').onclick = () => {
+      if (inp) tmp = inp.value.trim();
+      B.answers[id] = { value: tmp, source: 'user' };
+      if (id === 'q12') B.tone = tmp;
+      MP.save(); renderGroups(); renderSide(); renderTones();
+      MP.toast('Đã lưu — các lần sinh sau sẽ dùng thông tin mới');
+    };
+  }
+
+  function renderSide() {
+    const filled = D.QUESTIONS.filter(q => { const a = B.answers[q.id]; return a && (Array.isArray(a.value) ? a.value.length : a.value); }).length;
+    const cnt = s => D.QUESTIONS.filter(q => B.answers[q.id] && B.answers[q.id].source === s).length;
+    const ind = D.INDUSTRIES.find(i => i.id === B.industry) || D.INDUSTRIES[0];
+    document.getElementById('side').innerHTML = `
+      <div class="card card-pad stack">
+        <div class="row between"><b>Độ đầy đủ</b><b>${filled}/12</b></div>
+        <div class="progress ${filled === 12 ? 'success' : ''}"><span style="width:${filled / 12 * 100}%"></span></div>
+        <dl class="kv mt-2" style="grid-template-columns:100px 1fr">
+          <dt>Ngành</dt><dd>${esc(ind.name)}</dd>
+          <dt>Preset</dt><dd>${ind.preset ? 'v1.0 · có preset' : 'Bộ câu hỏi chung'}</dd>
+          <dt>Giọng</dt><dd>${esc((D.TONES.find(t => t.id === B.tone) || {}).name || '')}</dd>
+          <dt>Từ cấm</dt><dd>${B.forbidden.length} mục</dd>
+        </dl>
+      </div>
+      <div class="card card-pad stack sm">
+        <b>Nguồn dữ liệu</b>
+        <p class="subtle">Khi nội dung sai, cột này cho biết sai từ đâu.</p>
+        <div class="row between"><span class="badge">Bạn nhập</span><b>${cnt('user')}</b></div>
+        <div class="row between"><span class="badge info">Bóc từ link</span><b>${cnt('scraped')}</b></div>
+        <div class="row between"><span class="badge primary">AI suy ra</span><b>${cnt('inferred')}</b></div>
+      </div>
+      <div class="callout">${icon('shield')}<div>Mọi bài viết đều được kiểm tự động: phải nhắc ít nhất 1 thông tin thật từ hồ sơ này (tên sản phẩm, giá, lợi ích).</div></div>`;
+  }
+
+  // ---------- Giọng ----------
+  function renderTones() {
+    document.getElementById('tones').innerHTML = D.TONES.map(t => `<button type="button" class="option" data-tone="${t.id}" aria-pressed="${B.tone === t.id}"><b>${t.name}</b><span>${t.desc}</span></button>`).join('');
+    const t = D.TONES.find(t => t.id === B.tone) || D.TONES[0];
+    document.getElementById('tone-sample').innerHTML = icon('message') + '<div>' + esc(t.sample) + '</div>';
+    const it = MP.poolItem(1);
+    const c = D.genContent(it, B, 0).caption.split('\n');
+    document.getElementById('tone-preview').textContent = c.slice(0, 5).join('\n') + '\n…\n' + c[c.length - 1];
+    document.querySelectorAll('[data-tone]').forEach(b => b.onclick = () => {
+      B.tone = b.dataset.tone; B.answers.q12 = { value: B.tone, source: 'user' }; MP.save(); renderTones(); renderSide(); renderGroups();
+      MP.toast('Đã đổi giọng thành “' + D.TONES.find(x => x.id === B.tone).name + '”');
+    });
+  }
+
+  function renderForbidden() {
+    document.getElementById('forbidden').innerHTML = B.forbidden.map((w, i) => `<span class="chip" style="cursor:default">${icon('ban', 'sm')}${esc(w)}<button class="btn ghost sm icon" style="width:22px;height:22px" data-rm="${i}" aria-label="Xoá ${esc(w)}">${icon('x', 'sm')}</button></span>`).join('') || '<span class="subtle">Chưa có từ cấm nào.</span>';
+    document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { B.forbidden.splice(Number(b.dataset.rm), 1); MP.save(); renderForbidden(); renderSide(); });
+  }
+  document.getElementById('add-forbidden').onsubmit = e => {
+    e.preventDefault(); const v = document.getElementById('fw').value.trim(); if (!v) return;
+    if (!B.forbidden.includes(v)) B.forbidden.push(v); document.getElementById('fw').value = ''; MP.save(); renderForbidden(); renderSide();
+  };
+
+  const SAMPLES = [
+    'Hôm nay mình kể bạn nghe chuyện chiếc serum đầu tiên của Mộc Lan nha 🌿 Hồi đó tụi mình chưng cất thử 12 mẻ mới ra được mùi rau má đúng ý. Bạn đã thử chưa?',
+    'Da bạn có hay đỏ lên sau khi dùng BHA không? Tụi mình cũng từng vậy nè. Thử giãn tần suất và thêm một bước phục hồi dịu nhẹ xem sao nha 💚',
+    'Cảm ơn chị Hà đã gửi ảnh sau 14 ngày dùng serum 🥹 Tụi mình đọc tin nhắn mà vui cả buổi. Ai cần tư vấn theo loại da thì inbox tụi mình nha!'
+  ];
+  function renderSamples() {
+    document.getElementById('samples').innerHTML = [0, 1, 2].map(i => `<div class="field"><label for="s${i}">Bài ${i + 1}</label><textarea class="textarea" id="s${i}" rows="5" placeholder="Dán nội dung bài cũ…">${esc(B.voiceSamples[i] || '')}</textarea></div>`).join('');
+  }
+  function renderTraits() {
+    const el = document.getElementById('traits');
+    if (!B.voiceTraits.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="callout success">' + icon('checkCircle') + '<div><b>Đặc điểm giọng đã trích — sẽ nạp vào mọi lần sinh sau:</b><ul style="margin:6px 0 0;padding-left:18px">' + B.voiceTraits.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul></div></div>';
+  }
+  document.getElementById('fill-samples').onclick = () => { SAMPLES.forEach((s, i) => { document.getElementById('s' + i).value = s; }); };
+  document.getElementById('analyze').onclick = () => {
+    const txt = [0, 1, 2].map(i => document.getElementById('s' + i).value.trim()).filter(Boolean);
+    if (txt.length < 2) { MP.toast('Cần ít nhất 2 bài để phân tích', 'alert'); return; }
+    B.voiceSamples = txt;
+    const all = txt.join(' ');
+    const sentences = all.split(/[.!?…]+/).map(s => s.trim()).filter(Boolean);
+    const avg = Math.round(sentences.reduce((s, x) => s + x.split(/\s+/).length, 0) / sentences.length);
+    const emoji = (all.match(/\p{Extended_Pictographic}/gu) || []).length;
+    const pron = /tụi mình|chúng mình/i.test(all) ? 'Xưng “tụi mình” – gọi “bạn”' : /chúng tôi/i.test(all) ? 'Xưng “chúng tôi”' : /\bmình\b/i.test(all) ? 'Xưng “mình” – gọi “bạn”' : 'Không xưng hô rõ';
+    const q = txt.filter(t => /\?/.test(t.split(/[.!]/)[0] || '') || /\?/.test(t)).length;
+    B.voiceTraits = [
+      'Câu trung bình ' + avg + ' từ — ' + (avg <= 14 ? 'ngắn, dễ đọc trên điện thoại' : 'khá dài, giàu chi tiết'),
+      pron,
+      emoji ? 'Có dùng emoji (~' + Math.round(emoji / txt.length * 10) / 10 + '/bài), thường ở cuối câu' : 'Không dùng emoji',
+      q ? 'Hay đặt câu hỏi để kéo tương tác' : 'Ít đặt câu hỏi, thiên về kể',
+      /nha|nè|nhé/i.test(all) ? 'Dùng từ đệm thân mật: “nha”, “nè”' : 'Văn phong trung tính'
+    ];
+    const btn = document.getElementById('analyze'); btn.disabled = true; btn.innerHTML = icon('refresh', 'sm') + 'Đang phân tích…';
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = icon('sparkles', 'sm') + 'Phân tích lại'; MP.save(); renderTraits(); MP.toast('Đã học giọng từ ' + txt.length + ' bài'); }, 1100);
+  };
+
+  document.getElementById('regen-strategy').onclick = () => {
+    MP.runSteps('Tạo lại chiến lược từ Brand Brain', [
+      { label: 'Tìm USP từ điểm khác biệt', ms: 900 }, { label: 'Tạo góc bán hàng (Angle)', ms: 900 },
+      { label: 'Vẽ chân dung khách hàng', ms: 700 }, { label: 'Đề xuất pillar & tỷ lệ', ms: 500 }
+    ], () => {
+      const S = state.strategy; S.version = S.versions.length + 1; S.versions.push({ v: S.version, label: 'v' + S.version + ' · tạo lại từ Brand Brain', date: 0 });
+      state.activity.unshift({ t: 0, icon: 'target', text: 'Tạo lại chiến lược v' + S.version }); MP.save(); location.href = 'strategy.html';
+    }, 'Bản chiến lược cũ được giữ lại — bạn quay về được bất cứ lúc nào.');
+  };
+
+  renderGroups(); renderSide(); renderTones(); renderForbidden(); renderSamples(); renderTraits();
+})();
+</script>
+</body>
+</html>

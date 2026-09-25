@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bài viết · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/theme.js"></script>
+</head>
+<body data-page="post">
+<main id="page" hidden>
+  <a class="btn ghost sm mb-3" href="plan.html" style="margin-left:-8px"><i data-icon="arrowLeft" class="sm"></i>Lịch đăng</a>
+  <div class="page-header">
+    <div class="grow">
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1 id="title"></h1>
+      <div class="row wrap mt-2" id="meta"></div>
+    </div>
+    <div class="actions">
+      <a class="btn icon" id="prev" aria-label="Ngày trước"><i data-icon="left"></i></a>
+      <a class="btn icon" id="next" aria-label="Ngày sau"><i data-icon="right"></i></a>
+      <button class="btn" id="regen"><i data-icon="refresh"></i>Tạo lại</button>
+      <button class="btn primary" id="approve"><i data-icon="check"></i>Duyệt bài</button>
+    </div>
+  </div>
+
+  <div class="split" id="layout">
+    <div class="stack lg" id="main-col"></div>
+    <aside class="stack" id="side-col"></aside>
+  </div>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.shell({ active: 'post', crumbs: ['Quy trình', 'Bài viết'] });
+
+  const all = MP.items();
+  let id = Number(MP.params.get('id'));
+  if (!all.find(i => i.id === id)) id = (all.find(i => i.content && !['approved', 'published'].includes(i.status)) || all[0]).id;
+  const p = MP.poolItem(id);
+  const LIMITS = { facebook: [300, 1200, 'Facebook: 300–1.200 ký tự đọc tốt nhất'], zalo: [200, 1500, 'Zalo OA: 200–1.500 ký tự, đọc trên điện thoại'], instagram: [150, 1200, 'Instagram: 150–1.200 ký tự, tối đa 2.200'] };
+  const TAGS = { facebook: [1, 5], zalo: [0, 3], instagram: [5, 15] };
+
+  function it() { return MP.item(id); }
+
+  function head() {
+    const x = it(); const k = all.findIndex(i => i.id === id);
+    document.title = 'Ngày ' + x.day + ' · ' + x.title;
+    document.getElementById('eyebrow').innerHTML = `<span class="step-dot">5</span>Ngày ${x.day} · ${MP.fmtDate(x.date, 'long')}`;
+    document.getElementById('title').textContent = x.title;
+    document.getElementById('meta').innerHTML = MP.pillarBadge(x.pillar) + MP.channelBadge(x.channel) + MP.formatBadge(x.format) + MP.statusBadge(x.status) + (x.regen ? `<span class="badge outline">${icon('refresh')}Đã tạo lại ${x.regen} lần</span>` : '');
+    const prev = all[k - 1], next = all[k + 1];
+    const pv = document.getElementById('prev'), nx = document.getElementById('next');
+    pv.href = prev ? 'post.html?id=' + prev.id : '#'; pv.setAttribute('aria-disabled', !prev); nx.href = next ? 'post.html?id=' + next.id : '#'; nx.setAttribute('aria-disabled', !next);
+    pv.title = prev ? 'Ngày ' + prev.day + ': ' + prev.title : ''; nx.title = next ? 'Ngày ' + next.day + ': ' + next.title : '';
+    const ap = document.getElementById('approve');
+    const done = p.status === 'published';
+    ap.hidden = !p.content || done; ap.innerHTML = p.status === 'approved' ? icon('check') + 'Đã duyệt' : icon('check') + 'Duyệt để tự đăng';
+    ap.className = 'btn ' + (p.status === 'approved' ? 'is-done' : 'primary');
+    ap.title = p.status === 'approved' ? 'Bấm để bỏ duyệt' : '';
+    document.getElementById('regen').hidden = !p.content || done;
+  }
+
+  // ---------- Kiểm tự động (US-406, US-502) ----------
+  function checks(c) {
+    const x = it(); const text = c.caption.toLowerCase(); const A = state.brand.answers;
+    const ents = [A.q1 && A.q1.value, A.q2 && A.q2.value, D.fmtPrice(A.q3 && A.q3.value), 'rau má', 'không cồn', 'kiểm nghiệm'].filter(Boolean);
+    const found = ents.filter(e => text.includes(String(e).toLowerCase()));
+    const bad = state.brand.forbidden.filter(w => text.includes(w.toLowerCase()));
+    const len = c.caption.length; const L = LIMITS[x.channel]; const T = TAGS[x.channel]; const nt = c.hashtags.length;
+    const out = [
+      found.length ? ['ok', 'Nhắc đúng thông tin thương hiệu', found.slice(0, 3).map(esc).join(' · ')] : ['bad', 'Chưa nhắc thông tin thương hiệu', 'Bài sẽ tự sinh lại để tránh nội dung chung chung'],
+      bad.length ? ['bad', 'Có từ cấm: ' + bad.map(esc).join(', '), 'Sửa tay hoặc bấm Tạo lại'] : ['ok', 'Không dùng từ cấm', state.brand.forbidden.length + ' từ trong danh sách'],
+      len >= L[0] && len <= L[1] ? ['ok', 'Độ dài phù hợp · ' + len + ' ký tự', L[2]] : ['warn', 'Độ dài ' + len + ' ký tự', L[2]],
+      nt >= T[0] && nt <= T[1] ? ['ok', nt + ' hashtag', 'Hợp chuẩn ' + D.CHANNELS[x.channel].name] : ['warn', nt + ' hashtag', 'Nên ' + T[0] + '–' + T[1] + ' cho ' + D.CHANNELS[x.channel].name],
+      x.flag ? ['warn', 'Gần trùng ý với ngày khác', 'Xem cảnh báo ở lịch 30 ngày'] : ['ok', 'Không trùng ý bài khác', 'Độ tương đồng cao nhất 0,71']
+    ];
+    return '<div class="checks">' + out.map(o => `<div class="check-item ${o[0]}"><span class="ci-ic">${icon(o[0] === 'ok' ? 'check' : o[0] === 'bad' ? 'x' : 'alert')}</span><div><b>${o[1]}</b><div class="subtle">${o[2]}</div></div></div>`).join('') + '</div>';
+  }
+
+  // ---------- Lịch đăng + workflow (US-601) ----------
+  function scheduleCard(x) {
+    const ai = MP.autoInfo(x); const done = x.status === 'published';
+    return `<div class="card"><div class="card-head"><h3>${icon('send')}Lịch đăng</h3><a class="btn ghost sm" href="automation.html">${icon('branch', 'sm')}Workflow</a></div>
+      <div class="card-body stack">
+        <div class="grid c2" style="gap:10px">
+          <div class="field"><label for="sch-time">Giờ đăng</label><input class="input" type="time" id="sch-time" value="${x.time}" ${done ? 'disabled' : ''}></div>
+          <div class="field"><label for="sch-ch">Kênh</label><select class="select" id="sch-ch" ${done ? 'disabled' : ''}>${state.plan.channels.map(c => `<option value="${c}" ${c === x.channel ? 'selected' : ''}>${D.CHANNELS[c].name}</option>`).join('')}</select></div>
+        </div>
+        <p class="subtle">${MP.fmtDate(x.date, 'long')} · đổi ngày ở <a href="plan.html">Lịch đăng</a></p>
+        <div class="callout ${ai.cls === 'warning' ? 'warning' : ai.cls === 'success' ? 'success' : ai.cls === 'danger' ? 'danger' : ''}">${icon(ai.icon)}<div>${esc(ai.text)}${done && x.url ? ` · <a href="${x.url}" target="_blank" rel="noopener">Xem bài</a>` : ''}</div></div>
+      </div></div>`;
+  }
+  function bindSchedule(x) {
+    const t = document.getElementById('sch-time'), c = document.getElementById('sch-ch');
+    if (t) t.onchange = () => { if (!t.value) return; p.time = t.value; MP.save(); render(); MP.toast('Đổi giờ đăng thành ' + t.value); };
+    if (c) c.onchange = () => { p.channel0 = c.value; p.time = D.CHANNELS[c.value].defaultTime; if (p.content) p.content.hashtags = D.genContent(Object.assign({}, p, { channel: c.value }), state.brand, p.regen || 0).hashtags; MP.save(); render(); MP.toast('Chuyển sang ' + D.CHANNELS[c.value].name + ' · giờ gợi ý ' + p.time); };
+  }
+
+  function render() {
+    head();
+    const x = it(); const main = document.getElementById('main-col'); const side = document.getElementById('side-col');
+    side.innerHTML = `<div class="card"><div class="card-head"><h3>${icon('info')}Thông tin</h3></div><div class="card-body"><dl class="kv" style="grid-template-columns:90px 1fr">
+        <dt>Ngày đăng</dt><dd>${MP.fmtDate(x.date, 'long')}</dd>
+        <dt>Pillar</dt><dd>${MP.pillarBadge(x.pillar)}</dd>
+        <dt>Angle</dt><dd>${esc(MP.angleName(x.angle))}</dd>
+        <dt>Kênh</dt><dd>${esc(D.CHANNELS[x.channel].name)}</dd>
+        <dt>Định dạng</dt><dd>${esc(D.FORMATS[x.format].name)}</dd>
+        <dt>Giọng</dt><dd>${esc(D.TONES.find(t => t.id === state.brand.tone).name)} · <a href="brand.html#voice">đổi</a></dd></dl></div></div>` +
+      (p.content ? `<div class="card"><div class="card-head"><h3>${icon('shield')}Kiểm tự động</h3></div><div class="card-body">${checks(p.content)}</div></div>` : '') +
+      '';
+    side.insertAdjacentHTML('afterbegin', scheduleCard(x));
+    bindSchedule(x);
+
+    if (!p.content) {
+      main.innerHTML = `<div class="card"><div class="empty"><div class="em-ic">${icon('sparkles', 'xl')}</div><h2>Bài này mới có khung</h2>
+        <p>Đã có tiêu đề và hook. Bấm sinh để có caption, hashtag và gợi ý hình — mất khoảng 10 giây.</p>
+        <div class="callout mt-2" style="text-align:left">${icon('message')}<div><b>Hook:</b> ${esc(MP.quoteHook(x.hook))}</div></div>
+        <button class="btn primary lg mt-3" id="gen-one">${icon('sparkles')}Sinh nội dung bài này</button></div></div>`;
+      document.getElementById('gen-one').onclick = () => {
+        MP.runSteps('Đang viết bài ngày ' + x.day, [{ label: 'Nạp Brand Brain, USP, angle ' + x.angle, ms: 500 }, { label: 'Viết caption theo giọng ' + D.TONES.find(t => t.id === state.brand.tone).name, ms: 1100 }, { label: 'Kiểm từ cấm & thông tin thương hiệu', ms: 500 }], () => {
+          p.content = D.genContent(p, state.brand, 0); p.status = 'generated'; MP.save(); render(); MP.toast('Đã sinh nội dung');
+        }, 'Chỉ bài này được sinh, 29 bài kia giữ nguyên.');
+      };
+      return;
+    }
+    const c = p.content; const locked = p.status === 'published';
+    main.innerHTML = (locked ? `<div class="callout success">${icon('checkCircle')}<div><b>${esc(MP.autoInfo(x).text)}.</b> Bài đã lên kênh nên không sửa ở đây nữa — muốn đổi nội dung thì sửa trực tiếp trên ${esc(D.CHANNELS[x.channel].name)}.</div></div>` : '') + `
+      <div class="card"><div class="card-head"><h3>${icon('zap')}Hook</h3><button class="btn sm" data-copy="hook">${icon('copy', 'sm')}Chép</button></div>
+        <div class="card-body"><p contenteditable="${!locked}" id="hook" style="font-size:16px;font-weight:600">${esc(x.hook)}</p></div></div>
+      <div class="card"><div class="card-head"><h3>${icon('message')}Caption ${p.edited ? '<span class="badge warning">' + icon('pencil') + 'Bạn đã sửa</span>' : ''}</h3>
+        <div class="row"><button class="btn sm ghost" id="edit-cap" ${locked ? 'hidden' : ''}>${icon('pencil', 'sm')}Sửa</button><button class="btn sm" data-copy="caption">${icon('copy', 'sm')}Chép caption</button></div></div>
+        <div class="card-body" id="cap-body"><div class="content-block" id="cap">${esc(c.caption)}</div></div>
+        <div class="card-foot" style="justify-content:space-between"><span class="subtle">${c.caption.length} ký tự · ${c.caption.split(/\s+/).length} từ</span><button class="btn sm primary" data-copy="all">${icon('copy', 'sm')}Chép cả caption + hashtag</button></div></div>
+      <div class="grid c2">
+        <div class="card"><div class="card-head"><h3>${icon('hash')}Hashtag</h3><button class="btn sm" data-copy="tags">${icon('copy', 'sm')}Chép</button></div>
+          <div class="card-body"><div class="hashtags">${c.hashtags.map(h => '<span>' + esc(h) + '</span>').join('')}</div></div></div>
+        <div class="card"><div class="card-head"><h3>${icon('image')}Gợi ý hình</h3><button class="btn sm" data-copy="brief">${icon('copy', 'sm')}Chép</button></div>
+          <div class="card-body"><p class="muted">${esc(c.imageBrief)}</p><p class="subtle mt-2">Thiết kế trên Canva — nền tảng không làm trình chỉnh ảnh.</p></div></div>
+      </div>`;
+
+    main.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
+      const k = b.dataset.copy; const txt = k === 'hook' ? x.hook : k === 'caption' ? c.caption : k === 'tags' ? c.hashtags.join(' ') : k === 'brief' ? c.imageBrief : c.caption + '\n\n' + c.hashtags.join(' ');
+      MP.copy(txt, b);
+    });
+    const hk = document.getElementById('hook');
+    hk.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); hk.blur(); } });
+    hk.onblur = () => { const v = hk.textContent.trim(); if (v && v !== p.hook) { p.hook = v; p.edited = true; if (p.status !== 'approved') p.status = 'edited'; MP.save(); head(); MP.toast('Đã lưu hook'); } };
+    document.getElementById('edit-cap').onclick = () => {
+      const body = document.getElementById('cap-body');
+      body.innerHTML = `<textarea class="textarea" id="cap-ta" rows="14" style="font-size:14px">${esc(c.caption)}</textarea><div class="row mt-2"><button class="btn primary sm" id="cap-save">${icon('check', 'sm')}Lưu</button><button class="btn ghost sm" id="cap-cancel">Huỷ</button><span class="subtle" id="cap-len"></span></div>`;
+      const ta = document.getElementById('cap-ta'); ta.focus();
+      const upd = () => { document.getElementById('cap-len').textContent = ta.value.length + ' ký tự'; }; ta.oninput = upd; upd();
+      document.getElementById('cap-cancel').onclick = render;
+      document.getElementById('cap-save').onclick = () => { c.caption = ta.value; p.edited = true; if (p.status !== 'approved') p.status = 'edited'; MP.save(); render(); MP.toast('Đã lưu caption'); };
+    };
+  }
+
+  // ---------- Tạo lại (US-404) ----------
+  document.getElementById('regen').onclick = e => MP.regenPopover(e.currentTarget, {
+    title: 'Tạo lại bài ngày ' + it().day,
+    suggestions: ['Ngắn hơn', 'Thêm câu hỏi tương tác', 'Nhấn vào giá', 'Bớt emoji'],
+    onGo: note => {
+      const cb = document.getElementById('cap-body'); cb.innerHTML = '<div class="stack"><p class="subtle">' + icon('sparkles', 'sm') + ' Đang viết lại' + (note ? ' theo ghi chú “' + esc(note) + '”' : '') + '…</p><div class="skeleton" style="width:92%"></div><div class="skeleton" style="width:80%"></div><div class="skeleton" style="width:86%"></div><div class="skeleton" style="width:50%"></div></div>';
+      setTimeout(() => {
+        const fresh = D.genContent(p, state.brand, (p.regen || 0) + 1);
+        if (/ngắn/i.test(note)) { const L = fresh.caption.split('\n'); const bl = L.filter(l => /^(🌿|•|👉|—) /.test(l)).slice(0, 2); fresh.caption = [L[0], ''].concat(bl, [''], L.slice(-2)).join('\n'); }
+        if (/câu hỏi/i.test(note)) fresh.caption += '\n\nBạn đang gặp tình trạng nào? Comment số 1, 2 hoặc 3 nhé!';
+        MP.diffModal('So sánh bản cũ và bản mới', p.content.caption, fresh.caption, use => {
+          if (use) { p.content = fresh; p.regen = (p.regen || 0) + 1; p.edited = false; if (p.status !== 'approved') p.status = 'generated'; MP.save(); MP.toast('Đã dùng bản mới'); }
+          render();
+        });
+      }, 1300);
+    }
+  });
+  document.getElementById('approve').onclick = () => {
+    if (p.status === 'approved') { p.status = p.edited ? 'edited' : 'generated'; MP.save(); render(); return; }
+    p.status = 'approved'; state.activity.unshift({ t: 0, icon: 'check', text: 'Duyệt bài ngày ' + it().day + ' · ' + p.title }); MP.save(); render();
+    const ai = MP.autoInfo(it()); MP.toast(ai.kind === 'auto' ? 'Đã duyệt · tự đăng ' + it().time + ' ' + MP.fmtDate(it().date) : 'Đã duyệt bài ngày ' + it().day, ai.kind === 'auto' ? 'zap' : 'checkCircle');
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tổng quan · Marketing Agent</title>
+  <meta name="description" content="Prototype nền tảng Marketing Agent cho SME — Brand Brain, chiến lược, lịch đăng 30 ngày, bài viết và workflow tự động đăng bài.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/theme.js"></script>
+</head>
+<body data-page="home">
+<main id="page" hidden>
+  <div class="page-header">
+    <div>
+      <h1 id="greet">Chào bạn</h1>
+      <p class="subtitle" id="greet-sub"></p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="plan.html"><i data-icon="calendar"></i>Mở lịch đăng</a>
+      <a class="btn primary" href="onboarding.html"><i data-icon="plus"></i>Tạo brand mới</a>
+    </div>
+  </div>
+
+  <!-- Câu hỏi cốt lõi của SME: ngày mai đăng gì -->
+  <div class="grid c2" id="today-cards"></div>
+
+  <div class="section-title"><h2>Quy trình Phase 1</h2><span class="subtle">Từ trả lời câu hỏi đến bài tự lên kênh — đo hiệu quả làm sau</span></div>
+  <div class="flow" id="flow"></div>
+
+  <div class="grid c4 mt-6" id="kpis"></div>
+
+  <div class="grid c2 mt-6">
+    <div class="card">
+      <div class="card-head"><h3><i data-icon="layers"></i>Phân bổ pillar tháng này</h3><a class="btn ghost sm" href="strategy.html#pillars">Chỉnh tỷ lệ</a></div>
+      <div class="card-body" id="pillar-dist"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3><i data-icon="clock"></i>Hoạt động gần đây</h3></div>
+      <div class="card-body"><div class="list" id="activity"></div></div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const { state, icon, esc } = MP;
+  MP.shell({ active: 'home', crumbs: ['Tổng quan'] });
+
+  const h = new Date().getHours();
+  document.getElementById('greet').textContent = (h < 11 ? 'Chào buổi sáng' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối') + ', TTS';
+  const all = MP.items();
+  const ready = all.filter(i => i.status !== 'planned').length;
+  document.getElementById('greet-sub').textContent = `${state.brand.answers.q1.value} · Kế hoạch 30 ngày từ ${MP.fmtDate(state.plan.start, 'short')} · ${ready}/${all.length} bài đã có nội dung.`;
+
+  // Hôm nay / Ngày mai
+  const t = MP.today(); const tm = MP.D.addDays(t, 1);
+  function dayCard(label, iso, accent) {
+    const it = all.find(i => i.date === iso);
+    if (!it) return `<div class="card card-pad"><div class="eyebrow">${icon('calendar', 'sm')}${label} · ${MP.fmtDate(iso)}</div><div class="empty" style="padding:20px"><p>Không có bài theo lịch. Tần suất hiện tại: ${state.plan.frequency} bài/tuần.</p></div></div>`;
+    const href = `post.html?id=${it.id}`; const ai = MP.autoInfo(it);
+    return `<div class="card ${accent ? 'accent' : ''}">
+      <div class="card-body stack">
+        <div class="row between wrap"><span class="eyebrow" style="margin:0">${icon('calendar', 'sm')}${label} · ${MP.fmtDate(iso)} · Ngày ${it.day}</span>${MP.statusBadge(it.status)}</div>
+        <h2>${esc(it.title)}</h2>
+        <p class="muted">${esc(MP.quoteHook(it.hook))}</p>
+        <div class="row wrap">${MP.pillarBadge(it.pillar)}${MP.channelBadge(it.channel)}${MP.formatBadge(it.format)}<span class="badge outline">${icon('clock')}${it.time}</span></div>
+        <div class="callout ${ai.cls === 'warning' ? 'warning' : ai.cls === 'success' ? 'success' : ''}" style="padding:9px 12px">${icon(ai.icon)}<div>${esc(ai.text)}</div></div>
+      </div>
+      <div class="card-foot">
+        ${it.content ? `<button class="btn sm" data-copy="${it.id}">${icon('copy', 'sm')}Chép caption</button>` : ''}
+        <a class="btn primary sm" href="${href}">${it.content ? 'Mở bài' : 'Sinh nội dung'}${icon('arrowRight', 'sm')}</a>
+      </div></div>`;
+  }
+  document.getElementById('today-cards').innerHTML = dayCard('Hôm nay', t, false) + dayCard('Ngày mai đăng gì?', tm, true);
+  document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => { const it = MP.poolItem(b.dataset.copy); MP.copy(it.content.caption + '\n\n' + it.content.hashtags.join(' '), b); });
+
+  // Flow 6 bước
+  const A = state.automation; const pub = all.filter(i => i.status === 'published').length;
+  const conn = Object.values(A.connections).filter(c => c.connected).length;
+  const steps = [
+    { n: 1, t: 'Onboarding', s: '12 câu hỏi · 3 phút', href: 'onboarding.html', st: 'done' },
+    { n: 2, t: 'Brand Brain', s: 'Hồ sơ thương hiệu', href: 'brand.html', st: 'done' },
+    { n: 3, t: 'Chiến lược', s: 'USP · Angle · Pillar', href: 'strategy.html', st: 'done' },
+    { n: 4, t: 'Lịch đăng', s: `${all.length} bài / 30 ngày`, href: 'plan.html', st: 'done' },
+    { n: 5, t: 'Bài viết', s: `${ready}/${all.length} bài có nội dung`, href: 'post.html', st: ready < all.length ? 'current' : 'done' },
+    { n: 6, t: 'Tự động đăng', s: A.enabled ? `Đang bật · ${conn}/3 kênh` : 'Đang tắt', href: 'automation.html', st: A.enabled ? 'done' : 'current' }
+  ];
+  document.getElementById('flow').innerHTML = steps.map(s => `<a class="flow-step ${s.st}" href="${s.href}" ${s.st === 'locked' ? 'aria-disabled="true" onclick="return false"' : ''}>
+    <span class="n">${s.st === 'done' ? icon('check', 'sm') : s.st === 'locked' ? icon('lock', 'sm') : s.n}</span><b>${s.n}. ${s.t}</b><span>${s.s}</span></a>`).join('');
+
+  // KPI
+  const q = MP.quota();
+  const approved = all.filter(i => i.status === 'approved').length;
+  const noEdit = all.filter(i => i.status !== 'planned' && !i.edited).length;
+  const kpis = [
+    { l: 'Bài sẵn sàng', v: `${ready}<span class="subtle"> / ${all.length}</span>`, ic: 'file', sub: `${approved} bài đã duyệt` },
+    { l: 'Dùng luôn không sửa', v: ready ? Math.round(noEdit / ready * 100) + '%' : '—', ic: 'checkCircle', sub: 'Mục tiêu gate GĐ 1: ≥ 50%' },
+    { l: 'Đã đăng', v: pub + `<span class="subtle"> / ${all.length}</span>`, ic: 'send', sub: `${all.filter(i => i.status === 'approved').length} bài đã duyệt đang chờ đến giờ` },
+    { l: 'Hạn mức bài viết', v: `${q.posts.max - q.posts.used}`, ic: 'zap', sub: `còn lại trong gói · đã dùng ${q.posts.used}` }
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k => `<div class="card kpi"><div class="l">${icon(k.ic, 'sm')}${k.l}</div><div class="v">${k.v}</div><div class="subtle">${k.sub}</div></div>`).join('');
+
+  // Pillar distribution
+  const n = all.length;
+  const rows = state.strategy.pillars.map(p => {
+    const actual = all.filter(i => i.pillar === p.id).length;
+    const pct = Math.round(actual / n * 100); const P = MP.D.PILLARS[p.id];
+    return { p, P, actual, pct };
+  });
+  document.getElementById('pillar-dist').innerHTML =
+    `<div class="ratio-bar mb-4" role="img" aria-label="Phân bổ pillar">${rows.map(r => `<span class="bg-${r.p.id}" style="width:${r.pct}%" title="${r.P.name} ${r.pct}%"></span>`).join('')}</div>` +
+    rows.map(r => `<div class="list-item"><span class="ic-box ${r.p.id}">${icon(r.P.icon, 'sm')}</span><div class="grow"><b>${r.P.name}</b><div class="subtle">${r.P.desc}</div></div><div style="text-align:right"><b>${r.actual} bài · ${r.pct}%</b><div class="subtle">Mục tiêu ${r.p.ratio}%</div></div></div>`).join('');
+
+  document.getElementById('activity').innerHTML = state.activity.slice(0, 6).map(a => `<div class="list-item"><span class="ic-box">${icon(a.icon, 'sm')}</span><div class="grow">${esc(a.text)}</div><span class="subtle nowrap">${MP.ago(a.t)}</span></div>`).join('');
+})();
+</script>
+</body>
+</html>

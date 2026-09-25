@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Khai thác thương hiệu · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/theme.js"></script>
+</head>
+<body data-page="onboarding">
+<div class="focus-layout">
+  <header class="focus-top">
+    <a class="logo" href="index.html" style="padding:0"><span class="logo-mark"><i data-icon="sparkles"></i></span><span class="hide-sm">Marketing Agent<small>Khai thác thương hiệu</small></span></a>
+    <div class="row">
+      <span class="timer" id="timer" title="Mục tiêu: hoàn thành dưới 3 phút"><i data-icon="clock" class="sm"></i><span>0:00</span></span>
+      <span class="badge hide-sm" id="draft-state"><i data-icon="save"></i>Tự lưu nháp</span>
+      <button class="btn ghost icon" data-theme-toggle aria-label="Đổi giao diện sáng/tối"><i data-icon="moon"></i></button>
+      <a class="btn ghost sm" href="index.html">Thoát</a>
+    </div>
+  </header>
+
+  <div class="focus-body">
+    <div class="wizard">
+      <div class="wizard-steps" id="bar" aria-hidden="true"></div>
+      <div class="row between mb-4"><span class="subtle" id="step-label"></span><span class="subtle" id="answered"></span></div>
+      <div id="step"></div>
+    </div>
+  </div>
+
+  <footer class="wizard-foot"><div>
+    <button class="btn" id="back"><i data-icon="arrowLeft" class="sm"></i>Quay lại</button>
+    <span class="subtle hide-sm" id="foot-hint">Không có ô viết prompt — chỉ cần trả lời câu hỏi.</span>
+    <button class="btn primary" id="next">Tiếp tục<i data-icon="arrowRight" class="sm"></i></button>
+  </div></footer>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const { D, icon, esc } = MP;
+  const DKEY = 'mp-onb-draft';
+  MP.hydrateIcons(document);
+  MP.bindThemeToggle(document);
+  { const b = document.querySelector('[data-theme-toggle]'); b.innerHTML = icon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon'); }
+
+  // ---------- Nháp (US-104) ----------
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(DKEY)); } catch (e) {}
+  const fresh = MP.params.get('fresh') === '1';
+  if (!draft || fresh) draft = { step: 0, industry: null, ans: {}, startedAt: Date.now() };
+  const saveDraft = () => {
+    try { localStorage.setItem(DKEY, JSON.stringify(draft)); } catch (e) {}
+    const el = document.getElementById('draft-state'); el.innerHTML = icon('check') + 'Đã lưu nháp'; el.className = 'badge success hide-sm';
+  };
+  if (!fresh && draft.step > 0) setTimeout(() => MP.toast('Đã khôi phục bản nháp — bạn làm tiếp từ bước ' + (draft.step + 1)), 300);
+
+  // ---------- Đồng hồ TTFV ----------
+  const timerEl = document.getElementById('timer');
+  setInterval(() => {
+    const s = Math.floor((Date.now() - draft.startedAt) / 1000);
+    timerEl.querySelector('span').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    timerEl.classList.toggle('warn', s > 180);
+  }, 1000);
+
+  const GROUPS = D.QUESTION_GROUPS;
+  const TOTAL = GROUPS.length + 2; // ngành + 4 nhóm + xem lại
+  const qsOf = g => D.QUESTIONS.filter(q => q.group === g);
+  const label = q => (q.labelBy && q.labelBy[draft.industry]) || q.label;
+  const has = id => { const a = draft.ans[id]; return a && (Array.isArray(a.value) ? a.value.length : String(a.value || '').trim()); };
+  const set = (id, value, source) => { draft.ans[id] = { value, source: source || 'user' }; saveDraft(); updateCount(); };
+
+  function updateCount() {
+    const n = D.QUESTIONS.filter(q => has(q.id)).length;
+    document.getElementById('answered').textContent = n + '/12 câu đã trả lời';
+  }
+
+  function srcBadge(id) {
+    const a = draft.ans[id]; if (!a) return '';
+    if (a.source === 'scraped') return '<span class="badge info src-badge">' + icon('link') + 'Tự điền từ link</span>';
+    if (a.source === 'inferred') return '<span class="badge primary src-badge">' + icon('sparkles') + 'AI gợi ý</span>';
+    return '';
+  }
+
+  // ---------- Render ----------
+  function render() {
+    const s = draft.step;
+    document.getElementById('bar').innerHTML = Array.from({ length: TOTAL }, (_, i) => '<span class="' + (i < s ? 'done' : i === s ? 'cur' : '') + '"></span>').join('');
+    document.getElementById('step-label').textContent = 'Bước ' + (s + 1) + '/' + TOTAL;
+    document.getElementById('back').style.visibility = s === 0 ? 'hidden' : 'visible';
+    const next = document.getElementById('next');
+    next.innerHTML = s === TOTAL - 1 ? icon('sparkles', 'sm') + 'Tạo chiến lược' : 'Tiếp tục' + icon('arrowRight', 'sm');
+    const box = document.getElementById('step');
+    if (s === 0) box.innerHTML = stepIndustry();
+    else if (s <= GROUPS.length) box.innerHTML = stepGroup(GROUPS[s - 1]);
+    else box.innerHTML = stepReview();
+    bind();
+    updateCount();
+    window.scrollTo(0, 0);
+    const f = box.querySelector('input.input, textarea'); if (f && s > 0) f.focus({ preventScroll: true });
+  }
+
+  function stepIndustry() {
+    return `<div class="stack lg">
+      <div><div class="eyebrow">${icon('sparkles', 'sm')}Mất khoảng 3 phút · 12 câu hỏi</div><h1>Bạn đang kinh doanh ngành gì?</h1>
+      <p class="muted mt-1">Mỗi ngành có bộ câu hỏi, góc bán hàng và bài mẫu riêng. Đổi lại được sau.</p></div>
+      <div class="options" role="group" aria-label="Chọn ngành">${D.INDUSTRIES.map(i => `<button type="button" class="option" data-ind="${i.id}" aria-pressed="${draft.industry === i.id}">
+        <span class="opt-ic">${icon(i.icon)}</span><b>${i.name}</b><span>${i.desc}</span>
+        ${i.preset ? '<span class="badge success" style="align-self:flex-start">' + icon('check') + 'Có preset ngành</span>' : '<span class="badge" style="align-self:flex-start">Bộ câu hỏi chung</span>'}
+      </button>`).join('')}</div>
+      <div class="field invalid-host" id="f-ind"><p class="error-text">Chọn một ngành để tiếp tục.</p></div>
+      <div class="card card-pad">
+        <div class="field">
+          <label for="url">${icon('link', 'sm')}Có fanpage hoặc website? Dán vào để điền nhanh <span class="badge">Không bắt buộc</span></label>
+          <div class="input-group">
+            <div class="input-affix grow">${icon('globe', 'sm')}<input class="input" id="url" type="url" placeholder="https://facebook.com/moclan.cosmetics" value="${esc(draft.url || '')}"></div>
+            <button class="btn" id="scrape" type="button">${icon('sparkles', 'sm')}Đọc trang</button>
+          </div>
+          <p class="hint" id="scrape-hint">Hệ thống đọc tên, sản phẩm, giá, mô tả nếu tìm thấy. Bạn vẫn sửa được từng câu.</p>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function fieldHtml(q, idx) {
+    const a = draft.ans[q.id]; const v = a ? a.value : (q.type === 'multi' ? [] : '');
+    const head = `<label class="field-label" for="${q.id}"><span class="q-num">${idx}</span>${esc(label(q))}${q.required ? '<span class="req" aria-label="bắt buộc">*</span>' : '<span class="badge">Không bắt buộc</span>'}${srcBadge(q.id)}</label>`;
+    let body = '';
+    if (q.type === 'text' || q.type === 'money') {
+      body = `<input class="input" id="${q.id}" data-q="${q.id}" ${q.type === 'money' ? 'inputmode="numeric"' : ''} placeholder="${esc(q.placeholder || '')}" value="${esc(v)}">` +
+        (q.type === 'money' ? `<p class="hint" data-money="${q.id}">${v ? 'Hiển thị: ' + D.fmtPrice(v) : esc(q.hint || '')}</p>` : '');
+    } else if (q.type === 'textarea') {
+      const sugg = (q.suggestBy && (q.suggestBy[draft.industry] || q.suggestBy._)) || [];
+      body = `<textarea class="textarea" id="${q.id}" data-q="${q.id}" rows="3" placeholder="${esc(q.placeholder || '')}">${esc(v)}</textarea>` +
+        (sugg.length ? `<div class="chips">${sugg.map(s => `<button type="button" class="chip" data-append="${q.id}" style="min-height:28px;padding:3px 10px;font-size:12.5px">${icon('plus', 'sm')}${esc(s)}</button>`).join('')}</div>` : '');
+    } else if (q.type === 'multi') {
+      body = `<div class="chips" role="group" aria-label="${esc(label(q))}">${q.options.map(o => `<button type="button" class="chip" data-multi="${q.id}" data-v="${esc(o)}" aria-pressed="${v.includes(o)}">${esc(o)}</button>`).join('')}</div>`;
+    } else if (q.type === 'single') {
+      body = `<div class="options" role="group">${q.options.map(o => `<button type="button" class="option" data-single="${q.id}" data-v="${esc(o.v)}" aria-pressed="${v === o.v}"><span class="opt-ic">${icon(o.icon)}</span><b>${esc(o.v)}</b><span>${esc(o.d)}</span></button>`).join('')}</div>`;
+    } else if (q.type === 'tone') {
+      const cur = D.TONES.find(t => t.id === v);
+      body = `<div class="options" role="group">${D.TONES.map(t => `<button type="button" class="option" data-single="${q.id}" data-v="${t.id}" aria-pressed="${v === t.id}"><b>${t.name}</b><span>${t.desc}</span></button>`).join('')}</div>
+        <div class="callout mt-2" id="tone-preview">${icon('message')}<div><b>Nghe thử:</b> ${cur ? esc(cur.sample) : 'Chọn một giọng để xem câu mẫu.'}</div></div>`;
+    }
+    return `<div class="field" id="f-${q.id}">${head}${q.hint && q.type !== 'money' ? `<p class="hint">${esc(q.hint)}</p>` : ''}${body}<p class="error-text">Câu này cần trả lời để AI hiểu đúng về bạn.</p></div>`;
+  }
+
+  function stepGroup(g) {
+    const qs = qsOf(g.id);
+    const startIdx = D.QUESTIONS.indexOf(qs[0]) + 1;
+    return `<div class="stack lg">
+      <div><div class="eyebrow">Phần ${GROUPS.indexOf(g) + 1}/4</div><h1>${esc(g.title)}</h1><p class="muted mt-1">${esc(g.desc)}</p></div>
+      <div class="card card-pad stack lg">${qs.map((q, i) => fieldHtml(q, startIdx + i)).join('<div class="divider" style="margin:0"></div>')}</div>
+    </div>`;
+  }
+
+  function show(q) {
+    const a = draft.ans[q.id]; if (!a) return '<span class="subtle">Chưa trả lời</span>';
+    if (q.type === 'tone') return esc((D.TONES.find(t => t.id === a.value) || {}).name || '');
+    if (q.type === 'money') return esc(D.fmtPrice(a.value));
+    return esc(Array.isArray(a.value) ? a.value.join(', ') : a.value);
+  }
+
+  function stepReview() {
+    const ind = D.INDUSTRIES.find(i => i.id === draft.industry);
+    return `<div class="stack lg">
+      <div><div class="eyebrow">${icon('checkCircle', 'sm')}Sắp xong</div><h1>Kiểm tra lại hồ sơ thương hiệu</h1>
+      <p class="muted mt-1">Đây sẽ là <b>Brand Brain</b> — mọi chiến lược, bài viết, kịch bản về sau đều dựa trên nó. Bạn sửa được bất cứ lúc nào.</p></div>
+      <div class="card">
+        <div class="card-head"><h3>${icon(ind ? ind.icon : 'sparkles')}${esc(ind ? ind.name : '')}</h3><button class="btn ghost sm" data-goto="0">${icon('pencil', 'sm')}Đổi ngành</button></div>
+        <div class="card-body"><div class="list">${D.QUESTIONS.map((q, i) => `<div class="list-item" style="align-items:flex-start">
+          <span class="q-num">${i + 1}</span>
+          <div class="grow"><div class="subtle">${esc(label(q))}</div><div style="font-weight:500">${show(q)}</div></div>
+          ${srcBadge(q.id)}
+          <button class="btn ghost sm icon" data-goto="${GROUPS.findIndex(g => g.id === q.group) + 1}" aria-label="Sửa câu ${i + 1}">${icon('pencil', 'sm')}</button>
+        </div>`).join('')}</div></div>
+      </div>
+      <div class="callout">${icon('info')}<div>Bấm <b>Tạo chiến lược</b>, hệ thống sẽ đề xuất USP, 3–5 góc bán hàng, chân dung khách hàng và tỷ lệ pillar — thường mất dưới 60 giây.</div></div>
+    </div>`;
+  }
+
+  // ---------- Sự kiện ----------
+  function bind() {
+    const box = document.getElementById('step');
+    box.querySelectorAll('[data-ind]').forEach(b => b.onclick = () => {
+      draft.industry = b.dataset.ind; saveDraft();
+      box.querySelectorAll('[data-ind]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      document.getElementById('f-ind').classList.remove('invalid');
+    });
+    box.querySelectorAll('[data-q]').forEach(inp => inp.oninput = () => {
+      const q = inp.dataset.q; set(q, inp.value, 'user');
+      const f = document.getElementById('f-' + q); f.classList.remove('invalid');
+      const sb = f.querySelector('.src-badge'); if (sb) sb.remove();
+      const m = box.querySelector('[data-money="' + q + '"]'); if (m) m.textContent = inp.value ? 'Hiển thị: ' + D.fmtPrice(inp.value) : '';
+    });
+    box.querySelectorAll('[data-append]').forEach(c => c.onclick = () => {
+      const ta = document.getElementById(c.dataset.append);
+      ta.value = ta.value.trim() ? ta.value.trim().replace(/[.;,]$/, '') + '; ' + c.textContent.trim().toLowerCase() : c.textContent.trim();
+      ta.dispatchEvent(new Event('input'));
+    });
+    box.querySelectorAll('[data-multi]').forEach(c => c.onclick = () => {
+      const id = c.dataset.multi; const cur = (draft.ans[id] && draft.ans[id].value) || [];
+      const v = c.dataset.v; const on = cur.includes(v);
+      set(id, on ? cur.filter(x => x !== v) : cur.concat(v));
+      c.setAttribute('aria-pressed', !on); document.getElementById('f-' + id).classList.remove('invalid');
+    });
+    box.querySelectorAll('[data-single]').forEach(c => c.onclick = () => {
+      const id = c.dataset.single; set(id, c.dataset.v);
+      box.querySelectorAll('[data-single="' + id + '"]').forEach(x => x.setAttribute('aria-pressed', x === c));
+      document.getElementById('f-' + id).classList.remove('invalid');
+      if (id === 'q12') { const t = D.TONES.find(t => t.id === c.dataset.v); document.getElementById('tone-preview').innerHTML = icon('message') + '<div><b>Nghe thử:</b> ' + esc(t.sample) + '</div>'; }
+    });
+    box.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => { draft.step = Number(b.dataset.goto); saveDraft(); render(); });
+    const sc = document.getElementById('scrape');
+    if (sc) sc.onclick = () => {
+      const url = document.getElementById('url').value.trim();
+      const hint = document.getElementById('scrape-hint');
+      if (!url) { hint.innerHTML = '<span style="color:var(--danger)">Dán link fanpage hoặc website trước đã.</span>'; return; }
+      draft.url = url; sc.disabled = true; sc.innerHTML = '<span class="gen-step running" style="padding:0"><span class="st" style="width:16px;height:16px"></span></span>Đang đọc…';
+      setTimeout(() => {
+        ['q1', 'q2', 'q3', 'q4'].forEach(id => { draft.ans[id] = JSON.parse(JSON.stringify(D.SAMPLE_ANSWERS[id])); });
+        if (!draft.industry) draft.industry = 'fashion_beauty';
+        saveDraft(); sc.disabled = false; sc.innerHTML = icon('check', 'sm') + 'Đã đọc';
+        hint.innerHTML = '<span style="color:var(--success)">Đã điền sẵn 4/12 câu: tên, sản phẩm, giá, vấn đề khách gặp. Kiểm tra lại ở bước sau.</span>';
+        box.querySelectorAll('[data-ind]').forEach(x => x.setAttribute('aria-pressed', x.dataset.ind === draft.industry));
+        updateCount(); MP.toast('Đã điền sẵn 4/12 câu từ link');
+      }, 1500);
+    };
+  }
+
+  function validate() {
+    const s = draft.step;
+    if (s === 0) { if (!draft.industry) { document.getElementById('f-ind').classList.add('invalid'); return false; } return true; }
+    if (s > GROUPS.length) return true;
+    let ok = true, first = null;
+    qsOf(GROUPS[s - 1].id).forEach(q => { if (q.required && !has(q.id)) { ok = false; const f = document.getElementById('f-' + q.id); f.classList.add('invalid'); first = first || f; } });
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return ok;
+  }
+
+  document.getElementById('back').onclick = () => { if (draft.step > 0) { draft.step--; saveDraft(); render(); } };
+  document.getElementById('next').onclick = () => {
+    if (!validate()) return;
+    if (draft.step < TOTAL - 1) { draft.step++; saveDraft(); render(); return; }
+    finish();
+  };
+
+  function finish() {
+    const st = MP.state;
+    MP.runSteps('Đang tạo chiến lược cho ' + ((draft.ans.q1 && draft.ans.q1.value) || 'thương hiệu của bạn'), [
+      { label: 'Chuẩn hoá Brand Brain', ms: 600 },
+      { label: 'Tìm USP từ điểm khác biệt', ms: 1100 },
+      { label: 'Tạo 5 góc bán hàng (Angle)', ms: 1200 },
+      { label: 'Vẽ chân dung khách hàng', ms: 900 },
+      { label: 'Đề xuất pillar & tỷ lệ', ms: 700 }
+    ], () => {
+      st.brand.industry = draft.industry;
+      Object.keys(draft.ans).forEach(k => { st.brand.answers[k] = draft.ans[k]; });
+      if (draft.ans.q12) st.brand.tone = draft.ans.q12.value;
+      st.activity.unshift({ t: 0, icon: 'target', text: 'Hoàn thành onboarding và tạo chiến lược' });
+      const secs = Math.round((Date.now() - draft.startedAt) / 1000);
+      MP.save();
+      try { localStorage.removeItem(DKEY); } catch (e) {}
+      location.href = 'strategy.html?ttfv=' + secs;
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

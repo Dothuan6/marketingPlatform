@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chiến lược · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/theme.js"></script>
+</head>
+<body data-page="strategy">
+<main id="page" hidden>
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="step-dot">3</span>Bước 3 · USP · Angle · Persona · Pillar</div>
+      <h1>Chiến lược</h1>
+      <p class="subtitle">USP, góc bán hàng và chân dung khách hàng được suy ra từ Brand Brain. Bấm vào bất kỳ đoạn chữ nào để sửa — bản bạn sửa sẽ không bị AI ghi đè.</p>
+    </div>
+    <div class="actions">
+      <label class="sr-only" for="ver">Phiên bản</label>
+      <select class="select" id="ver" style="width:auto;min-height:36px;height:36px;padding:0 10px"></select>
+      <a class="btn primary" href="plan.html" id="to-plan"><i data-icon="calendar"></i>Mở lịch 30 ngày</a>
+    </div>
+  </div>
+
+  <div id="banner"></div>
+
+  <!-- USP -->
+  <div class="card mb-4" id="blk-usp">
+    <div class="card-head"><h2><i data-icon="target"></i>USP — lý do khách chọn bạn</h2><div class="row"><span id="usp-edited"></span><button class="btn sm" data-regen="usp"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div></div>
+    <div class="card-body" data-body></div>
+  </div>
+
+  <!-- Angles -->
+  <div class="section-title" id="angles-title"><h2 class="row"><i data-icon="zap"></i>Góc bán hàng (Angle)</h2><button class="btn sm" data-regen="angles"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div>
+  <div class="grid c3" id="blk-angles"></div>
+
+  <!-- Personas -->
+  <div class="section-title"><h2 class="row"><i data-icon="users"></i>Chân dung khách hàng</h2><button class="btn sm" data-regen="personas"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div>
+  <div class="grid c2" id="blk-personas"></div>
+
+  <!-- Pillars + kênh + tần suất -->
+  <div class="section-title" id="pillars"><h2 class="row"><i data-icon="layers"></i>Pillar, kênh và tần suất</h2></div>
+  <div class="card">
+    <div class="card-body">
+      <div class="grid c2" style="gap:28px">
+        <div class="stack">
+          <div class="row between"><b>Tỷ lệ pillar</b><span id="ratio-sum" class="badge"></span></div>
+          <div class="ratio-bar" id="ratio-bar"></div>
+          <div class="stack" id="pillar-rows"></div>
+        </div>
+        <div class="stack lg">
+          <div class="field"><span class="field-label">Kênh đăng</span><div class="chips" id="channels"></div><p class="hint">Phase 1 tự động đăng được lên Facebook Page, Instagram Business và Zalo OA. Kênh chưa kết nối sẽ được nhắc đăng tay.</p></div>
+          <div class="field"><span class="field-label">Tần suất</span><div class="segmented" id="freq"></div><p class="hint" id="freq-hint"></p></div>
+          <div class="callout" id="apply-note"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-foot"><span class="subtle grow" id="dirty-note"></span><button class="btn" id="reset-pillars">Về mặc định</button><button class="btn primary" id="apply"><i data-icon="calendar" class="sm"></i>Áp dụng vào lịch 30 ngày</button></div>
+  </div>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.shell({ active: 'strategy', crumbs: ['Quy trình', 'Chiến lược'] });
+  const S = state.strategy;
+
+  // ---------- Banner TTFV ----------
+  const ttfv = Number(MP.params.get('ttfv'));
+  if (ttfv) {
+    const m = Math.floor(ttfv / 60) + ' phút ' + (ttfv % 60) + ' giây';
+    document.getElementById('banner').innerHTML = `<div class="callout ${ttfv <= 180 ? 'success' : 'warning'} mb-4">${icon(ttfv <= 180 ? 'checkCircle' : 'clock')}<div><b>Chiến lược đầu tiên đã sẵn sàng sau ${m}.</b> ${ttfv <= 180 ? 'Đạt mục tiêu dưới 3 phút.' : 'Vượt mục tiêu 3 phút — cần xem lại bộ câu hỏi.'} Đọc qua, sửa chỗ chưa đúng, rồi mở lịch 30 ngày.</div></div>`;
+  }
+
+  // ---------- Phiên bản ----------
+  const V1_USP = 'Serum rau má thiên nhiên giúp da khoẻ, dịu nhẹ, phù hợp mọi loại da.';
+  const ver = document.getElementById('ver');
+  let viewing = S.version;
+  function renderVer() {
+    ver.innerHTML = S.versions.map(v => `<option value="${v.v}" ${v.v === viewing ? 'selected' : ''}>${esc(v.label)}${v.v === S.version ? ' — đang dùng' : ''}</option>`).join('');
+  }
+  ver.onchange = () => { viewing = Number(ver.value); renderUSP(); };
+
+  // ---------- USP ----------
+  const USP_ALT = [
+    { primary: 'Serum rau má chưng cất tươi, không cồn — cứu da đỏ rát sau treatment trong 7 ngày, có phiếu kiểm nghiệm, giá 289k.', secondary: ['Mỗi chai có mã QR truy xuất lô — mua là biết chính hãng.', 'Được hơn 1.200 khách da nhạy cảm chấm 5★.'] },
+    { primary: 'Phục hồi da sau BHA, retinol mà không phải bỏ liệu trình — rau má tươi Hậu Giang, không hương liệu, rẻ hơn hàng Hàn 1/3.', secondary: ['Kiểm nghiệm da liễu công khai theo từng lô.', 'Một chai dùng 60 ngày — chưa tới 5.000đ/ngày.'] }
+  ];
+  let uspAlt = 0;
+  function editable(path, text, tag) { tag = tag || 'p'; const name = tag.split(' ')[0]; const attrs = tag.slice(name.length); return `<${name}${attrs} contenteditable="true" data-path="${path}" spellcheck="false">${esc(text)}</${name}>`; }
+  function renderUSP() {
+    const body = document.querySelector('#blk-usp [data-body]');
+    const old = viewing !== S.version;
+    const u = S.usp;
+    if (old) {
+      body.innerHTML = `<div class="callout warning mb-3">${icon('eye')}<div>Bạn đang xem bản <b>v${viewing}</b> (chỉ xem). <button class="btn sm" id="use-ver" style="margin-left:6px">Dùng lại bản này</button></div></div><p style="font-size:17px;font-weight:600">${esc(viewing === 1 ? V1_USP : u.primary)}</p>`;
+      body.querySelector('#use-ver').onclick = () => { S.version = viewing; MP.save(); renderVer(); renderUSP(); MP.toast('Đã chuyển sang v' + viewing); };
+      return;
+    }
+    body.innerHTML = `<div class="stack">
+      <div><div class="subtle mb-2">USP chính · ≤ 25 từ</div>${editable('usp.primary', u.primary, 'p style="font-size:17px;font-weight:600;line-height:1.5"')}</div>
+      <div class="grid c2">${u.secondary.map((s, i) => `<div class="card card-pad" style="background:var(--surface-2)"><div class="subtle mb-2">USP phụ ${i + 1}</div>${editable('usp.secondary.' + i, s)}</div>`).join('')}</div>
+      <details><summary class="muted" style="cursor:pointer;font-weight:550">Vì sao đề xuất USP này?</summary><p class="muted mt-2">${esc(u.rationale)}</p></details>
+    </div>`;
+    document.getElementById('usp-edited').innerHTML = S.edited.usp ? '<span class="badge warning">' + icon('pencil') + 'Bạn đã sửa · không bị ghi đè</span>' : '';
+    bindEditable(body);
+  }
+
+  // ---------- Angles ----------
+  function renderAngles() {
+    document.getElementById('blk-angles').innerHTML = S.angles.map((a, i) => `<div class="card">
+      <div class="card-body stack sm">
+        <div class="row between"><span class="badge primary">${a.id}</span>${S.edited['angle' + i] ? '<span class="badge warning">' + icon('pencil') + 'Đã sửa</span>' : ''}</div>
+        ${editable('angles.' + i + '.name', a.name, 'h3')}
+        <div><div class="subtle">Insight khách hàng</div>${editable('angles.' + i + '.insight', a.insight)}</div>
+        <div><div class="subtle">Thông điệp lõi</div>${editable('angles.' + i + '.message', a.message, 'p style="font-weight:550"')}</div>
+        <div class="row wrap mt-1"><span class="subtle">Hợp với:</span>${a.formats.map(f => MP.formatBadge(f)).join('')}</div>
+      </div>
+      <div class="card-foot" style="justify-content:space-between"><span class="subtle">${MP.items().filter(x => x.angle === a.id).length} bài trong lịch</span></div>
+    </div>`).join('');
+    bindEditable(document.getElementById('blk-angles'));
+  }
+
+  // ---------- Personas ----------
+  const PERSONA_ALT = { name: 'Hạnh', age: '31 tuổi', job: 'Mẹ bỉm sữa, bán hàng online tại nhà', pains: ['Da nhạy cảm hơn sau sinh', 'Không dám dùng treatment mạnh', 'Ít thời gian chăm sóc bản thân'], objections: ['Lo thành phần không an toàn', 'Muốn thấy review của người giống mình'], channels: ['Facebook', 'Zalo', 'Shopee'] };
+  function renderPersonas() {
+    document.getElementById('blk-personas').innerHTML = S.personas.map((p, i) => `<div class="card"><div class="card-body stack">
+      <div class="row"><span class="avatar round" style="width:44px;height:44px;font-size:16px">${esc(p.name[0])}</span><div class="grow">${editable('personas.' + i + '.name', p.name, 'h3')}<div class="subtle">${esc(p.age)} · ${esc(p.job)}</div></div></div>
+      <div class="grid c2" style="gap:14px">
+        <div><div class="field-label mb-2">${icon('alert', 'sm')}Nỗi đau</div><ul style="margin:0;padding-left:18px" class="stack sm">${p.pains.map(x => '<li>' + esc(x) + '</li>').join('')}</ul></div>
+        <div><div class="field-label mb-2">${icon('ban', 'sm')}Rào cản mua</div><ul style="margin:0;padding-left:18px" class="stack sm">${p.objections.map(x => '<li>' + esc(x) + '</li>').join('')}</ul></div>
+      </div>
+      <div class="row wrap"><span class="subtle">Kênh hay dùng:</span>${p.channels.map(c => '<span class="badge outline">' + esc(c) + '</span>').join('')}</div>
+    </div></div>`).join('');
+    bindEditable(document.getElementById('blk-personas'));
+  }
+
+  // ---------- Sửa tại chỗ (US-204) ----------
+  function bindEditable(root) {
+    root.querySelectorAll('[contenteditable][data-path]').forEach(el => {
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); } });
+      el.addEventListener('blur', () => {
+        const path = el.dataset.path.split('.'); const v = el.textContent.trim();
+        let o = S; for (let i = 0; i < path.length - 1; i++) o = o[path[i]];
+        const k = path[path.length - 1]; if (o[k] === v) return;
+        o[k] = v;
+        if (path[0] === 'usp') S.edited.usp = true; else if (path[0] === 'angles') S.edited['angle' + path[1]] = true;
+        MP.save(); MP.toast('Đã lưu — bản sửa sẽ được dùng cho các bước sau');
+        if (path[0] === 'usp') document.getElementById('usp-edited').innerHTML = '<span class="badge warning">' + icon('pencil') + 'Bạn đã sửa · không bị ghi đè</span>';
+      });
+    });
+  }
+
+  // ---------- Tạo lại từng khối (US-205, US-206) ----------
+  function loading(el, steps, done) {
+    const h = el.offsetHeight;
+    el.innerHTML = `<div class="stack" style="min-height:${Math.max(120, h - 40)}px"><div class="row subtle" data-step>${icon('sparkles', 'sm')}<span></span></div><div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:75%"></div><div class="skeleton" style="width:60%"></div></div>`;
+    const lab = el.querySelector('[data-step] span'); let i = 0;
+    const tick = () => { if (i < steps.length) { lab.textContent = `Bước ${i + 1}/${steps.length}: ${steps[i]}…`; i++; setTimeout(tick, 550); } else done(); };
+    tick();
+  }
+  document.querySelectorAll('[data-regen]').forEach(b => b.onclick = () => MP.regenPopover(b, {
+    title: 'Tạo lại ' + ({ usp: 'USP', angles: 'góc bán hàng', personas: 'chân dung khách hàng' })[b.dataset.regen],
+    suggestions: b.dataset.regen === 'usp' ? ['Ngắn hơn', 'Nhấn vào giá', 'Nhấn vào chính hãng', 'Bớt chung chung'] : b.dataset.regen === 'angles' ? ['Thêm góc cảm xúc', 'Hợp Instagram hơn', 'Đánh vào học sinh sinh viên'] : ['Thêm persona lớn tuổi hơn', 'Tập trung mẹ bỉm'],
+    onGo: note => {
+      const k = b.dataset.regen;
+      if (k === 'usp') {
+        const go = () => loading(document.querySelector('#blk-usp [data-body]'), ['Đọc Brand Brain', 'Đối chiếu đối thủ', 'Viết USP' + (note ? ' theo ghi chú “' + note + '”' : '')], () => {
+          const alt = USP_ALT[uspAlt++ % USP_ALT.length]; S.usp.primary = alt.primary; S.usp.secondary = alt.secondary.slice(); S.edited.usp = false;
+          S.version = S.versions.length + 1; S.versions.push({ v: S.version, label: 'v' + S.version + ' · tạo lại USP', date: 0 }); viewing = S.version;
+          MP.save(); renderVer(); renderUSP(); MP.toast('Đã tạo USP mới · lưu thành v' + S.version);
+        });
+        if (!S.edited.usp) return go();
+        const m = MP.modal({ title: 'Thay USP bạn đã sửa?', body: '<p class="muted">Bạn đã tự sửa USP này. Tạo lại sẽ thay bằng bản mới — bản hiện tại vẫn nằm trong lịch sử phiên bản, quay lại được.</p>',
+          foot: '<button class="btn" data-close>Giữ bản của tôi</button><button class="btn primary" data-ok>Tạo bản mới</button>' });
+        m.el.querySelector('[data-ok]').onclick = () => { m.close(); go(); };
+      } else if (k === 'angles') {
+        loading(document.getElementById('blk-angles'), ['Đọc USP & persona', 'Tìm insight mới', 'Viết thông điệp'], () => {
+          S.angles.forEach((a, i) => { if (!S.edited['angle' + i]) a.message = a.message.replace(/\.$/, '') + (note ? ' — ' + note : ' — nói bằng ví dụ đời thường.'); });
+          MP.save(); renderAngles(); MP.toast('Đã tạo lại các góc chưa bị bạn sửa');
+        });
+      } else {
+        loading(document.getElementById('blk-personas'), ['Đọc câu 5–7 trong Brand Brain', 'Vẽ chân dung'], () => {
+          S.personas[1] = S.personas[1].name === 'Hạnh' ? D.initialState().strategy.personas[1] : JSON.parse(JSON.stringify(PERSONA_ALT));
+          MP.save(); renderPersonas(); MP.toast('Đã tạo lại chân dung thứ hai');
+        });
+      }
+    }
+  }));
+
+  // ---------- Pillar / kênh / tần suất ----------
+  let draftP = S.pillars.map(p => Object.assign({}, p));
+  let draftCh = state.plan.channels.slice();
+  let draftF = state.plan.frequency;
+  function dirty() { return JSON.stringify(draftP) !== JSON.stringify(S.pillars) || JSON.stringify(draftCh) !== JSON.stringify(state.plan.channels) || draftF !== state.plan.frequency; }
+  function renderPillars() {
+    const sum = draftP.reduce((s, p) => s + p.ratio, 0);
+    const sb = document.getElementById('ratio-sum'); sb.className = 'badge ' + (sum === 100 ? 'success' : 'danger'); sb.innerHTML = (sum === 100 ? icon('check') : icon('alert')) + 'Tổng ' + sum + '%';
+    document.getElementById('ratio-bar').innerHTML = draftP.map(p => `<span class="bg-${p.id}" style="width:${p.ratio}%"></span>`).join('');
+    document.getElementById('pillar-rows').innerHTML = draftP.map((p, i) => { const P = D.PILLARS[p.id]; return `<div class="row">
+      <span class="ic-box ${p.id}">${icon(P.icon, 'sm')}</span>
+      <div class="grow"><b>${P.name}</b><div class="subtle">${P.desc}</div></div>
+      <input type="range" min="0" max="70" step="5" value="${p.ratio}" data-i="${i}" aria-label="Tỷ lệ ${P.name}" style="width:120px;accent-color:var(--primary)">
+      <b style="width:44px;text-align:right">${p.ratio}%</b></div>`; }).join('');
+    document.querySelectorAll('#pillar-rows input').forEach(r => r.oninput = () => { draftP[r.dataset.i].ratio = Number(r.value); renderPillars(); });
+    document.getElementById('channels').innerHTML = Object.values(D.CHANNELS).map(c => `<button type="button" class="chip" data-ch="${c.id}" aria-pressed="${draftCh.includes(c.id)}">${c.name}</button>`).join('');
+    document.querySelectorAll('[data-ch]').forEach(c => c.onclick = () => {
+      const id = c.dataset.ch; if (draftCh.includes(id)) { if (draftCh.length === 1) { MP.toast('Cần ít nhất 1 kênh', 'alert'); return; } draftCh = draftCh.filter(x => x !== id); } else draftCh.push(id); renderPillars();
+    });
+    document.getElementById('freq').innerHTML = [3, 5, 7].map(f => `<button type="button" data-f="${f}" aria-pressed="${draftF === f}">${f} bài/tuần</button>`).join('');
+    document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { draftF = Number(b.dataset.f); renderPillars(); });
+    const n = D.scheduleDates(state.plan.start, draftF).length;
+    document.getElementById('freq-hint').textContent = `≈ ${n} bài trong 30 ngày` + (draftF === 3 ? ' · Thứ 2, 4, 6' : draftF === 5 ? ' · Thứ 2 đến Thứ 6' : ' · mỗi ngày');
+    document.getElementById('apply-note').innerHTML = icon('info') + '<div>Lịch sẽ phân bổ đúng tỷ lệ này (lệch tối đa 5%). Bài đã sinh nội dung được giữ lại.</div>';
+    document.getElementById('dirty-note').textContent = dirty() ? 'Có thay đổi chưa áp dụng' : '';
+    const ap = document.getElementById('apply'); ap.disabled = sum !== 100 || !dirty();
+  }
+  document.getElementById('reset-pillars').onclick = () => { draftP = [{ id: 'edu', ratio: 40 }, { id: 'prod', ratio: 30 }, { id: 'proof', ratio: 20 }, { id: 'fun', ratio: 10 }]; renderPillars(); };
+  document.getElementById('apply').onclick = () => {
+    S.pillars = draftP.map(p => Object.assign({}, p)); state.plan.channels = draftCh.slice(); state.plan.frequency = draftF;
+    state.plan.schedule = D.buildSchedule(state.plan.pool, S.pillars, draftF, state.plan.start);
+    state.activity.unshift({ t: 0, icon: 'layers', text: `Cập nhật pillar & tần suất ${draftF} bài/tuần` });
+    MP.save(); renderPillars(); renderAngles();
+    MP.toast('Đã lập lại lịch: ' + state.plan.schedule.length + ' bài');
+  };
+
+  renderVer(); renderUSP(); renderAngles(); renderPersonas(); renderPillars();
+  if (location.hash === '#pillars') setTimeout(() => document.getElementById('pillars').scrollIntoView(), 50);
+})();
+</script>
+</body>
+</html>
