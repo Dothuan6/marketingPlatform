@@ -120,7 +120,7 @@
       <div class="field mt-3"><label for="rb">Nhắc bài chưa duyệt trước giờ đăng</label><select class="select" id="rb">${[60, 120, 240, 720].map(m => `<option value="${m}" ${A.remindBefore === m ? 'selected' : ''}>${m / 60} tiếng (tối đa 1 lần/ngày)</option>`).join('')}</select></div>
       <p class="subtle mt-3">Giờ mặc định: Facebook 19:30 · Instagram 12:00 · Zalo OA 09:00. Đổi giờ cho từng bài ở màn Bài viết.</p>`;
     if (sel === 'recheck') body = `<p class="muted">Khi thức dậy đúng giờ, lượt chạy đọc lại <b>chính bài đó</b> và so mã hẹn đang lưu với mã nó nhớ lúc bắt đầu.</p>
-      <div class="checks mt-3">${[['ok', 'Mã hẹn khớp, bài còn “Đã duyệt”', 'Đi tiếp'], ['warn', 'Mã hẹn đã đổi', 'Bạn đổi giờ → lượt mới sẽ đăng, lượt này thoát'], ['warn', 'Bài không còn “Đã duyệt”', 'Bạn huỷ hẹn / bỏ duyệt → thoát']].map(r => `<div class="check-item ${r[0]}"><span class="ci-ic">${icon(r[0] === 'ok' ? 'check' : 'alert')}</span><div><b>${r[1]}</b><div class="subtle">${r[2]}</div></div></div>`).join('')}</div>
+      <div class="checks mt-3">${[['ok', 'Mã hẹn khớp, bài còn “Đã duyệt”', 'Đi tiếp'], ['warn', 'Mã hẹn đã đổi', 'Bạn đổi giờ → lượt mới sẽ đăng, lượt này thoát'], ['warn', 'Bài không còn “Đã duyệt”', 'Bạn huỷ hẹn / bỏ duyệt → thoát'], ['warn', 'Bài đã “Đã đăng”', 'Bạn tự đăng và bấm “Tôi đã tự đăng” → thoát, không đăng trùng']].map(r => `<div class="check-item ${r[0]}"><span class="ci-ic">${icon(r[0] === 'ok' ? 'check' : 'alert')}</span><div><b>${r[1]}</b><div class="subtle">${r[2]}</div></div></div>`).join('')}</div>
       <p class="subtle mt-3">Engine hiện chưa lặp được qua nhiều bản ghi (H2) — nên mỗi bài một lượt chạy, chỉ thao tác một bản ghi.</p>`;
     if (sel === 'checks') body = `<div class="checks">${['Không có từ Cấm (' + state.brand.forbidden.filter(f => f.level === 'ban' && f.on !== false).length + ' mục)', 'Từ Cảnh báo đã được bạn xác nhận', 'Có ảnh nếu kênh bắt buộc (Instagram)', 'Nhắc ít nhất 1 thông tin thật từ hồ sơ', 'Độ dài và số hashtag đúng chuẩn kênh'].map(t => `<div class="check-item ok"><span class="ci-ic">${icon('check')}</span><div><b>${esc(t)}</b></div></div>`).join('')}</div>
       <p class="subtle mt-3">Cùng bộ kiểm với màn Bài viết — chạy lại ngay trước khi đăng, phòng khi bạn sửa bài sau khi duyệt.</p>`;
@@ -186,7 +186,7 @@
     if (!rows.length) { document.getElementById('queue').innerHTML = `<div class="empty"><div class="em-ic">${icon('send', 'xl')}</div><h3>Hàng đợi trống</h3><p>Không có bài nào cần đăng trong 14 ngày tới.</p></div>`; return; }
     document.getElementById('queue').innerHTML = `<div class="table-wrap"><table class="table"><thead><tr><th>Giờ đăng</th><th>Bài</th><th>Kênh</th><th>Workflow sẽ làm gì</th><th></th></tr></thead><tbody>` +
       rows.map(it => { const ai = MP.autoInfo(it);
-        const act = ai.kind === 'auto' ? `<button class="btn sm ghost" data-unsched="${it.id}">${icon('x', 'sm')}Huỷ hẹn</button><button class="btn sm" data-now="${it.id}">${icon('send', 'sm')}Đăng ngay</button>`
+        const act = ai.kind === 'auto' ? `<button class="btn sm ghost" data-unsched="${it.id}">${icon('x', 'sm')}Huỷ hẹn</button><button class="btn sm ghost" data-self="${it.id}" title="Bạn đã tự đăng tay — huỷ lượt hẹn để tránh trùng">${icon('check', 'sm')}Đã tự đăng</button><button class="btn sm" data-now="${it.id}">${icon('send', 'sm')}Đăng ngay</button>`
           : ai.kind === 'missed' && it.status === 'approved' ? `<button class="btn sm" data-now="${it.id}">${icon('send', 'sm')}Đăng ngay</button>`
           : ai.kind === 'approval' ? `<button class="btn sm primary" data-appr="${it.id}">${icon('check', 'sm')}Duyệt</button>`
           : ai.kind === 'manual' ? `<button class="btn sm" data-now="${it.id}">${icon('phone', 'sm')}Gửi gói nhận bài</button>`
@@ -205,6 +205,7 @@
     q.querySelectorAll('[data-appr]').forEach(b => b.onclick = () => { const it = MP.item(b.dataset.appr); const c = MP.passCheck(it); if (!c.ok) { MP.toast(c.reason + ' — mở bài để xử lý', 'alert'); return; } const p = MP.poolItem(it.id); p.status = 'approved'; p.maHen = Math.random().toString(36).slice(2, 8); MP.save(); refresh(); MP.toast('Đã duyệt · đã hẹn ' + it.time + ' ' + MP.fmtDate(it.date, 'short'), 'zap'); });
     q.querySelectorAll('[data-unsched]').forEach(b => b.onclick = () => { const p = MP.poolItem(b.dataset.unsched); p.status = p.edited ? 'edited' : 'generated'; p.maHen = null; MP.save(); refresh(); MP.toast('Đã huỷ hẹn — lượt chạy cũ sẽ tự thoát', 'x'); });
     q.querySelectorAll('[data-check]').forEach(b => b.onclick = simNeedCheck);
+    q.querySelectorAll('[data-self]').forEach(b => b.onclick = () => { const p = MP.poolItem(b.dataset.self); const n = new Date(); p.status = 'published'; p.manual = true; p.maHen = null; p.publishedAt = D.isoDate(n) + 'T' + n.toTimeString().slice(0, 5); MP.track('self_posted', { ngày: MP.item(p.id).day, nguồn: 'hàng đợi' }); MP.save(); refresh(); MP.toast('Đã ghi nhận tự đăng · lượt hẹn đã huỷ', 'checkCircle'); });
     q.querySelectorAll('[data-now]').forEach(b => b.onclick = () => run(MP.item(b.dataset.now), false));
   }
 

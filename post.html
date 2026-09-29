@@ -117,7 +117,7 @@
         </div>
         <p class="subtle">${MP.fmtDate(x.date, 'long')} · đổi ngày ở <a href="plan.html">Lịch 30 ngày</a> · ${level0 ? 'Mức 0 — gửi gói nhận bài' : 'Mức 1 — ' + esc(C.via)}</p>
         <div class="callout ${cls}">${icon(ai.icon)}<div class="grow">${esc(ai.text)}${x.status === 'published' && x.url ? ` · <a href="${x.url}" target="_blank" rel="noopener">Xem bài</a>` : ''}
-          ${x.status === 'approved' && !level0 ? '<div class="mt-2"><button class="btn sm" id="unsched">' + icon('x', 'sm') + 'Huỷ hẹn</button></div>' : ''}
+          ${x.status === 'approved' && !level0 ? '<div class="row wrap mt-2"><button class="btn sm" data-self-posted>' + icon('check', 'sm') + 'Tôi đã tự đăng bài này</button><button class="btn sm ghost" id="unsched">' + icon('x', 'sm') + 'Huỷ hẹn</button></div>' : ''}
           ${level0 && x.content && x.status !== 'published' ? '<div class="mt-2"><a class="btn sm" href="publish.html?id=' + x.id + '">' + icon('phone', 'sm') + 'Xem màn “Đăng bài này”</a></div>' : ''}</div></div>
       </div></div>`;
   }
@@ -127,6 +127,29 @@
     if (c) c.onchange = () => { p.channel0 = c.value; p.time = D.CHANNELS[c.value].defaultTime; if (p.content) p.content.hashtags = D.genContent(Object.assign({}, p, { channel: c.value }), state.brand, p.regen || 0).hashtags; MP.save(); render(); MP.toast('Chuyển sang ' + D.CHANNELS[c.value].name + ' · giờ gợi ý ' + p.time); };
     const u = document.getElementById('unsched');
     if (u) u.onclick = () => { p.status = p.edited ? 'edited' : 'generated'; p.maHen = null; MP.save(); render(); MP.toast('Đã huỷ hẹn — bài không tự đăng. Duyệt lại để hẹn giờ mới', 'x'); };
+  }
+
+  // ---------- Tự đăng tay một bài đang hẹn tự đăng → tránh đăng trùng (bổ sung CL-11) ----------
+  let copyWarn = false;
+  const isAutoScheduled = () => MP.autoInfo(it()).kind === 'auto';
+  function selfPosted() {
+    const x = it();
+    const m = MP.modal({ title: 'Bạn đã tự đăng bài này?', subtitle: 'Hệ thống sẽ huỷ lượt hẹn ' + x.time + ' ' + MP.fmtDate(x.date, 'short') + ' để không đăng trùng lên ' + D.CHANNELS[x.channel].name + '.',
+      body: '<div class="field"><label for="sp-link">Link bài bạn đã đăng <span class="badge">Không bắt buộc</span></label><input class="input" id="sp-link" inputmode="url" placeholder="https://facebook.com/..."></div><p class="subtle">Có link thì báo cáo tháng chính xác hơn.</p>',
+      foot: '<button class="btn" data-close>Chưa, để hệ thống đăng</button><button class="btn primary" data-ok>' + icon('check', 'sm') + 'Đã đăng — huỷ lượt hẹn</button>' });
+    m.el.querySelector('[data-ok]').onclick = () => {
+      const n = new Date(); const url = m.el.querySelector('#sp-link').value.trim();
+      p.status = 'published'; p.manual = true; p.maHen = null; p.url = url || null;
+      p.publishedAt = D.isoDate(n) + 'T' + String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+      state.activity.unshift({ t: 0, icon: 'send', text: 'Tự đăng tay bài ngày ' + x.day + ' lên ' + D.CHANNELS[x.channel].name + ' · đã huỷ lượt hẹn' });
+      MP.track('self_posted', { ngày: x.day, có_link: !!url }); MP.save(); copyWarn = false; m.close(); render(); MP.toast('Đã ghi nhận · lượt hẹn tự đăng đã huỷ', 'checkCircle');
+    };
+  }
+  function copyWarnBox() {
+    if (!copyWarn || !isAutoScheduled()) return '';
+    const x = it();
+    return `<div class="callout warning">${icon('alert')}<div class="grow"><b>Bài này sẽ tự đăng lúc ${x.time} ${MP.fmtDate(x.date, 'short')} lên ${esc(D.CHANNELS[x.channel].name)}.</b> Nếu bạn tự đăng nội dung vừa chép, bấm “Tôi đã tự đăng” để hệ thống không đăng trùng.
+      <div class="row wrap mt-2"><button class="btn sm primary" data-self-posted>${icon('check', 'sm')}Tôi đã tự đăng</button><button class="btn sm ghost" id="cw-close">Để hệ thống tự đăng</button></div></div></div>`;
   }
 
   // ---------- Phản hồi 1 chạm (CL-16) ----------
@@ -206,7 +229,7 @@
       return;
     }
     const c = p.content; const lk = closed();
-    main.innerHTML = (lk ? `<div class="callout success">${icon('checkCircle')}<div><b>${esc(MP.autoInfo(x).text)}.</b> Bài đã rời khỏi đây — muốn đổi nội dung thì sửa trực tiếp trên ${esc(D.CHANNELS[x.channel].name)}.</div></div>` : '') + feedbackCard() + tier2Card(x) + `
+    main.innerHTML = copyWarnBox() + (lk ? `<div class="callout success">${icon('checkCircle')}<div><b>${esc(MP.autoInfo(x).text)}.</b> Bài đã rời khỏi đây — muốn đổi nội dung thì sửa trực tiếp trên ${esc(D.CHANNELS[x.channel].name)}.</div></div>` : '') + feedbackCard() + tier2Card(x) + `
       <div class="card"><div class="card-head"><h3>${icon('zap')}Câu mở đầu${MP.termInfo('hook')}</h3><div class="row"><button class="btn sm ghost" id="alt-hook" ${lk ? 'hidden' : ''}>${icon('refresh', 'sm')}Đổi câu mở đầu</button><button class="btn sm" data-copy="hook">${icon('copy', 'sm')}Chép</button></div></div>
         <div class="card-body" id="hook-body">${p.hookAlts && !lk ? `<div class="stack sm">${p.hookAlts.map((h, i) => `<label class="hook-opt"><input type="radio" name="hk" value="${i}" ${h === p.hook ? 'checked' : ''}><span><span class="subtle">${['Bản hiện tại', 'Kiểu câu hỏi', 'Kiểu con số'][i]}</span><br><b>${esc(h)}</b></span></label>`).join('')}<p class="subtle">Chạm để đổi — phần thân bài giữ nguyên.</p></div>`
           : `<p contenteditable="${!lk}" id="hook" style="font-size:16px;font-weight:600">${esc(x.hook)}</p>`}</div></div>
@@ -221,7 +244,9 @@
     main.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
       const k = b.dataset.copy; const txt = k === 'hook' ? p.hook : k === 'caption' ? c.caption : k === 'tags' ? c.hashtags.join(' ') : c.caption + '\n\n' + c.hashtags.join(' ');
       MP.copy(txt, b);
+      if (isAutoScheduled() && !copyWarn) { copyWarn = true; render(); }
     });
+    const cw = document.getElementById('cw-close'); if (cw) cw.onclick = () => { copyWarn = false; render(); };
     main.querySelectorAll('[data-fb]').forEach(b => b.onclick = () => { p.feedback = { v: b.dataset.fb, at: new Date().toISOString() }; MP.save(); MP.track('feedback', { ngày: x.day, giá_trị: b.dataset.fb }); render(); MP.toast('Cảm ơn — đã ghi phản hồi', 'smile'); });
     bindTier2();
     const hk = document.getElementById('hook');
@@ -239,6 +264,7 @@
       ah.disabled = true; ah.innerHTML = 'Đang viết…';
       setTimeout(() => { p.hookAlts = [p.hook].concat(D.ALT_HOOKS[p.angle] || D.ALT_HOOKS.A1); MP.save(); MP.track('hook_alts', { ngày: x.day }); render(); }, 800);
     };
+    document.querySelectorAll('[data-self-posted]').forEach(b => b.onclick = selfPosted);
     const si = document.getElementById('swap-img'); if (si) si.onclick = pickImageModal;
     const pi = document.getElementById('pick-img'); if (pi) pi.onclick = pickImageModal;
     const ui = document.getElementById('up-img');

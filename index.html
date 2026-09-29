@@ -81,7 +81,7 @@
       </div></div>`;
   }
   document.getElementById('today-cards').innerHTML = dayCard('Hôm nay', t, false) + dayCard('Ngày mai đăng gì?', tm, true);
-  document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => { const it = MP.poolItem(b.dataset.copy); MP.copy(it.content.caption + '\n\n' + it.content.hashtags.join(' '), b); });
+  document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => { const it = MP.poolItem(b.dataset.copy); MP.copy(it.content.caption + '\n\n' + it.content.hashtags.join(' '), b); const x = MP.item(it.id); if (MP.autoInfo(x).kind === 'auto') setTimeout(() => MP.toast('Bài này sẽ tự đăng lúc ' + x.time + '. Nếu bạn tự đăng, mở bài và bấm “Tôi đã tự đăng” để tránh trùng', 'alert'), 1500); });
 
   // Flow 6 bước
   const A = state.automation; const pub = all.filter(i => i.status === 'published').length;
