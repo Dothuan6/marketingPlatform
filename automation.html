@@ -10,16 +10,16 @@
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929">
-  <script src="assets/theme.js?v=20260929"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
 </head>
 <body data-page="automation">
 <main id="page" hidden>
   <div class="page-header">
     <div>
-      <div class="eyebrow"><span class="step-dot">6</span>Bước 6 · ERP automation workflow</div>
+      <div class="eyebrow"><span class="step-dot">6</span>Bước 6 · Hẹn giờ từng bài có mã hẹn</div>
       <h1>Tự động đăng bài</h1>
-      <p class="subtitle">Workflow chạy nền trên engine của HarnexAI: đến giờ → kiểm tra → đăng lên kênh → cập nhật lịch → báo lại cho bạn. Việc của bạn chỉ là duyệt bài.</p>
+      <p class="subtitle">Mỗi bài đã duyệt có một lượt hẹn giờ riêng trên engine ERP: chờ đến giờ → đọc lại bài → kiểm tra → đăng (hoặc gửi gói nhận bài với kênh đăng tay) → báo lại. Việc của bạn chỉ là duyệt bài.</p>
     </div>
     <div class="actions">
       <button class="btn" id="dry-run"><i data-icon="play"></i>Chạy thử</button>
@@ -39,7 +39,7 @@
   <section data-panel="wf">
     <div class="split">
       <div class="card">
-        <div class="card-head"><h3><i data-icon="branch"></i>WF-AUTO-POST · Đăng bài theo lịch</h3><span class="row"><span class="badge outline">v3</span><span class="badge primary hide-sm"><i data-icon="zap"></i>HarnexAI Workflow Engine</span></span></div>
+        <div class="card-head"><h3><i data-icon="branch"></i>WF-05 · Đăng bài đã hẹn</h3><span class="row"><span class="badge outline">v4 · mã hẹn</span><span class="badge primary hide-sm"><i data-icon="zap"></i>HarnexAI Workflow Engine</span></span></div>
         <div class="card-body"><div class="wf" id="wf"></div></div>
         <div class="card-foot" style="justify-content:space-between"><span class="subtle">Bấm vào từng bước để xem và chỉnh cấu hình</span><button class="btn sm" disabled title="Có khi merge với HarnexAI">Mở trong trình dựng workflow</button></div>
       </div>
@@ -50,21 +50,21 @@
   <section data-panel="queue" hidden><div class="card"><div id="queue"></div></div></section>
 
   <section data-panel="conn" hidden>
-    <div class="callout mb-4"><i data-icon="info"></i><div>Mỗi kênh cần cấp quyền đăng bài một lần. Nếu app chưa được Meta/Zalo duyệt hoặc token hết hạn, workflow <b>không dừng</b> — nó gửi nội dung qua Zalo để bạn đăng tay, rồi bạn bấm “Tôi đã đăng”.</div></div>
+    <div class="callout mb-4"><i data-icon="info"></i><div><b>Thang kênh đăng.</b> Mức 1 — tự đăng Facebook Page/Instagram qua <b>app Meta của công ty TTS</b> (cần cấp quyền 1 lần). Mức 0 — đăng tay: đến giờ gửi <b>gói nhận bài</b> (thông báo đẩy/email kèm link “Đăng bài này”), bạn đăng trong 5 chạm. Token hết hạn hoặc app chưa được duyệt → tự lùi về Mức 0, không bỏ bài.</div></div>
     <div class="grid c3" id="conns"></div>
   </section>
 
   <section data-panel="runs" hidden><div class="card"><div class="table-wrap" id="runs"></div></div></section>
 </main>
 
-<script src="assets/data.js?v=20260929"></script>
-<script src="assets/app.js?v=20260929"></script>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
   MP.shell({ active: 'automation', crumbs: ['Quy trình', 'Tự động đăng'] });
   const A = state.automation;
-  let sel = 'approval';
+  let sel = 'recheck';
 
   // ---------- Tabs ----------
   function showTab(k) {
@@ -74,23 +74,23 @@
   }
   document.querySelectorAll('[data-tab]').forEach(t => t.onclick = () => showTab(t.dataset.tab));
 
-  // ---------- Định nghĩa workflow ----------
+  // ---------- Định nghĩa workflow (CL-11 v3: mỗi bài một run, chỉ thao tác một bản ghi) ----------
   const KIND = { trigger: ['Kích hoạt', 'clock'], cond: ['Điều kiện', 'branch'], action: ['Hành động', 'zap'], notify: ['Thông báo', 'bell'] };
   function nodes() {
-    const auto = A.approvalMode === 'auto';
-    const chOff = Object.entries(A.connections).filter(([, c]) => !c.connected).map(([k]) => D.CHANNELS[k].name);
+    const lv0 = Object.keys(D.CHANNELS).filter(k => D.CHANNELS[k].level === 0 || !A.connections[k].connected).map(k => D.CHANNELS[k].name);
     return [
-      { id: 'trigger', kind: 'trigger', icon: 'clock', title: 'Đến giờ đăng', desc: 'Quét lịch đăng mỗi 5 phút, lấy bài có giờ đăng ≤ bây giờ' },
-      { id: 'approval', kind: 'cond', icon: 'checkCircle', title: auto ? 'Bài đạt kiểm tự động?' : 'Bài đã được duyệt?', desc: auto ? 'Chế độ tự đăng: không cần bạn duyệt từng bài' : 'Chỉ đăng bài bạn đã bấm duyệt', yes: auto ? 'Đạt' : 'Đã duyệt',
-        branch: auto ? null : { label: 'Chưa duyệt', text: `Nhắc duyệt qua Zalo trước ${A.remindBefore / 60} tiếng. Quá giờ vẫn chưa duyệt → dời sang ngày hôm sau.` } },
-      { id: 'checks', kind: 'action', icon: 'shield', title: 'Kiểm tra trước khi đăng', desc: 'Từ cấm · nhắc thông tin thương hiệu · có ảnh · độ dài theo kênh', yes: 'Đạt',
-        branch: { label: 'Không đạt', text: 'Tạm dừng bài này, báo bạn lý do cụ thể để sửa.' } },
-      { id: 'channel', kind: 'cond', icon: 'plug', title: 'Kênh đã kết nối?', desc: `${Object.values(A.connections).filter(c => c.connected).length}/3 kênh đã kết nối`, yes: 'Có',
-        branch: { label: 'Chưa', text: (A.fallback === 'remind' ? 'Gửi caption + ảnh qua Zalo để bạn đăng tay' : 'Bỏ qua bài, ghi nhận vào lịch sử') + (chOff.length ? ' · hiện áp dụng cho ' + chOff.join(', ') : '') } },
-      { id: 'publish', kind: 'action', icon: 'send', title: 'Đăng lên kênh', desc: 'Facebook Page · Instagram Business · Zalo OA', yes: 'Thành công',
-        branch: { label: `Lỗi sau ${A.retries} lần thử`, text: 'Đánh dấu “Đăng lỗi” trên lịch, báo ngay để xử lý. Thử lại cách nhau 30 giây → 2 phút → 10 phút.' } },
-      { id: 'update', kind: 'action', icon: 'calendar', title: 'Cập nhật lịch đăng', desc: 'Trạng thái “Đã đăng”, lưu link bài và giờ đăng thật' },
-      { id: 'notify', kind: 'notify', icon: 'bell', title: 'Báo lại cho bạn', desc: [A.notify.zalo && 'Zalo', A.notify.email && 'Email'].filter(Boolean).join(' + ') || 'Đang tắt thông báo' }
+      { id: 'trigger', kind: 'trigger', icon: 'check', title: 'Bài được duyệt hoặc đổi giờ', desc: 'Tạo mã hẹn mới cho bài (lưu ngầm) → bắt đầu một lượt chạy riêng cho bài đó' },
+      { id: 'wait', kind: 'trigger', icon: 'clock', title: 'Chờ đến giờ đăng', desc: 'Lượt chạy nhớ mã hẹn lúc bắt đầu rồi ngủ tới giờ đăng' },
+      { id: 'recheck', kind: 'cond', icon: 'branch', title: 'Bài vẫn đúng lịch hẹn?', desc: 'Đọc lại chính bài đó: còn “Đã duyệt” và mã hẹn không đổi', yes: 'Đúng',
+        branch: { label: 'Không', text: 'Thoát lặng lẽ — bạn đã đổi giờ (có lượt hẹn mới hơn) hoặc đã huỷ hẹn. Không bao giờ đăng hai lần.' } },
+      { id: 'checks', kind: 'action', icon: 'shield', title: 'Kiểm tra trước khi đăng', desc: 'Từ Cấm · cảnh báo đã xác nhận · có ảnh nếu kênh bắt buộc · độ dài', yes: 'Đạt',
+        branch: { label: 'Không đạt', text: 'Tạm dừng bài này, báo bạn lý do + gợi ý sửa 1 chạm.' } },
+      { id: 'channel', kind: 'cond', icon: 'plug', title: 'Kênh tự đăng được (Mức 1)?', desc: 'Facebook/Instagram qua app Meta của TTS, token còn hạn', yes: 'Mức 1',
+        branch: { label: 'Mức 0 · đăng tay', text: 'Gửi gói nhận bài qua ' + MP.notifyText() + ' (link “Đăng bài này”). Mở link → Đã nhận. Quá giờ 30 phút chưa đăng → nhắc 1 lần: “Đã đăng / Bỏ qua”.' + (lv0.length ? ' Hiện áp dụng cho ' + lv0.join(', ') + '.' : '') } },
+      { id: 'publish', kind: 'action', icon: 'send', title: 'Khoá bài & đăng lên kênh', desc: 'Khoá “Đang đăng” trước khi gọi Meta để không đăng trùng', yes: 'Thành công',
+        branch: { label: 'Lỗi', text: 'Chắc chắn chưa gửi (mạng, 5xx, token) → thử lại 30 giây / 2 phút / 10 phút. Không rõ đã lên chưa (hết thời gian chờ) → “Cần kiểm tra” + báo bạn 2 nút.' } },
+      { id: 'update', kind: 'action', icon: 'calendar', title: 'Cập nhật lịch', desc: '“Đã đăng”, lưu link bài và giờ lên kênh thật' },
+      { id: 'notify', kind: 'notify', icon: 'bell', title: 'Báo lại cho bạn', desc: MP.notifyText() }
     ];
   }
 
@@ -111,53 +111,71 @@
 
   // ---------- Cấu hình từng bước ----------
   function renderCfg() {
-    const n = nodes().find(x => x.id === sel); const box = document.getElementById('cfg');
+    const n = nodes().find(x => x.id === sel); const box = document.getElementById('cfg'); const N = state.notify;
     let body = '';
-    if (sel === 'trigger') body = `<dl class="kv"><dt>Tần suất quét</dt><dd>Mỗi 5 phút</dd><dt>Múi giờ</dt><dd>Asia/Ho_Chi_Minh</dd><dt>Nguồn</dt><dd><a href="plan.html">Lịch đăng 30 ngày</a></dd></dl>
-      <p class="subtle mt-3">Giờ đăng mặc định: Facebook 19:30 · Instagram 12:00 · Zalo OA 09:00. Đổi giờ cho từng bài ở màn Bài viết.</p>`;
-    if (sel === 'approval') body = `<div class="stack">
-      <label class="radio-card"><input type="radio" name="am" value="manual" ${A.approvalMode === 'manual' ? 'checked' : ''}><span><b>Chỉ đăng bài tôi đã duyệt</b><div class="subtle">An toàn nhất. Khuyên dùng trong tháng đầu.</div></span></label>
-      <label class="radio-card"><input type="radio" name="am" value="auto" ${A.approvalMode === 'auto' ? 'checked' : ''}><span><b>Tự đăng mọi bài đạt kiểm tự động</b><div class="subtle">Không cần duyệt từng bài. Bài không đạt kiểm vẫn bị giữ lại.</div></span></label>
-      <div class="field" ${A.approvalMode === 'auto' ? 'hidden' : ''}><label for="rb">Nhắc duyệt trước giờ đăng</label><select class="select" id="rb">${[60, 120, 240, 720].map(m => `<option value="${m}" ${A.remindBefore === m ? 'selected' : ''}>${m / 60} tiếng</option>`).join('')}</select></div></div>`;
-    if (sel === 'checks') body = `<div class="checks">${['Không chứa từ cấm (' + state.brand.forbidden.length + ' từ)', 'Nhắc ít nhất 1 thông tin thật từ Brand Brain', 'Có ảnh đính kèm', 'Độ dài và số hashtag đúng chuẩn kênh'].map(t => `<div class="check-item ok"><span class="ci-ic">${icon('check')}</span><div><b>${esc(t)}</b></div></div>`).join('')}</div>
-      <p class="subtle mt-3">Cùng bộ kiểm với màn Bài viết — chạy lại lần nữa ngay trước khi đăng, phòng trường hợp bạn sửa bài sau khi duyệt.</p>`;
-    if (sel === 'channel') body = `<div class="list">${Object.keys(D.CHANNELS).map(k => { const c = A.connections[k]; return `<div class="list-item"><div class="grow"><b>${D.CHANNELS[k].name}</b><div class="subtle">${c.connected ? esc(c.account) : 'Chưa kết nối'}</div></div>${c.connected ? '<span class="badge success">' + icon('check') + 'Đã kết nối</span>' : '<span class="badge warning">' + icon('alert') + 'Chưa</span>'}</div>`; }).join('')}</div>
-      <div class="field mt-3"><label for="fb">Khi kênh chưa kết nối</label><select class="select" id="fb"><option value="remind" ${A.fallback === 'remind' ? 'selected' : ''}>Gửi nội dung qua Zalo để tôi đăng tay</option><option value="skip" ${A.fallback === 'skip' ? 'selected' : ''}>Bỏ qua bài, chỉ ghi nhận</option></select></div>
-      <button class="btn sm mt-3" data-goto="conn">${icon('plug', 'sm')}Quản lý kênh kết nối</button>`;
-    if (sel === 'publish') body = `<div class="field"><label for="rt">Số lần thử lại khi lỗi</label><select class="select" id="rt">${[1, 3, 5].map(r => `<option value="${r}" ${A.retries === r ? 'selected' : ''}>${r} lần</option>`).join('')}</select><p class="hint">Mỗi lần thử được Temporal ghi lại — lỗi ở bước này không làm chạy lại các bước trước.</p></div>
-      <div class="callout mt-3">${icon('info')}<div>Instagram chỉ nhận ảnh tỉ lệ 4:5 đến 1.91:1 — ảnh sai tỉ lệ sẽ được tự cắt trước khi đăng.</div></div>`;
-    if (sel === 'update') body = `<p class="muted">Sau khi đăng thành công, bài trên lịch chuyển sang <b>Đã đăng</b>, lưu link bài và giờ lên kênh thật. Đây là dữ liệu đầu vào cho phần đo hiệu quả làm sau.</p>`;
-    if (sel === 'notify') body = `<div class="stack"><label class="check"><input type="checkbox" id="nz" ${A.notify.zalo ? 'checked' : ''}>${icon('message', 'sm')}Zalo</label><label class="check"><input type="checkbox" id="ne" ${A.notify.email ? 'checked' : ''}>${icon('mail', 'sm')}Email</label>
-      <p class="subtle">Báo khi: đăng thành công · đăng lỗi · có bài cần duyệt · token kênh sắp hết hạn.</p></div>`;
+    if (sel === 'trigger') body = `<p class="muted">Mỗi lần bạn <b>duyệt</b> hoặc <b>đổi giờ</b> một bài, hệ thống ghi một mã hẹn mới vào bài. Bạn không thấy mã này — màn Bài viết chỉ hiện “Đã hẹn 19:30 · 20/10” và nút “Huỷ hẹn”.</p>
+      <div class="stack sm mt-3"><label class="radio-card"><input type="radio" checked disabled><span><b>Chỉ đăng bài tôi đã duyệt</b><div class="subtle">Mặc định của Phase 1.</div></span></label>
+      <label class="radio-card" style="opacity:.55"><input type="radio" disabled><span><b>Tự đăng theo nhóm nội dung khi đủ tin cậy</b> <span class="badge">Phase 2</span><div class="subtle">Để sau: cần 10 bài đạt kiểm liên tiếp, không lỗi từ Cấm.</div></span></label></div>`;
+    if (sel === 'wait') body = `<dl class="kv"><dt>Múi giờ</dt><dd>Asia/Ho_Chi_Minh</dd><dt>Nguồn</dt><dd><a href="plan.html">Lịch 30 ngày</a></dd><dt>Nhắc duyệt</dt><dd>Duyệt tuần tối CN ${esc(N.weeklyTime)} + 1 lần trước giờ đăng</dd></dl>
+      <div class="field mt-3"><label for="rb">Nhắc bài chưa duyệt trước giờ đăng</label><select class="select" id="rb">${[60, 120, 240, 720].map(m => `<option value="${m}" ${A.remindBefore === m ? 'selected' : ''}>${m / 60} tiếng (tối đa 1 lần/ngày)</option>`).join('')}</select></div>
+      <p class="subtle mt-3">Giờ mặc định: Facebook 19:30 · Instagram 12:00 · Zalo OA 09:00. Đổi giờ cho từng bài ở màn Bài viết.</p>`;
+    if (sel === 'recheck') body = `<p class="muted">Khi thức dậy đúng giờ, lượt chạy đọc lại <b>chính bài đó</b> và so mã hẹn đang lưu với mã nó nhớ lúc bắt đầu.</p>
+      <div class="checks mt-3">${[['ok', 'Mã hẹn khớp, bài còn “Đã duyệt”', 'Đi tiếp'], ['warn', 'Mã hẹn đã đổi', 'Bạn đổi giờ → lượt mới sẽ đăng, lượt này thoát'], ['warn', 'Bài không còn “Đã duyệt”', 'Bạn huỷ hẹn / bỏ duyệt → thoát']].map(r => `<div class="check-item ${r[0]}"><span class="ci-ic">${icon(r[0] === 'ok' ? 'check' : 'alert')}</span><div><b>${r[1]}</b><div class="subtle">${r[2]}</div></div></div>`).join('')}</div>
+      <p class="subtle mt-3">Engine hiện chưa lặp được qua nhiều bản ghi (H2) — nên mỗi bài một lượt chạy, chỉ thao tác một bản ghi.</p>`;
+    if (sel === 'checks') body = `<div class="checks">${['Không có từ Cấm (' + state.brand.forbidden.filter(f => f.level === 'ban' && f.on !== false).length + ' mục)', 'Từ Cảnh báo đã được bạn xác nhận', 'Có ảnh nếu kênh bắt buộc (Instagram)', 'Nhắc ít nhất 1 thông tin thật từ hồ sơ', 'Độ dài và số hashtag đúng chuẩn kênh'].map(t => `<div class="check-item ok"><span class="ci-ic">${icon('check')}</span><div><b>${esc(t)}</b></div></div>`).join('')}</div>
+      <p class="subtle mt-3">Cùng bộ kiểm với màn Bài viết — chạy lại ngay trước khi đăng, phòng khi bạn sửa bài sau khi duyệt.</p>`;
+    if (sel === 'channel') body = `<div class="list">${Object.keys(D.CHANNELS).map(k => { const c = A.connections[k]; const C = D.CHANNELS[k]; const l1 = C.level === 1 && c.connected; return `<div class="list-item"><div class="grow"><b>${C.name}</b><div class="subtle">${l1 ? esc(c.account) + ' · ' + esc(C.via) : C.level === 0 ? esc(C.via) : 'Chưa cấp quyền → tạm đăng tay'}</div></div><span class="badge ${l1 ? 'success' : 'warning'}">${l1 ? 'Mức 1' : 'Mức 0'}</span></div>`; }).join('')}</div>
+      <button class="btn sm mt-3" data-goto="conn">${icon('plug', 'sm')}Quản lý kênh kết nối</button> <a class="btn sm ghost mt-3" href="publish.html">${icon('phone', 'sm')}Xem màn “Đăng bài này”</a>`;
+    if (sel === 'publish') body = `<div class="field"><label for="rt">Số lần thử lại khi chắc chắn chưa gửi</label><select class="select" id="rt">${[1, 3, 5].map(r => `<option value="${r}" ${A.retries === r ? 'selected' : ''}>${r} lần</option>`).join('')}</select><p class="hint">Cách nhau 30 giây → 2 phút → 10 phút. Lỗi ở bước này không làm chạy lại các bước trước.</p></div>
+      <div class="callout mt-3">${icon('alert')}<div><b>Không rõ kết quả</b> (Meta không trả lời kịp): không tự đăng lại để tránh trùng — bài chuyển “Cần kiểm tra” và bạn nhận thông báo 2 nút.<div class="mt-2"><button class="btn sm" id="sim-check">${icon('play', 'sm')}Mô phỏng “Cần kiểm tra”</button></div></div></div>`;
+    if (sel === 'update') body = `<p class="muted">Sau khi đăng thành công, bài chuyển <b>Đã đăng</b>, lưu link và giờ lên kênh thật. 24 giờ sau hỏi bạn 1 câu “Bài này thế nào?” (😐 🙂 🔥) — dữ liệu cho Báo cáo tháng.</p>`;
+    if (sel === 'notify') body = `<div class="stack">
+      <label class="check"><input type="checkbox" id="np" ${N.push ? 'checked' : ''}>${icon('bell', 'sm')}Thông báo đẩy <span class="badge primary">Mặc định</span></label>
+      <label class="check"><input type="checkbox" id="ne" ${N.email ? 'checked' : ''}>${icon('mail', 'sm')}Email <span class="badge">Dự phòng</span></label>
+      <label class="check"><input type="checkbox" id="nt" ${N.telegram ? 'checked' : ''}>${icon('send', 'sm')}Telegram <span class="badge">Tuỳ chọn</span></label>
+      <label class="check" style="opacity:.55"><input type="checkbox" disabled>${icon('message', 'sm')}Zalo OA <span class="badge">Chưa có</span></label>
+      <p class="subtle">Báo khi: bài cần bạn đăng tay · Duyệt tuần (tối CN ${esc(N.weeklyTime)}) · đăng lỗi / cần kiểm tra · token kênh sắp hết hạn · phản hồi 24h.</p>
+      <div class="card card-pad" style="background:var(--surface-2)"><b>Đo riêng từng bước (mẫu)</b><dl class="kv mt-2" style="grid-template-columns:140px 1fr"><dt>Bật thông báo</dt><dd>${N.stats.enabled}% khách</dd><dt>Mở thông báo</dt><dd>${N.stats.opened}%</dd><dt>Làm xong việc</dt><dd>${N.stats.done}%</dd></dl></div></div>`;
     box.innerHTML = `<div class="card-head"><h3>${icon(n.icon)}${esc(n.title)}</h3><span class="badge">${KIND[n.kind][0]}</span></div><div class="card-body">${body}</div>`;
-    const save = msg => { MP.save(); renderWF(); renderCfg(); renderKpis(); renderQueue(); MP.toast(msg || 'Đã lưu cấu hình workflow'); };
-    box.querySelectorAll('input[name="am"]').forEach(r => r.onchange = () => { A.approvalMode = r.value; save(r.value === 'auto' ? 'Đã chuyển sang tự đăng không cần duyệt' : 'Chỉ đăng bài đã duyệt'); });
+    const save = msg => { MP.save(); renderWF(); renderCfg(); renderKpis(); renderQueue(); MP.toast(msg || 'Đã lưu cấu hình'); };
     const on = (id, fn) => { const el = box.querySelector('#' + id); if (el) el.onchange = () => fn(el); };
     on('rb', el => { A.remindBefore = Number(el.value); save(); });
-    on('fb', el => { A.fallback = el.value; save(); });
     on('rt', el => { A.retries = Number(el.value); save(); });
-    on('nz', el => { A.notify.zalo = el.checked; save(); });
-    on('ne', el => { A.notify.email = el.checked; save(); });
+    on('np', el => { N.push = el.checked; save(); });
+    on('ne', el => { N.email = el.checked; save(); });
+    on('nt', el => { N.telegram = el.checked; save(); });
     box.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => showTab(b.dataset.goto));
+    const sc = box.querySelector('#sim-check'); if (sc) sc.onclick = simNeedCheck;
+  }
+  // CL-11 v3: đăng không rõ kết quả → Cần kiểm tra, 2 nút
+  function simNeedCheck() {
+    const it = MP.items().find(i => i.status === 'approved') || MP.items().find(i => i.content && i.status !== 'published');
+    if (!it) return MP.toast('Chưa có bài nào để mô phỏng', 'alert');
+    const p = MP.poolItem(it.id); p.status = 'needcheck'; MP.save(); refresh();
+    const m = MP.modal({ title: 'Cần kiểm tra: bài ngày ' + it.day, subtitle: D.CHANNELS[it.channel].name + ' không trả lời kịp — chưa rõ bài đã lên hay chưa. Hệ thống không tự đăng lại để tránh trùng.',
+      body: `<div class="callout warning">${icon('bell')}<div>Đây là nội dung thông báo bạn nhận: “Bài ‘${esc(it.title)}’ có thể chưa lên. Mở ${esc(D.CHANNELS[it.channel].name)} kiểm tra giúp nhé.”</div></div><div class="field mt-3"><label for="ck-link">Link bài (nếu đã lên)</label><input class="input" id="ck-link" placeholder="https://facebook.com/..."></div>`,
+      foot: '<button class="btn" data-again>' + icon('refresh', 'sm') + 'Chưa lên — đăng lại</button><button class="btn primary" data-ok>' + icon('check', 'sm') + 'Bài đã lên — lưu link</button>' });
+    m.el.querySelector('[data-ok]').onclick = () => { p.status = 'published'; p.url = m.el.querySelector('#ck-link').value || null; p.publishedAt = D.isoDate(new Date()) + 'T' + new Date().toTimeString().slice(0, 5); MP.track('needcheck_resolved', { kết_quả: 'đã lên' }); MP.save(); m.close(); refresh(); MP.toast('Đã ghi nhận bài đã lên'); };
+    m.el.querySelector('[data-again]').onclick = () => { p.status = 'approved'; p.maHen = Math.random().toString(36).slice(2, 8); MP.track('needcheck_resolved', { kết_quả: 'đăng lại' }); MP.save(); m.close(); refresh(); MP.toast('Đã tạo lượt hẹn mới để đăng lại', 'refresh'); };
   }
 
   // ---------- KPI ----------
   function renderKpis() {
     const all = MP.items(); const t = MP.today(); const week = D.addDays(t, 6);
     const upcoming = all.filter(i => i.date >= t && i.date <= week && i.status !== 'published');
-    const needAppr = upcoming.filter(i => MP.autoInfo(i).kind === 'approval' || MP.autoInfo(i).kind === 'nocontent').length;
+    const needAppr = upcoming.filter(i => ['approval', 'nocontent', 'noimage', 'needcheck', 'received'].includes(MP.autoInfo(i).kind)).length;
     const pub = all.filter(i => i.status === 'published').length;
     const ok = A.runs.filter(r => r.result === 'success' || r.result === 'manual').length;
     const k = [
-      { l: 'Sắp đăng 7 ngày tới', v: upcoming.length, ic: 'calendar', sub: upcoming.filter(i => MP.autoInfo(i).kind === 'auto').length + ' bài sẽ tự đăng' },
-      { l: 'Cần bạn xử lý', v: needAppr, ic: 'clock', sub: 'chưa duyệt hoặc chưa có nội dung' },
+      { l: 'Sắp đăng 7 ngày tới', v: upcoming.length, ic: 'calendar', sub: upcoming.filter(i => MP.autoInfo(i).kind === 'auto').length + ' bài đã hẹn tự đăng' },
+      { l: 'Cần bạn xử lý', v: needAppr, ic: 'clock', sub: 'chưa duyệt · thiếu ảnh · chờ đăng tay' },
       { l: 'Đã đăng', v: pub, ic: 'send', sub: A.runs.filter(r => r.result === 'manual').length + ' bài đăng tay' },
       { l: 'Lượt chạy thành công', v: A.runs.length ? Math.round(ok / A.runs.length * 100) + '%' : '—', ic: 'checkCircle', sub: A.runs.length + ' lượt chạy' }
     ];
     document.getElementById('kpis').innerHTML = k.map(x => `<div class="card kpi"><div class="l">${icon(x.ic, 'sm')}${x.l}</div><div class="v">${x.v}</div><div class="subtle">${x.sub}</div></div>`).join('');
     const tg = document.getElementById('toggle'); tg.setAttribute('aria-checked', A.enabled); document.getElementById('toggle-label').textContent = A.enabled ? 'Đang bật' : 'Đang tắt';
     document.getElementById('q-count').textContent = all.filter(i => i.date >= t && i.date <= D.addDays(t, 13) && i.status !== 'published').length;
-    document.getElementById('c-count').textContent = Object.values(A.connections).filter(c => c.connected).length + '/3';
+    document.getElementById('c-count').textContent = Object.keys(D.CHANNELS).filter(k => D.CHANNELS[k].level === 1 && A.connections[k].connected).length + ' Mức 1';
     document.getElementById('r-count').textContent = A.runs.length;
   }
 
@@ -168,48 +186,53 @@
     if (!rows.length) { document.getElementById('queue').innerHTML = `<div class="empty"><div class="em-ic">${icon('send', 'xl')}</div><h3>Hàng đợi trống</h3><p>Không có bài nào cần đăng trong 14 ngày tới.</p></div>`; return; }
     document.getElementById('queue').innerHTML = `<div class="table-wrap"><table class="table"><thead><tr><th>Giờ đăng</th><th>Bài</th><th>Kênh</th><th>Workflow sẽ làm gì</th><th></th></tr></thead><tbody>` +
       rows.map(it => { const ai = MP.autoInfo(it);
-        const act = ai.kind === 'auto' || (ai.kind === 'missed' && it.status === 'approved') ? `<button class="btn sm" data-now="${it.id}">${icon('send', 'sm')}Đăng ngay</button>`
+        const act = ai.kind === 'auto' ? `<button class="btn sm ghost" data-unsched="${it.id}">${icon('x', 'sm')}Huỷ hẹn</button><button class="btn sm" data-now="${it.id}">${icon('send', 'sm')}Đăng ngay</button>`
+          : ai.kind === 'missed' && it.status === 'approved' ? `<button class="btn sm" data-now="${it.id}">${icon('send', 'sm')}Đăng ngay</button>`
           : ai.kind === 'approval' ? `<button class="btn sm primary" data-appr="${it.id}">${icon('check', 'sm')}Duyệt</button>`
-          : ai.kind === 'manual' ? `<button class="btn sm" data-now="${it.id}">${icon('message', 'sm')}Gửi để đăng tay</button>`
-          : ai.kind === 'nocontent' ? `<a class="btn sm" href="post.html?id=${it.id}">${icon('sparkles', 'sm')}Sinh bài</a>` : '';
+          : ai.kind === 'manual' ? `<button class="btn sm" data-now="${it.id}">${icon('phone', 'sm')}Gửi gói nhận bài</button>`
+          : ai.kind === 'received' ? `<a class="btn sm" href="publish.html?id=${it.id}">${icon('phone', 'sm')}Mở “Đăng bài này”</a>`
+          : ai.kind === 'noimage' ? `<a class="btn sm" href="post.html?id=${it.id}">${icon('camera', 'sm')}Thêm ảnh</a>`
+          : ai.kind === 'needcheck' ? `<button class="btn sm primary" data-check="${it.id}">${icon('alert', 'sm')}Kiểm tra</button>`
+          : ai.kind === 'nocontent' ? `<a class="btn sm" href="post.html?id=${it.id}">${icon('sparkles', 'sm')}Viết bài</a>` : '';
         return `<tr data-href="post.html?id=${it.id}">
           <td class="nowrap"><b>${it.time}</b><div class="subtle">${MP.fmtDate(it.date)}${it.date === t ? ' · Hôm nay' : ''}</div></td>
           <td><div class="cell-title">${esc(it.title)}</div><div class="row mt-1">${MP.pillarBadge(it.pillar)}${MP.statusBadge(it.status)}</div></td>
           <td>${MP.channelBadge(it.channel)}</td>
-          <td style="min-width:240px"><span class="badge ${ai.cls}">${icon(ai.icon)}${({ auto: 'Tự đăng', approval: 'Chờ duyệt', manual: 'Đăng tay', nocontent: 'Chưa có bài', off: 'Tắt', missed: 'Quá giờ', failed: 'Lỗi' })[ai.kind] || ''}</span><div class="subtle mt-1">${esc(ai.text)}</div></td>
+          <td style="min-width:240px"><span class="badge ${ai.cls}">${icon(ai.icon)}${MP.KIND_LABEL[ai.kind] || ''}</span><div class="subtle mt-1">${esc(ai.text)}</div></td>
           <td class="nowrap" style="text-align:right">${act}</td></tr>`; }).join('') + '</tbody></table></div>';
     const q = document.getElementById('queue');
     q.querySelectorAll('tr[data-href]').forEach(tr => tr.onclick = e => { if (!e.target.closest('button, a')) location.href = tr.dataset.href; });
-    q.querySelectorAll('[data-appr]').forEach(b => b.onclick = () => { const p = MP.poolItem(b.dataset.appr); p.status = 'approved'; MP.save(); refresh(); MP.toast('Đã duyệt · sẽ tự đăng đúng giờ', 'zap'); });
+    q.querySelectorAll('[data-appr]').forEach(b => b.onclick = () => { const it = MP.item(b.dataset.appr); const c = MP.passCheck(it); if (!c.ok) { MP.toast(c.reason + ' — mở bài để xử lý', 'alert'); return; } const p = MP.poolItem(it.id); p.status = 'approved'; p.maHen = Math.random().toString(36).slice(2, 8); MP.save(); refresh(); MP.toast('Đã duyệt · đã hẹn ' + it.time + ' ' + MP.fmtDate(it.date, 'short'), 'zap'); });
+    q.querySelectorAll('[data-unsched]').forEach(b => b.onclick = () => { const p = MP.poolItem(b.dataset.unsched); p.status = p.edited ? 'edited' : 'generated'; p.maHen = null; MP.save(); refresh(); MP.toast('Đã huỷ hẹn — lượt chạy cũ sẽ tự thoát', 'x'); });
+    q.querySelectorAll('[data-check]').forEach(b => b.onclick = simNeedCheck);
     q.querySelectorAll('[data-now]').forEach(b => b.onclick = () => run(MP.item(b.dataset.now), false));
   }
 
   // ---------- Chạy workflow cho 1 bài ----------
   function run(it, test) {
     const con = A.connections[it.channel]; const ch = D.CHANNELS[it.channel].name;
-    const manual = !con.connected;
+    const manual = !con.connected || D.CHANNELS[it.channel].level === 0;
     const steps = [
-      { label: test ? 'Kích hoạt thủ công (chạy thử)' : 'Kích hoạt: đăng ngay', ms: 300 },
-      { label: A.approvalMode === 'auto' ? 'Bài đạt kiểm tự động' : 'Bài đã được duyệt', ms: 400 },
-      { label: 'Kiểm tra trước khi đăng: đạt 4/4', ms: 600 },
-      manual ? { label: ch + ' chưa kết nối → gửi nội dung qua Zalo', ms: 700 } : { label: 'Kênh đã kết nối: ' + ch + ' · ' + con.account, ms: 400 },
-      ...(manual ? [] : [{ label: test ? 'Mô phỏng đăng lên ' + ch + ' (không đăng thật)' : 'Đăng lên ' + ch, ms: 1100 }, { label: 'Cập nhật lịch: Đã đăng', ms: 300 }]),
-      { label: 'Báo lại qua ' + ([A.notify.zalo && 'Zalo', A.notify.email && 'email'].filter(Boolean).join(' + ') || '—'), ms: 300 }
+      { label: test ? 'Kích hoạt thủ công (chạy thử)' : 'Kích hoạt: đăng ngay (tạo mã hẹn mới)', ms: 300 },
+      { label: 'Đọc lại bài: đúng lịch hẹn', ms: 400 },
+      { label: 'Kiểm tra trước khi đăng: đạt', ms: 600 },
+      manual ? { label: ch + ' là Mức 0 → gửi gói nhận bài qua ' + MP.notifyText(), ms: 700 } : { label: 'Mức 1: ' + ch + ' · ' + con.account + ' (app Meta của TTS)', ms: 400 },
+      ...(manual ? [] : [{ label: test ? 'Khoá bài & mô phỏng đăng lên ' + ch + ' (không đăng thật)' : 'Khoá bài & đăng lên ' + ch, ms: 1100 }, { label: 'Cập nhật lịch: Đã đăng', ms: 300 }]),
+      { label: 'Báo lại qua ' + MP.notifyText(), ms: 300 }
     ];
     const t0 = Date.now();
     MP.runSteps((test ? 'Chạy thử workflow · ' : 'Đang chạy workflow · ') + 'Ngày ' + it.day, steps, () => {
       const now = new Date(); const at = D.isoDate(now) + 'T' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
       const id = 'RUN-' + String(A.runs.length + 1).padStart(4, '0');
       A.runs.unshift({ id, itemId: it.id, at, channel: it.channel, result: test ? 'test' : manual ? 'waiting_manual' : 'success', sec: Math.round((Date.now() - t0) / 100) / 10,
-        steps: steps.map(s => [s.label.includes('chưa kết nối') ? 'warn' : 'ok', s.label, '']) });
+        steps: steps.map(s => [s.label.includes('Mức 0') ? 'warn' : 'ok', s.label, '']) });
       if (!test && !manual) { const p = MP.poolItem(it.id); p.status = 'published'; p.publishedAt = at; p.url = 'https://' + (it.channel === 'instagram' ? 'instagram.com/p/' : 'facebook.com/moclan.cosmetics/posts/') + Date.now(); state.activity.unshift({ t: 0, icon: 'zap', text: 'Tự động đăng bài ngày ' + it.day + ' lên ' + ch }); }
       MP.save(); refresh();
       if (test) { MP.toast('Chạy thử thành công — không có bài nào bị đăng', 'checkCircle'); return; }
       if (!manual) { MP.toast('Đã đăng bài ngày ' + it.day + ' lên ' + ch, 'send'); return; }
-      const m = MP.modal({ title: 'Đã gửi nội dung qua Zalo', subtitle: ch + ' chưa kết nối nên bạn cần đăng tay.',
-        body: `<div class="callout">${icon('message')}<div>Caption, hashtag và ảnh của bài “${esc(it.title)}” đã được gửi vào Zalo của bạn. Đăng xong, bấm xác nhận để lịch cập nhật.</div></div>`,
-        foot: '<button class="btn" data-close>Để sau</button><button class="btn primary" data-ok>' + icon('check', 'sm') + 'Tôi đã đăng</button>' });
-      m.el.querySelector('[data-ok]').onclick = () => { const p = MP.poolItem(it.id); p.status = 'published'; p.manual = true; p.publishedAt = at; A.runs[0].result = 'manual'; A.runs[0].steps.push(['ok', 'Chủ shop xác nhận đã đăng', at.slice(11)]); MP.save(); m.close(); refresh(); MP.toast('Đã ghi nhận đăng tay'); };
+      const m = MP.modal({ title: 'Đã gửi gói nhận bài', subtitle: ch + ' là kênh đăng tay (Mức 0).',
+        body: `<div class="callout">${icon('bell')}<div>Bạn nhận ${esc(MP.notifyText())}: “Đến giờ đăng bài ‘${esc(it.title)}’ — chạm để đăng”. Link mở màn <b>Đăng bài này</b>: 1 nút chép chữ + chia sẻ ảnh, 1 nút “Tôi đã đăng”.</div></div>`,
+        foot: '<button class="btn" data-close>Để sau</button><a class="btn primary" href="publish.html?id=' + it.id + '">' + icon('phone', 'sm') + 'Mở màn Đăng bài này</a>' });
     }, test ? 'Chạy thử đi qua đủ các bước nhưng không đăng thật lên kênh.' : 'Mỗi bước được ghi lại trong Lịch sử chạy.');
   }
 
@@ -227,15 +250,18 @@
   const CONN_INFO = {
     facebook: { perm: 'Quản lý và đăng bài trên Page', pages: ['Mộc Lan Cosmetics', 'Mộc Lan — Kho sỉ', 'Test page'] },
     instagram: { perm: 'Đăng ảnh & album lên tài khoản Business (liên kết với Facebook Page)', pages: ['@moclan.cosmetics'] },
-    zalo: { perm: 'Gửi bài viết lên Official Account', pages: ['Mộc Lan Cosmetics OA'] }
+    zalo: { perm: 'Gửi bài viết lên Official Account', pages: [] }
   };
   function renderConns() {
     document.getElementById('conns').innerHTML = Object.keys(D.CHANNELS).map(k => {
       const c = A.connections[k]; const ch = D.CHANNELS[k]; const n = MP.items().filter(i => i.channel === k && i.status !== 'published').length;
+      if (ch.level === 0) return `<div class="card"><div class="card-body stack"><div class="row between"><div class="row"><span class="ic-box">${icon('phone', 'sm')}</span><div><b>${ch.name}</b><div class="subtle">${ch.account}</div></div></div><span class="badge warning">Mức 0 · đăng tay</span></div>
+        <p class="muted">Chưa có Zalo OA để tự đăng / gửi tin chủ động (H6: chưa xác nhận). ${n} bài trên lịch dùng kênh này — đến giờ gửi gói nhận bài qua ${esc(MP.notifyText())}.</p><p class="subtle">Giờ đăng mặc định: ${ch.defaultTime}</p></div>
+        <div class="card-foot"><a class="btn sm" href="publish.html">${icon('phone', 'sm')}Xem màn Đăng bài này</a></div></div>`;
       return `<div class="card"><div class="card-body stack">
         <div class="row between"><div class="row"><span class="ic-box ${c.connected ? 'primary' : ''}">${icon('plug', 'sm')}</span><div><b>${ch.name}</b><div class="subtle">${ch.account}</div></div></div>${c.connected ? '<span class="badge success">' + icon('check') + 'Đã kết nối</span>' : '<span class="badge warning">' + icon('alert') + 'Chưa kết nối</span>'}</div>
-        ${c.connected ? `<dl class="kv" style="grid-template-columns:90px 1fr"><dt>Tài khoản</dt><dd>${esc(c.account)}</dd><dt>Quyền</dt><dd class="subtle" style="font-weight:400">${esc(CONN_INFO[k].perm)}</dd><dt>Token</dt><dd>Hết hạn sau ${c.expiresIn} ngày</dd></dl>`
-          : `<p class="muted">${n} bài trên lịch đang dùng kênh này — hiện sẽ được gửi qua Zalo để bạn đăng tay.</p>`}
+        ${c.connected ? `<dl class="kv" style="grid-template-columns:90px 1fr"><dt>Mức</dt><dd>Mức 1 · ${esc(ch.via)}</dd><dt>Tài khoản</dt><dd>${esc(c.account)}</dd><dt>Quyền</dt><dd class="subtle" style="font-weight:400">${esc(CONN_INFO[k].perm)}</dd><dt>Token</dt><dd>Hết hạn sau ${c.expiresIn} ngày</dd></dl>`
+          : `<p class="muted">${n} bài trên lịch dùng kênh này — trong lúc chưa cấp quyền sẽ gửi gói nhận bài để bạn đăng tay (Mức 0).</p>`}
         <p class="subtle">Giờ đăng mặc định: ${ch.defaultTime}</p>
       </div><div class="card-foot">${c.connected ? `<button class="btn sm ghost danger" data-dis="${k}">Ngắt kết nối</button>` : `<button class="btn sm primary" data-con="${k}">${icon('plug', 'sm')}Kết nối ${ch.name}</button>`}</div></div>`;
     }).join('');
@@ -245,7 +271,7 @@
   function connect(k) {
     const ch = D.CHANNELS[k]; const info = CONN_INFO[k];
     const m = MP.modal({ title: 'Kết nối ' + ch.name, subtitle: 'Bước 1: đăng nhập ' + ch.name + ' (mô phỏng) · Bước 2: chọn tài khoản',
-      body: `<div class="stack"><div class="callout">${icon('shield')}<div>Marketing Agent chỉ xin quyền: <b>${esc(info.perm)}</b>. Không đọc tin nhắn, không xem dữ liệu cá nhân.</div></div>
+      body: `<div class="stack"><div class="callout">${icon('shield')}<div>Qua app Meta của công ty TTS. Marketing Agent chỉ xin quyền: <b>${esc(info.perm)}</b>. Không đọc tin nhắn, không xem dữ liệu cá nhân.</div></div>
         <div class="stack sm">${info.pages.map((p, i) => `<label class="radio-card"><input type="radio" name="pg" value="${esc(p)}" ${i === 0 ? 'checked' : ''}><span><b>${esc(p)}</b><div class="subtle">${ch.account}</div></span></label>`).join('')}</div></div>`,
       foot: '<button class="btn" data-close>Huỷ</button><button class="btn primary" data-ok>' + icon('check', 'sm') + 'Cấp quyền & kết nối</button>' });
     m.el.querySelector('[data-ok]').onclick = () => {
@@ -255,7 +281,7 @@
   }
 
   // ---------- Lịch sử chạy ----------
-  const RES = { success: ['success', 'checkCircle', 'Thành công'], manual: ['warning', 'message', 'Đăng tay'], waiting_manual: ['warning', 'clock', 'Chờ đăng tay'], failed: ['danger', 'alert', 'Lỗi'], test: ['info', 'play', 'Chạy thử'] };
+  const RES = { success: ['success', 'checkCircle', 'Thành công'], manual: ['warning', 'phone', 'Đăng tay'], waiting_manual: ['warning', 'clock', 'Đã gửi gói nhận bài'], failed: ['danger', 'alert', 'Lỗi'], needcheck: ['danger', 'alert', 'Cần kiểm tra'], test: ['info', 'play', 'Chạy thử'] };
   let open = null;
   function renderRuns() {
     if (!A.runs.length) { document.getElementById('runs').innerHTML = `<div class="empty"><div class="em-ic">${icon('list', 'xl')}</div><h3>Chưa có lượt chạy nào</h3><p>Lượt chạy đầu tiên sẽ xuất hiện khi đến giờ đăng bài đã duyệt.</p></div>`; return; }

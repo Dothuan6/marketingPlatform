@@ -4,11 +4,11 @@
    ========================================================================= */
 (function () {
   const INDUSTRIES = [
-    { id: 'fashion_beauty', name: 'Thời trang & Mỹ phẩm', desc: 'Shop mỹ phẩm, quần áo, phụ kiện', icon: 'sparkles', preset: true },
-    { id: 'spa', name: 'Spa & Beauty', desc: 'Spa, thẩm mỹ, nail, gội đầu dưỡng sinh', icon: 'smile', preset: true },
-    { id: 'fnb', name: 'F&B', desc: 'Quán cà phê, nhà hàng, đồ ăn online', icon: 'package', preset: false },
-    { id: 'edu', name: 'Giáo dục', desc: 'Trung tâm, khoá học, gia sư', icon: 'book', preset: false },
-    { id: 'realestate', name: 'BĐS & Nội thất', desc: 'Môi giới, dự án, đồ nội thất', icon: 'home', preset: false }
+    { id: 'fashion_beauty', name: 'Thời trang & Mỹ phẩm', desc: 'Shop mỹ phẩm, quần áo, phụ kiện', icon: 'sparkles', preset: true, tone: 'gan_gui', products: ['Serum rau má 30ml', 'Kem chống nắng', 'Son dưỡng', 'Váy công sở'] },
+    { id: 'spa', name: 'Spa & Beauty', desc: 'Spa, thẩm mỹ, nail, gội đầu dưỡng sinh', icon: 'smile', preset: true, tone: 'gan_gui', products: ['Gói chăm sóc da mụn 10 buổi', 'Gội đầu dưỡng sinh 60 phút', 'Nail gel'] },
+    { id: 'fnb', name: 'F&B', desc: 'Quán cà phê, nhà hàng, đồ ăn online', icon: 'package', preset: false, tone: 'hai_huoc', products: ['Cà phê muối', 'Cơm văn phòng giao tận nơi', 'Bánh bông lan trứng muối'] },
+    { id: 'edu', name: 'Giáo dục', desc: 'Trung tâm, khoá học, gia sư', icon: 'book', preset: false, tone: 'chuyen_nghiep', products: ['Khoá IELTS 6.5 cấp tốc', 'Lớp toán lớp 9 ôn thi vào 10'] },
+    { id: 'realestate', name: 'BĐS & Nội thất', desc: 'Môi giới, dự án, đồ nội thất', icon: 'home', preset: false, tone: 'chuyen_nghiep', products: ['Sofa gỗ sồi 3 chỗ', 'Căn hộ 2PN dự án X'] }
   ];
 
   const TONES = [
@@ -26,9 +26,9 @@
   };
 
   const CHANNELS = {
-    facebook: { id: 'facebook', name: 'Facebook', short: 'FB', account: 'Page', defaultTime: '19:30' },
-    instagram: { id: 'instagram', name: 'Instagram', short: 'IG', account: 'Business', defaultTime: '12:00' },
-    zalo: { id: 'zalo', name: 'Zalo OA', short: 'Zalo', account: 'Official Account', defaultTime: '09:00' }
+    facebook: { id: 'facebook', name: 'Facebook', short: 'FB', account: 'Page', defaultTime: '19:30', level: 1, via: 'App Meta của công ty TTS' },
+    instagram: { id: 'instagram', name: 'Instagram', short: 'IG', account: 'Business', defaultTime: '12:00', level: 1, via: 'App Meta của công ty TTS', needImage: true },
+    zalo: { id: 'zalo', name: 'Zalo OA', short: 'Zalo', account: 'Official Account', defaultTime: '09:00', level: 0, via: 'Chưa có Zalo OA — đăng tay (Mức 0)' }
   };
 
   const FORMATS = {
@@ -40,7 +40,10 @@
     planned: { name: 'Đã lên khung', cls: '', icon: 'clock' },
     generated: { name: 'Đã sinh nội dung', cls: 'info', icon: 'sparkles' },
     edited: { name: 'Đã chỉnh sửa', cls: 'warning', icon: 'pencil' },
-    approved: { name: 'Đã duyệt · chờ đăng', cls: 'primary', icon: 'clock' },
+    approved: { name: 'Đã duyệt · đã hẹn giờ', cls: 'primary', icon: 'clock' },
+    received: { name: 'Đã nhận · chờ bạn đăng', cls: 'warning', icon: 'message' },
+    needcheck: { name: 'Cần kiểm tra', cls: 'danger', icon: 'alert' },
+    skipped: { name: 'Đã bỏ qua', cls: '', icon: 'x' },
     published: { name: 'Đã đăng', cls: 'success', icon: 'checkCircle' },
     failed: { name: 'Đăng lỗi', cls: 'danger', icon: 'alert' }
   };
@@ -54,23 +57,23 @@
   ];
 
   const QUESTIONS = [
-    { id: 'q1', group: 'g1', type: 'text', required: true, label: 'Tên thương hiệu hoặc tên shop', placeholder: 'Vd: Mộc Lan Cosmetics', uses: ['②', '⑤'] },
-    { id: 'q2', group: 'g1', type: 'text', required: true, label: 'Sản phẩm chủ lực bạn muốn bán nhiều nhất?', labelBy: { spa: 'Dịch vụ chủ lực bạn muốn đẩy mạnh?' }, placeholder: 'Vd: Serum rau má phục hồi da 30ml', uses: ['②', '④', '⑤'] },
-    { id: 'q3', group: 'g1', type: 'money', required: true, label: 'Giá bán', placeholder: 'Vd: 289000', hint: 'Nhập số, không cần dấu chấm.', uses: ['⑤'] },
+    { id: 'q1', group: 'g1', type: 'text', required: true, label: 'Tên thương hiệu hoặc tên shop', placeholder: 'Vd: Mộc Lan Cosmetics', uses: ['②', '⑤'], tier: 1 },
+    { id: 'q2', group: 'g1', type: 'text', required: true, label: 'Sản phẩm chủ lực bạn muốn bán nhiều nhất?', labelBy: { spa: 'Dịch vụ chủ lực bạn muốn đẩy mạnh?' }, placeholder: 'Vd: Serum rau má phục hồi da 30ml', uses: ['②', '④', '⑤'], tier: 1 },
+    { id: 'q3', group: 'g1', type: 'money', required: true, label: 'Giá bán', placeholder: 'Vd: 289000', hint: 'Nhập số, không cần dấu chấm.', uses: ['⑤'], tier: 1 },
     { id: 'q4', group: 'g1', type: 'textarea', required: true, label: 'Sản phẩm giải quyết vấn đề gì cho khách?', placeholder: 'Mô tả ngắn nỗi khổ của khách trước khi dùng sản phẩm', suggestBy: { fashion_beauty: ['Da mụn, nhạy cảm', 'Da kích ứng sau treatment', 'Da xỉn màu', 'Lão hoá sớm', 'Mặc gì cũng không vừa'], spa: ['Căng thẳng, mất ngủ', 'Mụn, thâm', 'Đau mỏi vai gáy', 'Muốn trẻ hoá'], _: ['Tiết kiệm thời gian', 'Tiết kiệm chi phí', 'Chất lượng ổn định'] }, uses: ['②', '③'] },
-    { id: 'q5', group: 'g2', type: 'multi', required: true, label: 'Khách hàng chính của bạn là ai?', hint: 'Chọn tất cả nhóm phù hợp.', options: ['Nữ 18–24', 'Nữ 25–34', 'Nữ 35–44', 'Nam 18–34', 'Sinh viên', 'Dân văn phòng', 'Mẹ bỉm sữa', 'Thu nhập khá'], uses: ['②'] },
+    { id: 'q5', group: 'g2', type: 'multi', required: true, label: 'Khách hàng chính của bạn là ai?', hint: 'Chọn tất cả nhóm phù hợp.', options: ['Nữ 18–24', 'Nữ 25–34', 'Nữ 35–44', 'Nam 18–34', 'Sinh viên', 'Dân văn phòng', 'Mẹ bỉm sữa', 'Thu nhập khá'], uses: ['②'], tier: 1 },
     { id: 'q6', group: 'g2', type: 'multi', required: true, label: 'Khách thường thấy và mua hàng của bạn ở đâu?', options: ['Facebook', 'TikTok', 'Instagram', 'Shopee', 'Zalo', 'Website'], uses: ['③'] },
     { id: 'q7', group: 'g2', type: 'multi', required: false, label: 'Điều gì khiến khách còn chần chừ khi mua?', options: ['Giá cao hơn hàng bình dân', 'Sợ hàng giả trôi nổi', 'Không chắc hợp với mình', 'Chưa nghe tên thương hiệu', 'Phí ship', 'Sợ tác dụng phụ'], uses: ['②', '④'] },
     { id: 'q8', group: 'g3', type: 'textarea', required: true, label: 'Bạn khác đối thủ ở điểm nào?', placeholder: 'Nguyên liệu, quy trình, bảo hành, dịch vụ… càng cụ thể càng tốt', uses: ['②'] },
     { id: 'q9', group: 'g3', type: 'text', required: false, label: 'Khách hay so sánh bạn với ai?', placeholder: 'Vd: Serum rau má của các brand Hàn', uses: ['②'] },
-    { id: 'q10', group: 'g3', type: 'multi', required: false, label: 'Bạn đang có bằng chứng nào?', hint: 'Dùng cho pillar Chứng thực.', options: ['Đánh giá 5★ trên sàn', 'Giấy kiểm nghiệm / chứng nhận', 'Ảnh before/after', 'KOL/KOC đã dùng', 'Số lượng đã bán', 'Cam kết đổi trả'], uses: ['③', '⑤'] },
+    { id: 'q10', group: 'g3', type: 'multi', required: false, label: 'Bạn đang có bằng chứng nào?', hint: 'Dùng cho nhóm bài Chứng thực.', options: ['Đánh giá 5★ trên sàn', 'Giấy kiểm nghiệm / chứng nhận', 'Ảnh before/after', 'KOL/KOC đã dùng', 'Số lượng đã bán', 'Cam kết đổi trả'], uses: ['③', '⑤'] },
     { id: 'q11', group: 'g4', type: 'single', required: true, label: 'Mục tiêu 30 ngày tới', options: [
-      { v: 'Tăng đơn sản phẩm chủ lực', d: 'Ưu tiên pillar Sản phẩm & Chứng thực', icon: 'zap' },
+      { v: 'Tăng đơn sản phẩm chủ lực', d: 'Ưu tiên nhóm Sản phẩm & Chứng thực', icon: 'zap' },
       { v: 'Ra mắt sản phẩm mới', d: 'Chuỗi teaser → ra mắt → review', icon: 'sparkles' },
       { v: 'Tăng nhận diện thương hiệu', d: 'Ưu tiên Giáo dục & Giải trí', icon: 'users' },
-      { v: 'Xả hàng tồn', d: 'Ưu đãi có thời hạn, CTA mạnh', icon: 'package' }
-    ], uses: ['③', '④'] },
-    { id: 'q12', group: 'g4', type: 'tone', required: true, label: 'Giọng thương hiệu', hint: 'Đổi được bất cứ lúc nào ở Brand Brain.', uses: ['⑤'] }
+      { v: 'Xả hàng tồn', d: 'Ưu đãi có thời hạn, lời kêu gọi mạnh', icon: 'package' }
+    ], uses: ['③', '④'], tier: 1 },
+    { id: 'q12', group: 'g4', type: 'tone', required: true, label: 'Giọng thương hiệu', hint: 'Đổi được bất cứ lúc nào ở Hồ sơ thương hiệu.', uses: ['⑤'] }
   ];
 
   const SAMPLE_ANSWERS = {
@@ -87,6 +90,107 @@
     q11: { value: 'Tăng đơn sản phẩm chủ lực', source: 'user' },
     q12: { value: 'gan_gui', source: 'user' }
   };
+
+  /* ---------- Tầng 2: câu hỏi hỏi đúng lúc (CL-01) — xếp theo tác động ---------- */
+  const TIER2 = [
+    { id: 'q8', impact: 'Mọi bài sẽ nêu đúng điểm khác của bạn thay vì câu chung chung', where: 'Lịch 30 ngày' },
+    { id: 'q4', impact: 'Bài Giáo dục nói đúng vấn đề khách của bạn đang gặp', where: 'Lịch 30 ngày' },
+    { id: 'q10', impact: 'Các bài Chứng thực có bằng chứng thật để dẫn', where: 'Bài Chứng thực' },
+    { id: 'q7', impact: 'Góc kể chuyện trả lời đúng nỗi lo khiến khách chần chừ', where: 'Chiến lược' },
+    { id: 'q6', impact: 'Ưu tiên đúng kênh khách hay xem', where: 'Chiến lược' },
+    { id: 'q9', impact: 'So sánh hợp lý với đối thủ khách hay nhắc tới', where: 'Hồ sơ' },
+    { id: 'q12', impact: 'Giọng bài giống cách bạn nói chuyện với khách', where: 'Hồ sơ' }
+  ];
+  // Nhóm độ đầy hồ sơ (CL-05): không tính % theo số trường
+  const COMPLETENESS = {
+    required: { name: 'Bắt buộc', ids: ['q1', 'q2', 'q3', 'q5', 'q11'] },
+    high: { name: 'Tác động lớn', ids: ['q8', 'q4', 'q10', 'q7'] },
+    extra: { name: 'Bổ sung', ids: ['q6', 'q9', 'q12'] }
+  };
+  // Máy dò câu trả lời mơ hồ (CL-04)
+  const VAGUE_WORDS = ['chất lượng', 'uy tín', 'giá rẻ', 'giá hợp lý', 'giá tốt', 'tận tâm', 'đảm bảo', 'tốt nhất', 'hàng đẹp', 'nhiều mẫu', 'mỹ phẩm', 'quần áo', 'đồ ăn', 'sản phẩm tốt'];
+  const VAGUE_FOLLOWUP = {
+    q2: { ask: 'Cụ thể hơn một chút: món nào bạn muốn bán nhiều nhất?', chips: ind => (INDUSTRIES.find(i => i.id === ind) || INDUSTRIES[0]).products },
+    q8: { ask: 'Bạn khác đối thủ ở chỗ nào?', chips: () => ['Nguyên liệu: ', 'Quy trình làm: ', 'Bảo hành/đổi trả: ', 'Người làm/tư vấn: '] },
+    q4: { ask: 'Khách gặp chuyện gì trước khi mua của bạn?', chips: () => ['Da đỏ rát sau treatment', 'Mụn tái đi tái lại', 'Da khô căng khi ngồi máy lạnh'] }
+  };
+
+  /* ---------- Thuật ngữ hiển thị (CL-21) ---------- */
+  const TERMS = {
+    brain: { name: 'Hồ sơ thương hiệu', pro: 'Brand Brain', tip: 'Mọi thứ AI biết về shop của bạn. Bài viết lấy tên, giá, lợi ích từ đây.' },
+    usp: { name: 'Lý do khách chọn bạn', pro: 'USP', tip: 'Câu trả lời cho câu hỏi “sao không mua chỗ khác?”.' },
+    angle: { name: 'Góc kể chuyện', pro: 'Angle', tip: 'Một cách nói về sản phẩm, đánh vào một nỗi lo cụ thể của khách.' },
+    persona: { name: 'Khách hàng điển hình', pro: 'Persona', tip: 'Một người mua cụ thể, để AI viết đúng giọng và đúng nỗi lo.' },
+    pillar: { name: 'Nhóm nội dung', pro: 'Pillar', tip: '4 loại bài xen kẽ nhau: Giáo dục · Sản phẩm · Chứng thực · Giải trí.' },
+    hook: { name: 'Câu mở đầu', pro: 'Hook', tip: 'Dòng đầu tiên của bài — quyết định khách có đọc tiếp hay lướt qua.' },
+    cta: { name: 'Lời kêu gọi', pro: 'CTA', tip: 'Câu cuối bài bảo khách làm gì: nhắn tin, đặt hàng, lưu bài…' }
+  };
+
+  /* ---------- Từ Cấm / Cảnh báo theo ngành (CL-06) — BẢN MẪU, chờ người am hiểu quy định rà (H8) ---------- */
+  const FORBIDDEN_PRESET = [
+    { w: 'đặc trị', level: 'ban', alt: 'chuyên cho', why: 'Nói như thuốc — mỹ phẩm không được quảng cáo chữa bệnh' },
+    { w: 'trị dứt điểm', level: 'ban', alt: 'hỗ trợ cải thiện', why: 'Nói như thuốc' },
+    { w: 'chữa khỏi', level: 'ban', alt: 'hỗ trợ làm dịu', why: 'Nói như thuốc' },
+    { w: 'trị mụn', level: 'ban', alt: 'hỗ trợ giảm mụn', why: 'Nói như thuốc' },
+    { w: 'cam kết 100%', level: 'ban', alt: 'nhiều khách phản hồi tốt', why: 'Hứa hẹn tuyệt đối, dễ bị gỡ bài' },
+    { w: 'hết mụn vĩnh viễn', level: 'ban', alt: 'giúp da ổn định hơn', why: 'Hứa hẹn tuyệt đối' },
+    { w: 'thần thánh', level: 'warn', alt: 'được nhiều khách yêu thích', why: 'Phóng đại' },
+    { w: 'tốt nhất', level: 'warn', alt: 'được nhiều khách chọn', why: 'So sánh tuyệt đối, cần bằng chứng' },
+    { w: 'an toàn tuyệt đối', level: 'warn', alt: 'lành tính, đã kiểm nghiệm', why: 'Hứa hẹn tuyệt đối' },
+    { w: 'rau má Hàn', level: 'warn', alt: 'rau má nhập khẩu', why: 'Nhắc/so sánh với đối thủ — dễ bị coi là hạ thấp' },
+    { w: 'trắng bật tông', level: 'warn', alt: 'da đều màu hơn', why: 'Phóng đại công dụng' }
+  ];
+
+  /* ---------- Kho ảnh của shop (CL-15) — không dùng ảnh mẫu theo ngành (H10) ---------- */
+  const IMAGES = [
+    { id: 'img1', label: 'Chai serum trên nền trắng', tags: ['Sản phẩm', 'Nền trắng'], hue: 140 },
+    { id: 'img2', label: 'Giọt serum trên mu bàn tay', tags: ['Sản phẩm', 'Cận cảnh'], hue: 160 },
+    { id: 'img3', label: 'Ruộng rau má Hậu Giang', tags: ['Nguồn gốc'], hue: 100 },
+    { id: 'img4', label: 'Phiếu kiểm nghiệm da liễu', tags: ['Giấy tờ', 'Chứng thực'], hue: 210 },
+    { id: 'img5', label: 'Xưởng chưng cất', tags: ['Nguồn gốc', 'Hậu trường'], hue: 30 },
+    { id: 'img6', label: 'Ảnh khách gửi sau 14 ngày', tags: ['Chứng thực', 'Khách hàng'], hue: 330 }
+  ];
+  const SHOT_LIST = {
+    edu: [['Góc chụp', 'Tay cầm sản phẩm, nghiêng 45°'], ['Nền', 'Bàn làm việc gọn, có laptop hoặc ly nước'], ['Ánh sáng', 'Gần cửa sổ, tắt đèn trần, không dùng flash']],
+    prod: [['Góc chụp', 'Chính diện sản phẩm, chiếm 2/3 khung'], ['Nền', 'Giấy trắng hoặc khăn trơn'], ['Ánh sáng', 'Ánh sáng tự nhiên buổi sáng']],
+    proof: [['Góc chụp', 'Chụp thẳng giấy tờ / ảnh khách gửi, không nghiêng'], ['Nền', 'Mặt bàn trơn'], ['Lưu ý', 'Che tên và số điện thoại của khách']],
+    fun: [['Góc chụp', 'Khoảnh khắc đời thường có sản phẩm trong khung'], ['Nền', 'Văn phòng, phòng ngủ, góc bếp'], ['Ánh sáng', 'Tự nhiên, không cần đẹp — cần thật']]
+  };
+
+  /* ---------- 2 câu mở đầu thay thế theo góc (CL-09): câu hỏi · con số ---------- */
+  const ALT_HOOKS = {
+    A1: ['Da đỏ rát sau BHA — bạn đang định bỏ luôn liệu trình?', '7 ngày, 3 bước: giữ BHA mà da vẫn dịu.'],
+    A2: ['Serum “rau má” bạn đang dùng có bao nhiêu rau má thật?', '2kg rau má tươi cho 1 chai 30ml — đây là cách tụi mình làm.'],
+    A3: ['Làm sao biết chai serum trên tay là hàng thật?', '1 mã QR, 3 giây: biết ngay lô hàng của bạn.'],
+    A4: ['Cùng rau má, sao giá chênh nhau 150k?', '289k cho 60 ngày — chưa tới 5.000đ mỗi ngày.'],
+    A5: ['Ngồi máy lạnh 8 tiếng, da bạn còn đủ nước không?', '3 bước, 3 phút — da vẫn ổn sau 8 tiếng máy lạnh.']
+  };
+
+  /* ---------- Đọc ảnh chụp màn hình (CL-02 v2) — kết quả giả lập ---------- */
+  const SCREENSHOT_RESULT = {
+    shop: 'Mộc Lan Cosmetics',
+    desc: 'Mỹ phẩm rau má tự chưng cất cho da nhạy cảm',
+    rows: [
+      { product: 'Serum rau má phục hồi da Mộc Lan 30ml', price: '289000', on: true },
+      { product: 'Kem chống nắng rau má SPF50 50ml', price: '245000', on: false },
+      { product: 'Sữa rửa mặt dịu nhẹ 150ml', price: '', on: false }
+    ]
+  };
+
+  /* ---------- Lịch sự kiện & mùa vụ (CL-17) · ngày âm lịch tính bằng thư viện lịch, không để model đoán (H11) ---------- */
+  const ALL_IND = ['fashion_beauty', 'spa', 'fnb', 'edu', 'realestate'];
+  const EVENTS = [
+    { id: 'e-trungthu-26', name: 'Tết Trung thu', date: '2026-09-25', lunar: '15/8 âm lịch', industries: ['fnb', 'edu', 'fashion_beauty'], src: 'BA' },
+    { id: 'e-2010-26', name: 'Ngày Phụ nữ Việt Nam', date: '2026-10-20', industries: ['fashion_beauty', 'spa', 'fnb'], src: 'BA' },
+    { id: 'e-halloween-26', name: 'Halloween', date: '2026-10-31', industries: ['fnb', 'fashion_beauty'], src: 'AI đề xuất' },
+    { id: 'e-1111-26', name: 'Sale 11/11', date: '2026-11-11', industries: ['fashion_beauty', 'fnb', 'realestate'], src: 'BA' },
+    { id: 'e-2011-26', name: 'Ngày Nhà giáo Việt Nam', date: '2026-11-20', industries: ['edu', 'fnb', 'fashion_beauty', 'spa'], src: 'BA' },
+    { id: 'e-bf-26', name: 'Black Friday', date: '2026-11-27', industries: ALL_IND, src: 'BA' },
+    { id: 'e-1212-26', name: 'Sale 12/12', date: '2026-12-12', industries: ['fashion_beauty', 'fnb'], src: 'BA' },
+    { id: 'e-noel-26', name: 'Giáng sinh', date: '2026-12-24', industries: ALL_IND, src: 'BA' },
+    { id: 'e-tet-27', name: 'Tết Nguyên đán Đinh Mùi', date: '2027-02-06', lunar: 'Mùng 1 tháng Giêng', industries: ALL_IND, src: 'BA' },
+    { id: 'e-0803-27', name: 'Quốc tế Phụ nữ 8/3', date: '2027-03-08', industries: ['fashion_beauty', 'spa', 'fnb'], src: 'BA' }
+  ];
 
   /* ---------- Chiến lược mẫu ---------- */
   const ANGLES = [
@@ -275,6 +379,17 @@
     return picked.map((it, i) => ({ id: it.id, date: dates[i] }));
   }
 
+  // Chọn ảnh trong kho cho bài (CL-15): trả null nếu không có ảnh hợp → cần chụp
+  function pickImage(it) {
+    if (it.pillar === 'fun') return null;
+    if (it.angle === 'A3') return 'img4';
+    if (it.pillar === 'proof') return it.id % 2 ? 'img6' : 'img4';
+    if (it.angle === 'A2') return it.id % 2 ? 'img3' : 'img5';
+    if (it.pillar === 'prod') return it.id % 2 ? 'img1' : 'img2';
+    if (it.angle === 'A5') return null;
+    return it.id % 3 === 0 ? null : 'img2';
+  }
+
   function initialState() {
     const today = isoDate(new Date());
     const start = addDays(today, -2);
@@ -282,36 +397,40 @@
       industry: 'fashion_beauty',
       answers: JSON.parse(JSON.stringify(SAMPLE_ANSWERS)),
       tone: 'gan_gui',
-      forbidden: ['trị dứt điểm', 'cam kết 100%', 'thần thánh', 'hết mụn vĩnh viễn'],
+      forbidden: FORBIDDEN_PRESET.map(f => Object.assign({ on: true, preset: true }, f)),
+      images: IMAGES.map(x => Object.assign({}, x)),
       voiceSamples: [],
       voiceTraits: []
     };
     const pool = RAW.map((r, i) => {
       const it = { id: i + 1, pillar: r[0], angle: r[1], channel: r[2], channel0: r[2], format: r[3], title: r[4], hook: r[5], status: INITIAL_STATUS[i] || 'planned', regen: 0, edited: false };
-      if (it.status !== 'planned') {
-        it.content = genContent(it, brand, 0);
-      }
-      if (it.status === 'edited') it.edited = true;
+      it.imageId = pickImage(it);
+      if (it.status !== 'planned') it.content = genContent(it, brand, 0);
+      if (it.status === 'edited') { it.edited = true; it.editKinds = ['Câu mở đầu']; }
       return it;
     });
     pool[13].flag = { similarTo: 1, score: 0.91 };
-    // Ngày 1: Zalo OA chưa kết nối → workflow gửi nhắc đăng tay; ngày 2: đăng tự động lên Facebook
-    pool[0].publishedAt = addDays(start, 0) + 'T09:14'; pool[0].manual = true;
+    // Bài ngày 11 có cụm từ Cấm để minh hoạ CL-06
+    pool[10].content.caption = pool[10].content.caption.replace('\n\n', '\n\n🌿 Đặc trị da kích ứng chỉ sau một đêm.\n');
+    // Ngày 1: Zalo OA là Mức 0 → gửi gói nhận bài, chủ shop đăng tay; ngày 2: tự đăng lên Facebook (Mức 1)
+    pool[0].publishedAt = addDays(start, 0) + 'T09:14'; pool[0].manual = true; pool[0].feedback = { v: 'fire', at: addDays(start, 1) + 'T10:02' };
     pool[1].publishedAt = addDays(start, 1) + 'T19:30'; pool[1].url = 'https://facebook.com/moclan.cosmetics/posts/1029384756';
     const strategy = JSON.parse(JSON.stringify(STRATEGY));
     return {
-      v: 4,
+      v: 5,
       onboarded: true,
       brand,
       strategy,
-      plan: { start, frequency: 7, channels: ['facebook', 'instagram', 'zalo'], pool, schedule: buildSchedule(pool, strategy.pillars, 7, start) },
+      plan: { start, frequency: 7, channels: ['facebook', 'instagram', 'zalo'], pool, schedule: buildSchedule(pool, strategy.pillars, 7, start), lot: 'L-0927-01' },
+      // Gói & hạn mức (CL-19, CL-20) — tự tính trong app, không dùng chữ "credit" (H4)
+      sub: { mode: 'paid', planName: 'Chuyên nghiệp', price: '599k', postsMax: 60, postsUsed: 48, regenMax: 30, regenUsed: 10, trialEnds: addDays(today, 5), trialPosts: 7 },
+      notify: { push: true, email: true, telegram: false, pref: 'push', asked: true, weeklyTime: '20:00', stats: { enabled: 72, opened: 58, done: 41 } },
+      seasonal: {},
+      events: [],
       automation: {
         enabled: true,
-        approvalMode: 'manual',
         remindBefore: 120,
         retries: 3,
-        notify: { zalo: true, email: true },
-        fallback: 'remind',
         connections: {
           facebook: { connected: true, account: 'Mộc Lan Cosmetics', expiresIn: 45 },
           instagram: { connected: true, account: '@moclan.cosmetics', expiresIn: 58 },
@@ -319,24 +438,49 @@
         },
         runs: [
           { id: 'RUN-0002', itemId: 2, at: addDays(start, 1) + 'T19:30', channel: 'facebook', result: 'success', sec: 6.4, steps: [
-            ['ok', 'Đến giờ đăng 19:30', ''], ['ok', 'Bài đã duyệt', 'Duyệt lúc 16:02'], ['ok', 'Kiểm tra trước khi đăng', 'Không có từ cấm · có ảnh'],
-            ['ok', 'Kênh đã kết nối', 'Facebook Page · Mộc Lan Cosmetics'], ['warn', 'Đăng lên Facebook — lần 1', 'Facebook báo lỗi tạm thời, thử lại sau 30 giây'],
-            ['ok', 'Đăng lên Facebook — lần 2', 'Thành công'], ['ok', 'Cập nhật lịch: Đã đăng', 'Lưu link bài'], ['ok', 'Thông báo', 'Zalo + email cho chủ shop'] ] },
+            ['ok', 'Bài được duyệt → tạo mã hẹn, chờ tới 19:30', 'Duyệt lúc 16:02'], ['ok', 'Đọc lại bài: vẫn “Đã duyệt”, mã hẹn không đổi', ''], ['ok', 'Kiểm tra trước khi đăng', 'Không có từ Cấm · có ảnh'],
+            ['ok', 'Kênh Mức 1 · Facebook Page · Mộc Lan Cosmetics', 'Qua app Meta của công ty TTS'], ['warn', 'Khoá bài & đăng — lần 1', 'Facebook báo lỗi 503, chắc chắn chưa gửi → thử lại sau 30 giây'],
+            ['ok', 'Đăng — lần 2', 'Thành công'], ['ok', 'Cập nhật lịch: Đã đăng', 'Lưu link bài'], ['ok', 'Báo lại', 'Thông báo đẩy + email cho chủ shop'] ] },
           { id: 'RUN-0001', itemId: 1, at: addDays(start, 0) + 'T09:00', channel: 'zalo', result: 'manual', sec: 2.1, steps: [
-            ['ok', 'Đến giờ đăng 09:00', ''], ['ok', 'Bài đã duyệt', 'Duyệt lúc 08:12'], ['ok', 'Kiểm tra trước khi đăng', 'Đạt'],
-            ['warn', 'Kênh chưa kết nối', 'Zalo OA chưa kết nối'], ['ok', 'Gửi nội dung để đăng tay', 'Đã gửi caption + ảnh qua Zalo cá nhân'], ['ok', 'Chủ shop xác nhận đã đăng', '09:14'] ] }
+            ['ok', 'Bài được duyệt → tạo mã hẹn, chờ tới 09:00', 'Duyệt lúc 08:12'], ['ok', 'Đọc lại bài: đúng lịch hẹn', ''], ['ok', 'Kiểm tra trước khi đăng', 'Đạt'],
+            ['warn', 'Zalo OA là Mức 0 (đăng tay)', 'Chưa có Zalo OA'], ['ok', 'Gửi gói nhận bài', 'Thông báo đẩy kèm link “Đăng bài này”'], ['ok', 'Chủ shop mở link → Đã nhận', '09:11'], ['ok', 'Chủ shop bấm “Tôi đã đăng”', '09:14'] ] }
         ]
       },
       activity: [
         { t: -5, icon: 'check', text: 'Duyệt bài ngày 3 · Phiếu kiểm nghiệm da liễu' },
         { t: -900, icon: 'zap', text: 'Tự động đăng bài ngày 2 lên Facebook' },
-        { t: -40, icon: 'pencil', text: 'Sửa caption ngày 4 · Routine 3 bước' },
-        { t: -180, icon: 'sparkles', text: 'Sinh nội dung 12 bài đầu tiên' },
-        { t: -1500, icon: 'calendar', text: 'Tạo lịch nội dung 30 ngày' },
+        { t: -40, icon: 'pencil', text: 'Sửa câu mở đầu ngày 4 · Routine 3 bước' },
+        { t: -180, icon: 'sparkles', text: 'Sinh nội dung 12 bài đầu tiên (lô L-0927-01)' },
+        { t: -1500, icon: 'calendar', text: 'Tạo kế hoạch 30 ngày' },
         { t: -2900, icon: 'target', text: 'Chốt chiến lược v2' }
       ]
     };
   }
 
-  window.MP_DATA = { INDUSTRIES, TONES, PILLARS, CHANNELS, FORMATS, STATUSES, QUESTION_GROUPS, QUESTIONS, SAMPLE_ANSWERS, ANGLES, HASHTAGS, genContent, buildSchedule, scheduleDates, initialState, fmtPrice, isoDate, addDays };
+  /* Trạng thái của người mới vừa làm xong 5 câu (CL-01, CL-22, CL-19) */
+  function freshState(answers, industry) {
+    const s = initialState(); const today = isoDate(new Date());
+    const ind = INDUSTRIES.find(i => i.id === industry) || INDUSTRIES[0];
+    s.firstRun = true;
+    s.brand.industry = ind.id; s.brand.tone = ind.tone;
+    s.brand.answers = JSON.parse(JSON.stringify(answers));
+    s.brand.answers.q12 = { value: ind.tone, source: 'default' };
+    s.strategy.version = 1; s.strategy.versions = [{ v: 1, label: 'v1 · bản AI đầu tiên', date: 0 }]; s.strategy.edited = {};
+    s.plan.start = today; s.plan.lot = 'L-' + today.slice(5).replace('-', '') + '-01';
+    s.plan.pool.forEach(p => { p.status = 'planned'; delete p.content; delete p.flag; delete p.publishedAt; delete p.url; delete p.manual; delete p.feedback; p.edited = false; delete p.editKinds; p.regen = 0; });
+    s.plan.schedule = buildSchedule(s.plan.pool, s.strategy.pillars, s.plan.frequency, today);
+    // Bài đầu tiên là bài Sản phẩm (CL-22, phần giữ lại từ GE-01)
+    const firstProd = s.plan.pool.find(p => p.pillar === 'prod');
+    const a = s.plan.schedule.find(x => x.id === firstProd.id), b = s.plan.schedule.find(x => x.date === today);
+    if (a && b && a !== b) { const d = a.date; a.date = b.date; b.date = d; }
+    const byDate = s.plan.schedule.slice().sort((x, y) => x.date < y.date ? -1 : 1);
+    byDate.slice(0, 2).forEach(x => { const p = s.plan.pool.find(q => q.id === x.id); p.content = genContent(p, s.brand, 0); p.status = 'generated'; });
+    s.sub = Object.assign(s.sub, { mode: 'trial', trialEnds: addDays(today, 7), postsUsed: 2, regenUsed: 0 });
+    s.notify.asked = false;
+    s.automation.runs = [];
+    s.activity = [{ t: 0, icon: 'sparkles', text: 'Viết bài đầu tiên (bài Sản phẩm) + 1 bài kế tiếp' }, { t: 0, icon: 'calendar', text: 'Tạo kế hoạch 30 ngày · lô ' + s.plan.lot }, { t: 0, icon: 'brain', text: 'Lưu hồ sơ thương hiệu từ 5 câu trả lời' }];
+    return s;
+  }
+
+  window.MP_DATA = { INDUSTRIES, TONES, PILLARS, CHANNELS, FORMATS, STATUSES, QUESTION_GROUPS, QUESTIONS, SAMPLE_ANSWERS, ANGLES, HASHTAGS, TIER2, COMPLETENESS, VAGUE_WORDS, VAGUE_FOLLOWUP, TERMS, FORBIDDEN_PRESET, IMAGES, SHOT_LIST, ALT_HOOKS, SCREENSHOT_RESULT, EVENTS, CHANNEL_CTA, genContent, buildSchedule, scheduleDates, initialState, freshState, pickImage, fmtPrice, isoDate, addDays };
 })();

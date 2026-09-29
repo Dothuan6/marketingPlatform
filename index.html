@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tổng quan · Marketing Agent</title>
-  <meta name="description" content="Prototype nền tảng Marketing Agent cho SME — Brand Brain, chiến lược, lịch đăng 30 ngày, bài viết và workflow tự động đăng bài.">
+  <meta name="description" content="Prototype nền tảng Marketing Agent cho SME — hồ sơ thương hiệu, chiến lược, lịch 30 ngày, duyệt tuần, bài viết và workflow tự động đăng bài.">
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929">
-  <script src="assets/theme.js?v=20260929"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
 </head>
 <body data-page="home">
 <main id="page" hidden>
@@ -22,22 +22,23 @@
       <p class="subtitle" id="greet-sub"></p>
     </div>
     <div class="actions">
-      <a class="btn" href="plan.html"><i data-icon="calendar"></i>Mở lịch đăng</a>
-      <a class="btn primary" href="onboarding.html"><i data-icon="plus"></i>Tạo brand mới</a>
+      <a class="btn" href="plan.html"><i data-icon="calendar"></i>Mở lịch 30 ngày</a>
+      <a class="btn primary" href="onboarding.html?fresh=1"><i data-icon="plus"></i>Thử luồng người mới</a>
     </div>
   </div>
 
   <!-- Câu hỏi cốt lõi của SME: ngày mai đăng gì -->
   <div class="grid c2" id="today-cards"></div>
+  <div class="grid c3 mt-4" id="nudges"></div>
 
-  <div class="section-title"><h2>Quy trình Phase 1</h2><span class="subtle">Từ trả lời câu hỏi đến bài tự lên kênh — đo hiệu quả làm sau</span></div>
+  <div class="section-title"><h2>Quy trình Phase 1</h2><span class="subtle">5 câu → kế hoạch 30 ngày dưới 3 phút → duyệt tuần → bài lên kênh</span></div>
   <div class="flow" id="flow"></div>
 
   <div class="grid c4 mt-6" id="kpis"></div>
 
   <div class="grid c2 mt-6">
     <div class="card">
-      <div class="card-head"><h3><i data-icon="layers"></i>Phân bổ pillar tháng này</h3><a class="btn ghost sm" href="strategy.html#pillars">Chỉnh tỷ lệ</a></div>
+      <div class="card-head"><h3><i data-icon="layers"></i>Nhóm nội dung tháng này</h3><a class="btn ghost sm" href="strategy.html#pillars">Chỉnh tỷ lệ</a></div>
       <div class="card-body" id="pillar-dist"></div>
     </div>
     <div class="card">
@@ -47,8 +48,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260929"></script>
-<script src="assets/app.js?v=20260929"></script>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
 <script>
 (function () {
   const { state, icon, esc } = MP;
@@ -75,7 +76,7 @@
         <div class="callout ${ai.cls === 'warning' ? 'warning' : ai.cls === 'success' ? 'success' : ''}" style="padding:9px 12px">${icon(ai.icon)}<div>${esc(ai.text)}</div></div>
       </div>
       <div class="card-foot">
-        ${it.content ? `<button class="btn sm" data-copy="${it.id}">${icon('copy', 'sm')}Chép caption</button>` : ''}
+        ${it.content ? `<button class="btn sm" data-copy="${it.id}">${icon('copy', 'sm')}Chép nội dung</button>` : ''}
         <a class="btn primary sm" href="${href}">${it.content ? 'Mở bài' : 'Sinh nội dung'}${icon('arrowRight', 'sm')}</a>
       </div></div>`;
   }
@@ -84,17 +85,30 @@
 
   // Flow 6 bước
   const A = state.automation; const pub = all.filter(i => i.status === 'published').length;
-  const conn = Object.values(A.connections).filter(c => c.connected).length;
+  const conn = Object.keys(MP.D.CHANNELS).filter(k => MP.D.CHANNELS[k].level === 1 && A.connections[k].connected).length;
   const steps = [
-    { n: 1, t: 'Onboarding', s: '12 câu hỏi · 3 phút', href: 'onboarding.html', st: 'done' },
-    { n: 2, t: 'Brand Brain', s: 'Hồ sơ thương hiệu', href: 'brand.html', st: 'done' },
-    { n: 3, t: 'Chiến lược', s: 'USP · Angle · Pillar', href: 'strategy.html', st: 'done' },
-    { n: 4, t: 'Lịch đăng', s: `${all.length} bài / 30 ngày`, href: 'plan.html', st: 'done' },
+    { n: 1, t: 'Bắt đầu', s: '5 câu · ~90 giây', href: 'onboarding.html', st: 'done' },
+    { n: 2, t: 'Hồ sơ thương hiệu', s: 'Bổ sung dần, đúng lúc', href: 'brand.html', st: 'done' },
+    { n: 3, t: 'Chiến lược', s: 'Tóm tắt 3 dòng', href: 'strategy.html', st: 'done' },
+    { n: 4, t: 'Lịch 30 ngày', s: `${all.length} bài / 30 ngày`, href: 'plan.html', st: 'done' },
     { n: 5, t: 'Bài viết', s: `${ready}/${all.length} bài có nội dung`, href: 'post.html', st: ready < all.length ? 'current' : 'done' },
-    { n: 6, t: 'Tự động đăng', s: A.enabled ? `Đang bật · ${conn}/3 kênh` : 'Đang tắt', href: 'automation.html', st: A.enabled ? 'done' : 'current' }
+    { n: 6, t: 'Tự động đăng', s: A.enabled ? `Mức 1: ${conn} kênh · còn lại đăng tay` : 'Đang tắt', href: 'automation.html', st: A.enabled ? 'done' : 'current' }
   ];
   document.getElementById('flow').innerHTML = steps.map(s => `<a class="flow-step ${s.st}" href="${s.href}" ${s.st === 'locked' ? 'aria-disabled="true" onclick="return false"' : ''}>
     <span class="n">${s.st === 'done' ? icon('check', 'sm') : s.st === 'locked' ? icon('lock', 'sm') : s.n}</span><b>${s.n}. ${s.t}</b><span>${s.s}</span></a>`).join('');
+
+  // ---------- Việc nên làm (CL-16, CL-13, CL-05) ----------
+  const nud = [];
+  const noFb = all.filter(i => i.status === 'published' && !i.feedback).pop();
+  if (noFb) nud.push(`<div class="card card-pad stack sm"><b>${icon('smile', 'sm')} Bài “${esc(noFb.title)}” thế nào?</b><span class="subtle">Đăng ${esc(MP.autoInfo(noFb).text.split('·')[1] || '')} · 1 chạm, giúp kế hoạch tháng sau hợp shop hơn</span>
+    <div class="fb-btns">${[['meh', '😐', 'Bình thường'], ['ok', '🙂', 'Có tương tác'], ['fire', '🔥', 'Có tin nhắn/đơn']].map(f => `<button type="button" data-fb="${f[0]}" data-id="${noFb.id}"><span class="em">${f[1]}</span>${f[2]}</button>`).join('')}</div></div>`);
+  const wk = all.filter(i => i.content && ['generated', 'edited'].includes(i.status) && i.date >= t && i.date <= MP.D.addDays(t, 6)).length;
+  if (wk) nud.push(`<div class="card card-pad stack sm"><b>${icon('checkCircle', 'sm')} Tuần này có ${wk} bài chờ duyệt</b><span class="subtle">Duyệt trên điện thoại trong khoảng 3 phút. Nhắc tối Chủ nhật ${esc(state.notify.weeklyTime)}.</span><a class="btn primary sm" href="review.html" style="align-self:flex-start">Duyệt tuần</a></div>`);
+  const t2 = MP.D.TIER2.find(x => { const a = state.brand.answers[x.id]; return !(a && (Array.isArray(a.value) ? a.value.length : a.value)); });
+  nud.push(t2 ? `<div class="card card-pad stack sm"><b>${icon('brain', 'sm')} Hồ sơ còn thiếu 1 câu quan trọng</b><span class="subtle">${esc(MP.D.QUESTIONS.find(q => q.id === t2.id).label)} → ${esc(t2.impact)}</span><a class="btn sm" href="brand.html#${t2.id}" style="align-self:flex-start">Điền ngay</a></div>`
+    : `<div class="card card-pad stack sm"><b>${icon('report', 'sm')} Báo cáo tháng</b><span class="subtle">Bài đã lên kênh, phản hồi của bạn và thời gian tiết kiệm [ước tính].</span><a class="btn sm" href="report.html" style="align-self:flex-start">Xem báo cáo</a></div>`);
+  document.getElementById('nudges').innerHTML = nud.join('');
+  document.querySelectorAll('[data-fb]').forEach(b => b.onclick = () => { const p = MP.poolItem(b.dataset.id); p.feedback = { v: b.dataset.fb, at: new Date().toISOString() }; MP.track('feedback', { ngày: MP.item(p.id).day, giá_trị: b.dataset.fb, nguồn: 'tổng quan' }); MP.save(); location.reload(); });
 
   // KPI
   const q = MP.quota();
@@ -102,9 +116,9 @@
   const noEdit = all.filter(i => i.status !== 'planned' && !i.edited).length;
   const kpis = [
     { l: 'Bài sẵn sàng', v: `${ready}<span class="subtle"> / ${all.length}</span>`, ic: 'file', sub: `${approved} bài đã duyệt` },
-    { l: 'Dùng luôn không sửa', v: ready ? Math.round(noEdit / ready * 100) + '%' : '—', ic: 'checkCircle', sub: 'Mục tiêu gate GĐ 1: ≥ 50%' },
+    { l: 'Dùng ngay không sửa', v: ready ? Math.round(noEdit / ready * 100) + '%' : '—', ic: 'checkCircle', sub: 'Mục tiêu gate GĐ 1: ≥ 50%' },
     { l: 'Đã đăng', v: pub + `<span class="subtle"> / ${all.length}</span>`, ic: 'send', sub: `${all.filter(i => i.status === 'approved').length} bài đã duyệt đang chờ đến giờ` },
-    { l: 'Hạn mức bài viết', v: `${q.posts.max - q.posts.used}`, ic: 'zap', sub: `còn lại trong gói · đã dùng ${q.posts.used}` }
+    q.mode === 'trial' ? { l: 'Dùng thử', v: MP.trialDaysLeft() + '<span class="subtle"> ngày</span>', ic: 'zap', sub: 'nội dung đầy đủ 7 bài đầu' } : { l: 'Còn trong tháng', v: `${q.posts.left}<span class="subtle"> bài</span>`, ic: 'zap', sub: `${q.regen.left} lần tạo lại · làm mới ngày 01` }
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k => `<div class="card kpi"><div class="l">${icon(k.ic, 'sm')}${k.l}</div><div class="v">${k.v}</div><div class="subtle">${k.sub}</div></div>`).join('');
 
@@ -116,7 +130,7 @@
     return { p, P, actual, pct };
   });
   document.getElementById('pillar-dist').innerHTML =
-    `<div class="ratio-bar mb-4" role="img" aria-label="Phân bổ pillar">${rows.map(r => `<span class="bg-${r.p.id}" style="width:${r.pct}%" title="${r.P.name} ${r.pct}%"></span>`).join('')}</div>` +
+    `<div class="ratio-bar mb-4" role="img" aria-label="Phân bổ nhóm nội dung">${rows.map(r => `<span class="bg-${r.p.id}" style="width:${r.pct}%" title="${r.P.name} ${r.pct}%"></span>`).join('')}</div>` +
     rows.map(r => `<div class="list-item"><span class="ic-box ${r.p.id}">${icon(r.P.icon, 'sm')}</span><div class="grow"><b>${r.P.name}</b><div class="subtle">${r.P.desc}</div></div><div style="text-align:right"><b>${r.actual} bài · ${r.pct}%</b><div class="subtle">Mục tiêu ${r.p.ratio}%</div></div></div>`).join('');
 
   document.getElementById('activity').innerHTML = state.activity.slice(0, 6).map(a => `<div class="list-item"><span class="ic-box">${icon(a.icon, 'sm')}</span><div class="grow">${esc(a.text)}</div><span class="subtle nowrap">${MP.ago(a.t)}</span></div>`).join('');

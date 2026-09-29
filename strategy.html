@@ -10,16 +10,16 @@
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929">
-  <script src="assets/theme.js?v=20260929"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
 </head>
 <body data-page="strategy">
 <main id="page" hidden>
   <div class="page-header">
     <div>
-      <div class="eyebrow"><span class="step-dot">3</span>Bước 3 · USP · Angle · Persona · Pillar</div>
+      <div class="eyebrow"><span class="step-dot">3</span>Bước 3 · Lý do khách chọn · Góc kể chuyện · Khách hàng · Nhóm nội dung</div>
       <h1>Chiến lược</h1>
-      <p class="subtitle">USP, góc bán hàng và chân dung khách hàng được suy ra từ Brand Brain. Bấm vào bất kỳ đoạn chữ nào để sửa — bản bạn sửa sẽ không bị AI ghi đè.</p>
+      <p class="subtitle">Được suy ra từ hồ sơ thương hiệu. Không cần đọc hết — phần tóm tắt 3 dòng là đủ. Bấm vào đoạn chữ bất kỳ để sửa; bản bạn sửa không bị AI ghi đè.</p>
     </div>
     <div class="actions">
       <label class="sr-only" for="ver">Phiên bản</label>
@@ -29,33 +29,35 @@
   </div>
 
   <div id="banner"></div>
+  <div class="card mb-4" id="sum3"></div>
 
   <!-- USP -->
   <div class="card mb-4" id="blk-usp">
-    <div class="card-head"><h2><i data-icon="target"></i>USP — lý do khách chọn bạn</h2><div class="row"><span id="usp-edited"></span><button class="btn sm" data-regen="usp"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div></div>
+    <div class="card-head"><h2><i data-icon="target"></i>Lý do khách chọn bạn<span data-ti="usp"></span></h2><div class="row"><span id="usp-edited"></span><button class="btn sm" data-regen="usp"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div></div>
     <div class="card-body" data-body></div>
   </div>
 
   <!-- Angles -->
-  <div class="section-title" id="angles-title"><h2 class="row"><i data-icon="zap"></i>Góc bán hàng (Angle)</h2><button class="btn sm" data-regen="angles"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div>
+  <div class="section-title" id="angles-title"><h2 class="row"><i data-icon="zap"></i>Góc kể chuyện<span data-ti="angle"></span></h2><button class="btn sm" data-regen="angles"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div>
+  <div id="t2-q7"></div>
   <div class="grid c3" id="blk-angles"></div>
 
   <!-- Personas -->
-  <div class="section-title"><h2 class="row"><i data-icon="users"></i>Chân dung khách hàng</h2><button class="btn sm" data-regen="personas"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div>
+  <div class="section-title"><h2 class="row"><i data-icon="users"></i>Khách hàng điển hình<span data-ti="persona"></span></h2><button class="btn sm" data-regen="personas"><i data-icon="refresh" class="sm"></i>Tạo lại</button></div>
   <div class="grid c2" id="blk-personas"></div>
 
   <!-- Pillars + kênh + tần suất -->
-  <div class="section-title" id="pillars"><h2 class="row"><i data-icon="layers"></i>Pillar, kênh và tần suất</h2></div>
+  <div class="section-title" id="pillars"><h2 class="row"><i data-icon="layers"></i>Nhóm nội dung, kênh và tần suất<span data-ti="pillar"></span></h2></div>
   <div class="card">
     <div class="card-body">
       <div class="grid c2" style="gap:28px">
         <div class="stack">
-          <div class="row between"><b>Tỷ lệ pillar</b><span id="ratio-sum" class="badge"></span></div>
+          <div class="row between"><b>Tỷ lệ nhóm nội dung</b><span id="ratio-sum" class="badge"></span></div>
           <div class="ratio-bar" id="ratio-bar"></div>
           <div class="stack" id="pillar-rows"></div>
         </div>
         <div class="stack lg">
-          <div class="field"><span class="field-label">Kênh đăng</span><div class="chips" id="channels"></div><p class="hint">Phase 1 tự động đăng được lên Facebook Page, Instagram Business và Zalo OA. Kênh chưa kết nối sẽ được nhắc đăng tay.</p></div>
+          <div class="field"><span class="field-label">Kênh đăng</span><div class="chips" id="channels"></div><p class="hint"><b>Facebook, Instagram:</b> tự đăng (Mức 1, qua app Meta của công ty TTS). <b>Zalo OA:</b> đăng tay (Mức 0) — đến giờ gửi gói nhận bài qua thông báo đẩy/email, bạn đăng trong 5 chạm.</p></div>
           <div class="field"><span class="field-label">Tần suất</span><div class="segmented" id="freq"></div><p class="hint" id="freq-hint"></p></div>
           <div class="callout" id="apply-note"></div>
         </div>
@@ -65,19 +67,43 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260929"></script>
-<script src="assets/app.js?v=20260929"></script>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
   MP.shell({ active: 'strategy', crumbs: ['Quy trình', 'Chiến lược'] });
   const S = state.strategy;
 
+  document.querySelectorAll('[data-ti]').forEach(el => { el.outerHTML = MP.termInfo(el.dataset.ti); });
+
+  // ---------- Tóm tắt 3 dòng (CL-22) ----------
+  function renderSum() {
+    const A = state.brand.answers; const top = S.pillars.slice().sort((a, b) => b.ratio - a.ratio).slice(0, 2).map(p => D.PILLARS[p.id].name).join(' & ');
+    document.getElementById('sum3').innerHTML = `<div class="card-head"><h3>${icon('target')}Chiến lược trong 3 dòng</h3><span class="subtle">Đọc chừng này là đủ để bắt đầu</span></div><div class="card-body"><dl class="sum3">
+      <dt>Nói với ai</dt><dd>${S.personas.map(p => esc(p.name) + ' (' + esc(p.age.replace(' tuổi', '')) + ', ' + esc(p.job.split(',')[0].toLowerCase()) + ')').join(' và ')}</dd>
+      <dt>Nói gì</dt><dd>${esc(String(S.usp.primary).split(' — ')[0])}</dd>
+      <dt>Vì sao</dt><dd>Mục tiêu “${esc(((A.q11 && A.q11.value) || '').toLowerCase())}” → ưu tiên nhóm ${esc(top)}; ${S.angles.length} góc kể chuyện luân phiên để không lặp ý</dd></dl></div>`;
+  }
+
+  // ---------- Câu tầng 2 đúng chỗ dùng: rào cản mua (CL-01) ----------
+  function renderQ7() {
+    const el = document.getElementById('t2-q7'); const a = state.brand.answers.q7;
+    if (a && a.value && a.value.length) { el.innerHTML = ''; return; }
+    const q = D.QUESTIONS.find(x => x.id === 'q7');
+    el.innerHTML = `<div class="card accent mb-4"><div class="card-body stack sm"><b>${icon('sparkles', 'sm')} Trả lời 1 câu để góc kể chuyện sát hơn: ${esc(q.label)}</b>
+      <div class="chips">${q.options.map(o => `<button type="button" class="chip sm" data-q7="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>
+      <div class="row"><button class="btn sm primary" id="q7-save">Lưu</button><span class="subtle">Mỗi nỗi lo bạn chọn sẽ có một góc kể chuyện trả lời nó.</span></div></div></div>`;
+    el.querySelectorAll('[data-q7]').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') !== 'true'));
+    el.querySelector('#q7-save').onclick = () => { const v = [...el.querySelectorAll('[data-q7][aria-pressed="true"]')].map(c => c.dataset.q7); if (!v.length) return MP.toast('Chọn ít nhất 1 lý do', 'alert');
+      state.brand.answers.q7 = { value: v, source: 'user' }; MP.save(); MP.track('tier2_answered', { q: 'q7' }); renderQ7(); MP.toast('Đã lưu — lần tạo lại góc kể chuyện sẽ dùng thông tin này'); };
+  }
+
   // ---------- Banner TTFV ----------
   const ttfv = Number(MP.params.get('ttfv'));
   if (ttfv) {
     const m = Math.floor(ttfv / 60) + ' phút ' + (ttfv % 60) + ' giây';
-    document.getElementById('banner').innerHTML = `<div class="callout ${ttfv <= 180 ? 'success' : 'warning'} mb-4">${icon(ttfv <= 180 ? 'checkCircle' : 'clock')}<div><b>Chiến lược đầu tiên đã sẵn sàng sau ${m}.</b> ${ttfv <= 180 ? 'Đạt mục tiêu dưới 3 phút.' : 'Vượt mục tiêu 3 phút — cần xem lại bộ câu hỏi.'} Đọc qua, sửa chỗ chưa đúng, rồi mở lịch 30 ngày.</div></div>`;
+    document.getElementById('banner').innerHTML = `<div class="callout ${ttfv <= 180 ? 'success' : 'warning'} mb-4">${icon(ttfv <= 180 ? 'checkCircle' : 'clock')}<div><b>Chiến lược đầu tiên đã sẵn sàng sau ${m}.</b> ${ttfv <= 180 ? 'Đạt mục tiêu dưới 3 phút.' : 'Vượt mục tiêu 3 phút.'} Đọc tóm tắt 3 dòng rồi mở lịch 30 ngày.</div></div>`;
   }
 
   // ---------- Phiên bản ----------
@@ -106,9 +132,9 @@
       return;
     }
     body.innerHTML = `<div class="stack">
-      <div><div class="subtle mb-2">USP chính · ≤ 25 từ</div>${editable('usp.primary', u.primary, 'p style="font-size:17px;font-weight:600;line-height:1.5"')}</div>
-      <div class="grid c2">${u.secondary.map((s, i) => `<div class="card card-pad" style="background:var(--surface-2)"><div class="subtle mb-2">USP phụ ${i + 1}</div>${editable('usp.secondary.' + i, s)}</div>`).join('')}</div>
-      <details><summary class="muted" style="cursor:pointer;font-weight:550">Vì sao đề xuất USP này?</summary><p class="muted mt-2">${esc(u.rationale)}</p></details>
+      <div><div class="subtle mb-2">Câu chính · ≤ 25 từ</div>${editable('usp.primary', u.primary, 'p style="font-size:17px;font-weight:600;line-height:1.5"')}</div>
+      <div class="grid c2">${u.secondary.map((s, i) => `<div class="card card-pad" style="background:var(--surface-2)"><div class="subtle mb-2">Lý do phụ ${i + 1}</div>${editable('usp.secondary.' + i, s)}</div>`).join('')}</div>
+      <details><summary class="muted" style="cursor:pointer;font-weight:550">Vì sao đề xuất câu này?</summary><p class="muted mt-2">${esc(u.rationale)}</p></details>
     </div>`;
     document.getElementById('usp-edited').innerHTML = S.edited.usp ? '<span class="badge warning">' + icon('pencil') + 'Bạn đã sửa · không bị ghi đè</span>' : '';
     bindEditable(body);
@@ -120,8 +146,8 @@
       <div class="card-body stack sm">
         <div class="row between"><span class="badge primary">${a.id}</span>${S.edited['angle' + i] ? '<span class="badge warning">' + icon('pencil') + 'Đã sửa</span>' : ''}</div>
         ${editable('angles.' + i + '.name', a.name, 'h3')}
-        <div><div class="subtle">Insight khách hàng</div>${editable('angles.' + i + '.insight', a.insight)}</div>
-        <div><div class="subtle">Thông điệp lõi</div>${editable('angles.' + i + '.message', a.message, 'p style="font-weight:550"')}</div>
+        <div><div class="subtle">Khách đang lo gì</div>${editable('angles.' + i + '.insight', a.insight)}</div>
+        <div><div class="subtle">Mình nói gì</div>${editable('angles.' + i + '.message', a.message, 'p style="font-weight:550"')}</div>
         <div class="row wrap mt-1"><span class="subtle">Hợp với:</span>${a.formats.map(f => MP.formatBadge(f)).join('')}</div>
       </div>
       <div class="card-foot" style="justify-content:space-between"><span class="subtle">${MP.items().filter(x => x.angle === a.id).length} bài trong lịch</span></div>
@@ -168,29 +194,30 @@
     tick();
   }
   document.querySelectorAll('[data-regen]').forEach(b => b.onclick = () => MP.regenPopover(b, {
-    title: 'Tạo lại ' + ({ usp: 'USP', angles: 'góc bán hàng', personas: 'chân dung khách hàng' })[b.dataset.regen],
-    suggestions: b.dataset.regen === 'usp' ? ['Ngắn hơn', 'Nhấn vào giá', 'Nhấn vào chính hãng', 'Bớt chung chung'] : b.dataset.regen === 'angles' ? ['Thêm góc cảm xúc', 'Hợp Instagram hơn', 'Đánh vào học sinh sinh viên'] : ['Thêm persona lớn tuổi hơn', 'Tập trung mẹ bỉm'],
+    title: 'Tạo lại ' + ({ usp: 'lý do khách chọn bạn', angles: 'góc kể chuyện', personas: 'khách hàng điển hình' })[b.dataset.regen],
+    groups: b.dataset.regen === 'usp' ? [{ name: 'Độ dài', chips: ['Ngắn hơn', 'Chi tiết hơn'] }, { name: 'Nhấn vào', chips: ['Giá', 'Chính hãng', 'Nguồn gốc'] }] : b.dataset.regen === 'angles' ? [{ name: 'Kiểu góc', chips: ['Cảm xúc hơn', 'Lý trí, có số liệu'] }, { name: 'Kênh', chips: ['Hợp Instagram', 'Hợp Facebook'] }] : [{ name: 'Tuổi', chips: ['Trẻ hơn', 'Lớn tuổi hơn'] }, { name: 'Nhóm', chips: ['Mẹ bỉm', 'Sinh viên'] }],
+    fixInfo: false,
     onGo: note => {
       const k = b.dataset.regen;
       if (k === 'usp') {
-        const go = () => loading(document.querySelector('#blk-usp [data-body]'), ['Đọc Brand Brain', 'Đối chiếu đối thủ', 'Viết USP' + (note ? ' theo ghi chú “' + note + '”' : '')], () => {
+        const go = () => loading(document.querySelector('#blk-usp [data-body]'), ['Đọc hồ sơ thương hiệu', 'Đối chiếu đối thủ', 'Viết lại' + (note ? ' theo hướng “' + note + '”' : '')], () => {
           const alt = USP_ALT[uspAlt++ % USP_ALT.length]; S.usp.primary = alt.primary; S.usp.secondary = alt.secondary.slice(); S.edited.usp = false;
           S.version = S.versions.length + 1; S.versions.push({ v: S.version, label: 'v' + S.version + ' · tạo lại USP', date: 0 }); viewing = S.version;
-          MP.save(); renderVer(); renderUSP(); MP.toast('Đã tạo USP mới · lưu thành v' + S.version);
+          MP.save(); renderVer(); renderUSP(); MP.toast('Đã tạo câu mới · lưu thành v' + S.version);
         });
         if (!S.edited.usp) return go();
-        const m = MP.modal({ title: 'Thay USP bạn đã sửa?', body: '<p class="muted">Bạn đã tự sửa USP này. Tạo lại sẽ thay bằng bản mới — bản hiện tại vẫn nằm trong lịch sử phiên bản, quay lại được.</p>',
+        const m = MP.modal({ title: 'Thay câu bạn đã sửa?', body: '<p class="muted">Bạn đã tự sửa câu này. Tạo lại sẽ thay bằng bản mới — bản hiện tại vẫn nằm trong lịch sử phiên bản, quay lại được.</p>',
           foot: '<button class="btn" data-close>Giữ bản của tôi</button><button class="btn primary" data-ok>Tạo bản mới</button>' });
         m.el.querySelector('[data-ok]').onclick = () => { m.close(); go(); };
       } else if (k === 'angles') {
-        loading(document.getElementById('blk-angles'), ['Đọc USP & persona', 'Tìm insight mới', 'Viết thông điệp'], () => {
+        loading(document.getElementById('blk-angles'), ['Đọc lý do khách chọn & khách hàng điển hình', 'Tìm nỗi lo mới', 'Viết thông điệp'], () => {
           S.angles.forEach((a, i) => { if (!S.edited['angle' + i]) a.message = a.message.replace(/\.$/, '') + (note ? ' — ' + note : ' — nói bằng ví dụ đời thường.'); });
           MP.save(); renderAngles(); MP.toast('Đã tạo lại các góc chưa bị bạn sửa');
         });
       } else {
-        loading(document.getElementById('blk-personas'), ['Đọc câu 5–7 trong Brand Brain', 'Vẽ chân dung'], () => {
+        loading(document.getElementById('blk-personas'), ['Đọc câu 5–7 trong hồ sơ', 'Vẽ chân dung'], () => {
           S.personas[1] = S.personas[1].name === 'Hạnh' ? D.initialState().strategy.personas[1] : JSON.parse(JSON.stringify(PERSONA_ALT));
-          MP.save(); renderPersonas(); MP.toast('Đã tạo lại chân dung thứ hai');
+          MP.save(); renderPersonas(); MP.toast('Đã tạo lại khách hàng điển hình thứ hai');
         });
       }
     }
@@ -227,12 +254,12 @@
   document.getElementById('apply').onclick = () => {
     S.pillars = draftP.map(p => Object.assign({}, p)); state.plan.channels = draftCh.slice(); state.plan.frequency = draftF;
     state.plan.schedule = D.buildSchedule(state.plan.pool, S.pillars, draftF, state.plan.start);
-    state.activity.unshift({ t: 0, icon: 'layers', text: `Cập nhật pillar & tần suất ${draftF} bài/tuần` });
+    state.activity.unshift({ t: 0, icon: 'layers', text: `Cập nhật nhóm nội dung & tần suất ${draftF} bài/tuần` });
     MP.save(); renderPillars(); renderAngles();
     MP.toast('Đã lập lại lịch: ' + state.plan.schedule.length + ' bài');
   };
 
-  renderVer(); renderUSP(); renderAngles(); renderPersonas(); renderPillars();
+  renderSum(); renderQ7(); renderVer(); renderUSP(); renderAngles(); renderPersonas(); renderPillars();
   if (location.hash === '#pillars') setTimeout(() => document.getElementById('pillars').scrollIntoView(), 50);
 })();
 </script>

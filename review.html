@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duyệt tuần · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta name="theme-color" content="#27AAE1">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
+</head>
+<body data-page="review">
+<main id="page" hidden>
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><i data-icon="bell" class="sm"></i><span id="from"></span></div>
+      <h1>Duyệt tuần</h1>
+      <p class="subtitle" id="sub"></p>
+    </div>
+  </div>
+  <div class="card card-pad mb-4 stack sm">
+    <div class="row between"><b id="prog-t"></b><span class="subtle" id="timer">0:00</span></div>
+    <div class="progress"><span id="prog" style="width:0"></span></div>
+    <p class="subtle"><b>Đạt kiểm</b> = có nội dung · không có từ Cấm · cảnh báo đã được bạn xác nhận · có ảnh nếu kênh bắt buộc.</p>
+  </div>
+  <div class="stack" id="cards"></div>
+  <div id="missing" class="mt-4"></div>
+  <div class="sticky-foot mt-4" id="bulk"></div>
+  <div class="row between wrap mt-4"><span class="subtle">Gửi nhắc Duyệt tuần vào tối Chủ nhật lúc</span><select class="select" id="wt" style="width:auto;min-height:32px;height:32px"></select></div>
+</main>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.shell({ active: 'review', crumbs: ['Hằng tuần', 'Duyệt tuần'], narrow: true });
+  const t0 = Date.now(); const t = MP.today(); const end = D.addDays(t, 6);
+  const week = () => MP.items().filter(i => i.date >= t && i.date <= end);
+  const list = week().filter(i => i.content && !['published', 'received', 'skipped'].includes(i.status));
+  const viewed = new Set(); const later = new Set(); let openEdit = null;
+  document.getElementById('from').textContent = 'Mở từ thông báo tối Chủ nhật · ' + MP.notifyText();
+  setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); document.getElementById('timer').textContent = 'Đã dùng ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' · mục tiêu dưới 5 phút'; }, 1000);
+
+  function card(it) {
+    const p = MP.poolItem(it.id); const c = MP.passCheck(it); const done = p.status === 'approved';
+    const cls = c.kind === 'ok' ? 'success' : c.kind === 'warn' ? 'warning' : 'danger';
+    const cap = p.content.caption.split('\n').slice(1).join('\n').trim();
+    return `<div class="rv-card ${done ? 'done' : ''}" data-card="${it.id}">
+      <div class="rv-top">${MP.imageTile(MP.imageOf(it))}
+        <div class="stack sm" style="min-width:0">
+          <div class="row wrap" style="gap:6px"><b>${MP.fmtDate(it.date)} · ${it.time}</b>${MP.channelBadge(it.channel)}<span class="badge ${cls}">${icon(c.ok ? 'check' : 'alert')}${esc(c.reason)}</span>${later.has(it.id) ? '<span class="badge">Để sau</span>' : ''}</div>
+          <b>${esc(p.hook)}</b>
+          <div class="rv-cap">${esc(cap)}</div>
+          <a class="subtle" href="post.html?id=${it.id}">Mở bài đầy đủ ›</a>
+        </div></div>
+      ${openEdit === it.id ? quick(it) : ''}
+      <div class="rv-actions">${done ? `<button data-undo="${it.id}">${icon('undo', 'sm')}Bỏ duyệt</button><button disabled>${icon('check', 'sm')}Đã duyệt</button><button data-later="${it.id}" disabled>Để sau</button>`
+        : `<button class="ok" data-ok="${it.id}">${icon('check', 'sm')}Duyệt</button><button data-edit="${it.id}">${icon('pencil', 'sm')}Sửa nhanh</button><button data-later="${it.id}">${icon('clock', 'sm')}Để sau</button>`}</div></div>`;
+  }
+  // Sửa nhanh: chỉ 3 trường (CL-13)
+  function quick(it) {
+    const p = MP.poolItem(it.id); const price = D.fmtPrice(state.brand.answers.q3.value); const cta = D.CHANNEL_CTA[it.channel] || '';
+    return `<div class="card-body stack sm" style="border-top:1px solid var(--border)">
+      <div class="field"><label>Câu mở đầu${MP.termInfo('hook')}</label><input class="input" data-f="hook" value="${esc(p.hook)}"></div>
+      <div class="field"><label>Giá / ưu đãi</label><input class="input" data-f="price" value="${esc(price)}"></div>
+      <div class="field"><label>Lời kêu gọi${MP.termInfo('cta')}</label><input class="input" data-f="cta" value="${esc(p.content.caption.includes(cta) ? cta : '')}"></div>
+      <div class="row"><button class="btn sm primary" data-save="${it.id}">Lưu & duyệt</button><button class="btn sm ghost" data-cancel>Huỷ</button></div></div>`;
+  }
+  function approve(it) {
+    const p = MP.poolItem(it.id); const c = MP.passCheck(it);
+    if (c.kind === 'ban' || c.kind === 'img' || c.kind === 'none') { MP.toast(c.reason + ' — mở bài để sửa', 'alert'); return false; }
+    if (c.kind === 'warn') {
+      const m = MP.modal({ title: 'Bài có từ Cảnh báo', body: `<p class="muted">${c.warn.map(f => '“' + esc(f.w) + '” — ' + esc(f.why) + '. Gợi ý: “' + esc(f.alt) + '”').join('<br>')}</p>`,
+        foot: '<button class="btn" data-fix>Thay bằng gợi ý</button><button class="btn primary" data-keep>Tôi hiểu rủi ro, vẫn duyệt</button>' });
+      m.el.querySelector('[data-fix]').onclick = () => { c.warn.forEach(f => { p.content.caption = MP.replaceWord(p.content.caption, f); p.hook = MP.replaceWord(p.hook, f); }); p.edited = true; m.close(); doApprove(p, it); };
+      m.el.querySelector('[data-keep]').onclick = () => { p.warnAck = (p.warnAck || []).concat(c.warn.map(f => f.w)); m.close(); doApprove(p, it); };
+      return false;
+    }
+    doApprove(p, it); return true;
+  }
+  function doApprove(p, it) { p.status = 'approved'; p.maHen = Math.random().toString(36).slice(2, 8); MP.track('post_approved', { ngày: it.day, nguồn: 'duyệt tuần', dùng_ngay: !p.edited }); MP.save(); render(); }
+
+  function render() {
+    const L = list.map(i => MP.item(i.id));
+    const doneN = L.filter(i => i.status === 'approved').length;
+    document.getElementById('sub').textContent = `Tuần này có ${L.length} bài cần duyệt, khoảng 3 phút. Bài đã duyệt sẽ tự lên kênh đúng giờ (hoặc gửi gói nhận bài với kênh đăng tay).`;
+    document.getElementById('prog-t').textContent = `Đã duyệt ${doneN}/${L.length} · đã xem ${viewed.size}/${L.length} thẻ`;
+    document.getElementById('prog').style.width = (L.length ? doneN / L.length * 100 : 0) + '%';
+    const cards = document.getElementById('cards');
+    cards.innerHTML = L.length ? L.map(card).join('') : `<div class="card"><div class="empty"><div class="em-ic">${icon('checkCircle', 'xl')}</div><h3>Tuần này không còn bài nào cần duyệt</h3><p>Hẹn bạn tối Chủ nhật tới.</p></div></div>`;
+    const miss = week().filter(i => !i.content && !MP.isLocked(i));
+    document.getElementById('missing').innerHTML = miss.length ? `<div class="callout">${icon('sparkles')}<div>${miss.length} bài trong tuần chưa được viết (${miss.map(i => MP.fmtDate(i.date, 'short')).join(', ')}). <a href="plan.html">Viết ở Lịch 30 ngày</a></div></div>` : '';
+    // "Duyệt tất cả" chỉ hiện khi đã xem ≥ 50% thẻ (CL-13 · GE)
+    const pass = L.filter(i => i.status !== 'approved' && MP.passCheck(i).ok);
+    const enough = viewed.size >= Math.ceil(L.length / 2);
+    document.getElementById('bulk').innerHTML = !L.length || !pass.length ? '' : enough
+      ? `<button class="btn primary block" id="all">${icon('check', 'sm')}Duyệt tất cả ${pass.length} bài đạt kiểm</button>`
+      : `<p class="subtle" style="text-align:center">Xem ít nhất ${Math.ceil(L.length / 2)} thẻ để mở nút “Duyệt tất cả bài đạt kiểm”.</p>`;
+    const all = document.getElementById('all'); if (all) all.onclick = () => { pass.forEach(i => { const p = MP.poolItem(i.id); p.status = 'approved'; p.maHen = Math.random().toString(36).slice(2, 8); }); MP.track('bulk_approve', { số_bài: pass.length }); MP.save(); render(); MP.toast('Đã duyệt ' + pass.length + ' bài', 'checkCircle'); };
+    cards.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => { if (approve(MP.item(b.dataset.ok))) MP.toast('Đã duyệt', 'check'); });
+    cards.querySelectorAll('[data-undo]').forEach(b => b.onclick = () => { const p = MP.poolItem(b.dataset.undo); p.status = p.edited ? 'edited' : 'generated'; MP.save(); render(); });
+    cards.querySelectorAll('[data-later]').forEach(b => b.onclick = () => { later.add(Number(b.dataset.later)); render(); MP.toast('Để sau — sẽ nhắc 1 lần trước giờ đăng', 'clock'); });
+    cards.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { openEdit = Number(b.dataset.edit); render(); });
+    cards.querySelectorAll('[data-cancel]').forEach(b => b.onclick = () => { openEdit = null; render(); });
+    cards.querySelectorAll('[data-save]').forEach(b => b.onclick = () => {
+      const it = MP.item(b.dataset.save); const p = MP.poolItem(it.id); const box = b.closest('.card-body'); const v = k => box.querySelector('[data-f="' + k + '"]').value.trim();
+      const kinds = []; const price = D.fmtPrice(state.brand.answers.q3.value); const cta = D.CHANNEL_CTA[it.channel] || '';
+      if (v('hook') && v('hook') !== p.hook) { const L2 = p.content.caption.split('\n'); L2[0] = v('hook'); p.content.caption = L2.join('\n'); p.hook = v('hook'); kinds.push('Câu mở đầu'); }
+      if (v('price') && v('price') !== price) { p.content.caption = p.content.caption.split(price).join(v('price')); kinds.push('Giá/ưu đãi'); }
+      if (cta && p.content.caption.includes(cta) && v('cta') !== cta) { p.content.caption = p.content.caption.replace(cta, v('cta')); kinds.push('Lời kêu gọi'); }
+      if (kinds.length) { p.edited = true; p.editKinds = Array.from(new Set((p.editKinds || []).concat(kinds))); MP.track('post_edited', { ngày: it.day, loại: kinds.join('+'), nguồn: 'sửa nhanh' }); }
+      openEdit = null; if (!approve(MP.item(it.id))) render();
+    });
+    const io = new IntersectionObserver(es => { let ch = false; es.forEach(e => { if (e.isIntersecting && !viewed.has(e.target.dataset.card)) { viewed.add(e.target.dataset.card); ch = true; } }); if (ch) { io.disconnect(); render(); } }, { threshold: .6 });
+    cards.querySelectorAll('[data-card]').forEach(c => { if (!viewed.has(c.dataset.card)) io.observe(c); });
+  }
+  const wt = document.getElementById('wt');
+  wt.innerHTML = ['19:00', '20:00', '21:00', '22:00'].map(x => `<option ${state.notify.weeklyTime === x ? 'selected' : ''}>${x}</option>`).join('');
+  wt.onchange = () => { state.notify.weeklyTime = wt.value; MP.save(); MP.toast('Sẽ nhắc Duyệt tuần lúc ' + wt.value + ' tối Chủ nhật', 'bell'); };
+  render();
+})();
+</script>
+</body>
+</html>

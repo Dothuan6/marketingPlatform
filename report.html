@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Báo cáo tháng · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta name="theme-color" content="#27AAE1">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
+</head>
+<body data-page="report">
+<main id="page" hidden>
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><i data-icon="report" class="sm"></i><span id="period"></span></div>
+      <h1>Giá trị bạn đã nhận tháng này</h1>
+      <p class="subtitle" id="sub"></p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="send"><i data-icon="send"></i>Gửi báo cáo</button>
+      <button class="btn primary" id="next-plan"><i data-icon="calendar"></i>Lập kế hoạch tháng sau</button>
+    </div>
+  </div>
+  <div class="row between wrap mb-4"><div class="segmented" role="group" aria-label="Dữ liệu"><button data-demo="0">Dữ liệu hiện tại</button><button data-demo="1">Xem mẫu cuối tháng</button></div><span class="subtle" id="demo-note"></span></div>
+  <div class="section-title"><h2 class="row"><i data-icon="checkCircle"></i>Số liệu ghi nhận</h2><span class="subtle">Đếm từ lịch đăng và phản hồi của bạn</span></div>
+  <div class="grid c4 mb-4" id="rec"></div>
+  <div class="grid c2 mb-4">
+    <div class="card"><div class="card-head"><h3><i data-icon="smile"></i>Phản hồi của bạn sau 24 giờ</h3></div><div class="card-body" id="fb"></div></div>
+    <div class="card"><div class="card-head"><h3><i data-icon="layers"></i>Nhóm nội dung được phản hồi tốt</h3></div><div class="card-body" id="best"></div></div>
+  </div>
+  <div class="section-title"><h2 class="row"><i data-icon="clock"></i>Ước tính</h2><span class="subtle">Không phải số đo — bấm để xem cách tính</span></div>
+  <div class="grid c2" id="est"></div>
+</main>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.shell({ active: 'report', crumbs: ['Hằng tháng', 'Báo cáo tháng'] });
+  let demo = MP.params.get('demo') === '1';
+  const PL = state.plan; const end = D.addDays(PL.start, 29);
+  document.getElementById('period').textContent = MP.fmtDate(PL.start, 'short') + ' → ' + MP.fmtDate(end, 'short') + ' · gửi tự động ngày 25 hằng tháng qua ' + MP.notifyText();
+  const FBL = { fire: ['🔥', 'Có tin nhắn/đơn'], ok: ['🙂', 'Có tương tác'], meh: ['😐', 'Bình thường'] };
+
+  function data() {
+    let its = MP.items();
+    if (demo) { // số liệu mẫu để xem bố cục cuối tháng
+      const seq = ['fire', 'ok', 'meh', 'ok', 'fire', 'meh', 'ok', 'fire', 'ok', 'meh'];
+      its = its.map((i, k) => k < 26 ? Object.assign({}, i, { status: 'published', manual: D.CHANNELS[i.channel].level === 0, feedback: k < 22 ? { v: i.pillar === 'proof' ? (k % 3 ? 'fire' : 'ok') : seq[k % seq.length] } : null, edited: k % 4 === 0, content: i.content || {} }) : i);
+    }
+    const pub = its.filter(i => i.status === 'published'); const withC = its.filter(i => i.content);
+    const noEdit = withC.filter(i => ['approved', 'published'].includes(i.status) && !i.edited).length; const decided = withC.filter(i => ['approved', 'published'].includes(i.status)).length;
+    const fb = { fire: 0, ok: 0, meh: 0 }; pub.forEach(i => { if (i.feedback) fb[i.feedback.v]++; });
+    const byP = {}; pub.filter(i => i.feedback).forEach(i => { const b = byP[i.pillar] = byP[i.pillar] || { n: 0, fire: 0 }; b.n++; if (i.feedback.v === 'fire') b.fire++; });
+    return { its, pub, withC, noEdit, decided, fb, byP, auto: pub.filter(i => !i.manual).length, manual: pub.filter(i => i.manual).length, noFb: pub.filter(i => !i.feedback).length };
+  }
+  function render() {
+    document.querySelectorAll('[data-demo]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.demo === (demo ? '1' : '0'))));
+    document.getElementById('demo-note').textContent = demo ? 'Đang xem số liệu mẫu để hình dung bố cục — không phải dữ liệu thật.' : '';
+    const d = data(); const n = d.its.length;
+    document.getElementById('sub').textContent = `${d.pub.length}/${n} bài đã lên kênh · ${d.fb.fire} bài có tin nhắn/đơn theo phản hồi của bạn · tiết kiệm khoảng ${Math.round(d.pub.length * 30 / 60 * 10) / 10} giờ [ước tính]`;
+    const k = [
+      ['send', 'Bài đã lên kênh', d.pub.length + '<span class="subtle"> / ' + n + '</span>', d.auto + ' tự đăng · ' + d.manual + ' đăng tay'],
+      ['sparkles', 'Bài đã viết', d.withC.length, 'trong kế hoạch 30 ngày'],
+      ['checkCircle', 'Dùng ngay không sửa', d.decided ? Math.round(d.noEdit / d.decided * 100) + '%' : '—', d.noEdit + '/' + d.decided + ' bài đã duyệt'],
+      ['smile', 'Đã phản hồi', (d.pub.length - d.noFb) + '<span class="subtle"> / ' + d.pub.length + '</span>', d.noFb + ' bài bạn chưa trả lời']
+    ];
+    document.getElementById('rec').innerHTML = k.map(x => `<div class="card kpi"><div class="l">${icon(x[0], 'sm')}${x[1]}</div><div class="v">${x[2]}</div><div class="subtle">${x[3]}</div></div>`).join('');
+    const tot = d.fb.fire + d.fb.ok + d.fb.meh;
+    document.getElementById('fb').innerHTML = tot ? Object.entries(FBL).map(([key, l]) => `<div class="row mb-2"><span style="font-size:20px;width:28px">${l[0]}</span><div class="grow"><div class="row between"><span>${l[1]}</span><b>${d.fb[key]}</b></div><div class="progress mt-1"><span style="width:${d.fb[key] / tot * 100}%"></span></div></div></div>`).join('') + '<p class="subtle mt-2">Là cảm nhận của bạn, không phải số liệu bán hàng.</p>'
+      : '<p class="muted">Chưa có phản hồi nào. 24 giờ sau mỗi bài lên kênh, bạn sẽ được hỏi 1 câu.</p>';
+    // CL-18/CL-16: chỉ kết luận khi có ≥ 3 bài cùng nhóm có phản hồi
+    const ok = Object.entries(d.byP).filter(([, b]) => b.n >= 3).sort((a, b) => b[1].fire / b[1].n - a[1].fire / a[1].n);
+    document.getElementById('best').innerHTML = ok.length
+      ? `<p><b>${esc(D.PILLARS[ok[0][0]].name)}</b> có tỷ lệ 🔥 cao nhất: ${ok[0][1].fire}/${ok[0][1].n} bài.</p><div class="list mt-2">${ok.map(([pid, b]) => `<div class="list-item">${MP.pillarBadge(pid)}<span class="grow"></span><span class="subtle">${b.fire} 🔥 / ${b.n} bài có phản hồi</span></div>`).join('')}</div>`
+      : `<p class="muted">Chưa đủ phản hồi để kết luận nhóm nào tốt hơn — cần ít nhất 3 bài cùng nhóm có phản hồi (hiện ${Object.values(d.byP).reduce((s, b) => Math.max(s, b.n), 0)} bài).</p>`;
+    const hrs = Math.round(d.pub.length * 30 / 60 * 10) / 10; const ideas = d.withC.length;
+    document.getElementById('est').innerHTML = [
+      ['clock', 'Thời gian tiết kiệm', hrs + ' giờ', 'Số bài đã lên kênh × 30 phút (thời gian trung bình tự nghĩ và viết 1 bài) = ' + d.pub.length + ' × 30 phút.'],
+      ['calendar', 'Không bị "quên đăng"', Math.min(100, Math.round(d.pub.length / (demo ? n : Math.max(1, d.its.filter(i => i.date <= MP.today()).length)) * 100)) + '% ngày có bài', 'Số bài đã lên kênh ÷ số ngày có lịch đăng đã tới (tính cả hôm nay). Chỉ tính bài bạn xác nhận hoặc hệ thống tự đăng.']
+    ].map(x => `<div class="card card-pad stack sm"><div class="row between"><span class="subtle">${icon(x[0], 'sm')} ${x[1]}</span><span class="est-tag">ước tính</span></div><div class="stat-big">${x[2]}</div><details><summary class="subtle" style="cursor:pointer">Cách tính</summary><p class="muted mt-1">${x[3]}</p></details></div>`).join('');
+  }
+  document.querySelectorAll('[data-demo]').forEach(b => b.onclick = () => { demo = b.dataset.demo === '1'; render(); });
+  document.getElementById('next-plan').onclick = () => {
+    const d = data(); const ok = Object.entries(d.byP).filter(([, b]) => b.n >= 3).sort((a, b) => b[1].fire / b[1].n - a[1].fire / a[1].n);
+    const nEnd = D.addDays(end, 30); const ev = D.EVENTS.filter(e => e.date > end && e.date <= nEnd && e.industries.includes(state.brand.industry));
+    const change = ok.length ? `Tăng nhóm <b>${esc(D.PILLARS[ok[0][0]].name)}</b> thêm 5% vì ${ok[0][1].fire}/${ok[0][1].n} bài nhóm này được bạn chấm 🔥.` : 'Giữ nguyên tỷ lệ nhóm nội dung — chưa đủ phản hồi để thay đổi.';
+    const m = MP.modal({ title: 'Kế hoạch tháng sau (điền sẵn)', subtitle: 'Sửa được mọi thứ trước khi tạo.', body: `<div class="stack">
+      <div class="callout">${icon('layers')}<div>${change}</div></div>
+      <dl class="kv"><dt>Thời gian</dt><dd>${MP.fmtDate(D.addDays(end, 1), 'short')} → ${MP.fmtDate(nEnd, 'short')}</dd><dt>Tần suất</dt><dd>${PL.frequency} bài/tuần · ${PL.channels.map(c => D.CHANNELS[c].name).join(', ')}</dd>
+      <dt>Sự kiện</dt><dd>${ev.length ? ev.map(e => MP.fmtDate(e.date, 'short') + ' ' + esc(e.name)).join(' · ') : 'Không có sự kiện hợp ngành'}</dd></dl></div>`,
+      foot: '<button class="btn" data-close>Để sau</button><button class="btn primary" data-ok>' + icon('sparkles', 'sm') + 'Tạo kế hoạch tháng sau</button>' });
+    m.el.querySelector('[data-ok]').onclick = () => { m.close(); MP.track('next_plan', { đổi_tỷ_trọng: !!ok.length }); MP.toast('Prototype: kế hoạch tháng sau sẽ được tạo thành một lô 30 bài', 'calendar'); };
+  };
+  document.getElementById('send').onclick = () => {
+    const m = MP.modal({ title: 'Gửi báo cáo', subtitle: 'Cho người cùng quản lý shop hoặc người thuê bạn làm marketing.', body: '<div class="field"><label for="to">Email người nhận</label><input class="input" id="to" placeholder="sep@shop.vn"></div><p class="subtle">Báo cáo gửi đi giữ nguyên cách tách “ghi nhận” và “ước tính”.</p>',
+      foot: '<button class="btn" data-copy>Chép nội dung</button><button class="btn primary" data-ok>Gửi</button>' });
+    m.el.querySelector('[data-copy]').onclick = e => MP.copy(document.getElementById('sub').textContent, e.currentTarget);
+    m.el.querySelector('[data-ok]').onclick = () => { m.close(); MP.track('report_sent', {}); MP.toast('Prototype: đã gửi báo cáo', 'send'); };
+  };
+  render();
+})();
+</script>
+</body>
+</html>

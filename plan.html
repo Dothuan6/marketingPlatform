@@ -3,22 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lịch đăng 30 ngày · Marketing Agent</title>
+  <title>Lịch 30 ngày · Marketing Agent</title>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929">
-  <script src="assets/theme.js?v=20260929"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
 </head>
 <body data-page="plan">
 <main id="page" hidden>
   <div class="page-header">
     <div>
-      <div class="eyebrow"><span class="step-dot">4</span>Lịch đăng</div>
-      <h1>Lịch đăng 30 ngày</h1>
+      <div class="eyebrow"><span class="step-dot">4</span>Kế hoạch</div>
+      <h1>Lịch 30 ngày</h1>
       <p class="subtitle" id="sub"></p>
     </div>
     <div class="actions">
@@ -33,6 +33,10 @@
     </div>
   </div>
 
+  <div id="first-hero"></div>
+  <div class="grid c2 mb-4" id="top-row"><div id="summary"></div><div id="tier2"></div></div>
+  <div id="first-week"></div>
+  <div id="seasonal" class="stack mb-4"></div>
   <div id="auto-banner"></div>
   <div id="alerts" class="stack mb-4"></div>
 
@@ -45,7 +49,7 @@
         <button data-view="cal" aria-pressed="false"><i data-icon="calendar" class="sm"></i>Lịch</button>
       </div>
       <div class="row wrap">
-        <div class="chips" id="pf" role="group" aria-label="Lọc pillar"></div>
+        <div class="chips" id="pf" role="group" aria-label="Lọc nhóm nội dung"></div>
         <select class="select" id="cf" style="width:auto;min-height:32px;height:32px;padding:0 8px" aria-label="Lọc kênh"></select>
       </div>
     </div>
@@ -55,12 +59,13 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260929"></script>
-<script src="assets/app.js?v=20260929"></script>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
-  MP.shell({ active: 'plan', crumbs: ['Quy trình', 'Lịch đăng 30 ngày'] });
+  MP.shell({ active: 'plan', crumbs: ['Quy trình', 'Lịch 30 ngày'] });
+  const FIRST = MP.params.get('first') === '1' || state.firstRun;
   const PL = state.plan;
   let view = 'table', fPillar = new Set(Object.keys(D.PILLARS)), fChannel = 'all';
   try { view = localStorage.getItem('mp-plan-view') || 'table'; } catch (e) {}
@@ -71,9 +76,10 @@
   function header() {
     const all = MP.items(); const end = D.addDays(PL.start, 29);
     document.getElementById('sub').innerHTML = `${MP.fmtDate(PL.start, 'short')} → ${MP.fmtDate(end, 'short')} · ${PL.frequency} bài/tuần · ${PL.channels.map(c => D.CHANNELS[c].name).join(', ')} · <a href="strategy.html#pillars">Đổi tần suất/kênh</a>`;
-    const planned = all.filter(i => i.status === 'planned').length;
+    const planned = all.filter(i => i.status === 'planned' && !MP.isLocked(i)).length;
+    const locked = all.filter(i => i.status === 'planned' && MP.isLocked(i)).length;
     const g = document.getElementById('gen-all');
-    g.innerHTML = icon('sparkles') + (planned ? `Sinh nội dung ${planned} bài còn lại` : 'Đã sinh đủ nội dung'); g.disabled = !planned;
+    g.innerHTML = icon(planned ? 'sparkles' : locked ? 'lock' : 'check') + (planned ? `Sinh nội dung ${planned} bài còn lại` : locked ? `Mở ${locked} bài còn lại` : 'Đã sinh đủ nội dung'); g.disabled = !planned && !locked;
   }
 
   // ---------- Kiểm tỷ lệ pillar (US-302) ----------
@@ -113,15 +119,15 @@
     const rows = visible();
     if (!rows.length) { document.getElementById('view-table').innerHTML = `<div class="empty"><div class="em-ic">${icon('filter', 'xl')}</div><h3>Không có bài nào khớp bộ lọc</h3><p>Bật lại pillar hoặc chọn “Tất cả kênh”.</p></div>`; return; }
     const t = MP.today();
-    document.getElementById('view-table').innerHTML = `<table class="table"><thead><tr><th style="width:28px"><span class="sr-only">Kéo</span></th><th>Ngày</th><th>Pillar</th><th>Angle</th><th>Kênh · giờ đăng</th><th>Tiêu đề & hook</th><th>Trạng thái</th></tr></thead><tbody>` +
+    document.getElementById('view-table').innerHTML = `<table class="table"><thead><tr><th style="width:28px"><span class="sr-only">Kéo</span></th><th>Ngày</th><th>Nhóm nội dung</th><th>Góc kể chuyện</th><th>Kênh · giờ đăng</th><th>Tiêu đề & câu mở đầu</th><th>Trạng thái</th></tr></thead><tbody>` +
       rows.map(it => `<tr draggable="true" data-id="${it.id}" data-href="${hrefOf(it)}">
         <td><span class="grip" title="Kéo để đổi ngày">${icon('grip', 'sm')}</span></td>
         <td class="nowrap"><b>Ngày ${it.day}</b><div class="subtle">${MP.fmtDate(it.date)}${it.date === t ? ' · <b style="color:var(--primary-soft-text)">Hôm nay</b>' : ''}</div></td>
         <td>${MP.pillarBadge(it.pillar)}</td>
         <td><span class="subtle">${esc(it.angle)}</span> <span class="truncate" style="display:inline-block;max-width:150px;vertical-align:bottom">${esc(MP.angleName(it.angle))}</span></td>
-        <td><div class="row wrap" style="gap:4px">${MP.channelBadge(it.channel)}${MP.formatBadge(it.format)}</div><div class="row mt-1" style="gap:4px" title="${esc(MP.autoInfo(it).text)}"><span class="c-${MP.autoInfo(it).kind === 'auto' ? 'edu' : 'fun'}" style="display:inline-flex">${icon(MP.autoInfo(it).icon, 'sm')}</span><span class="subtle">${it.time} · ${({ auto: 'tự đăng', manual: 'đăng tay', approval: 'chờ duyệt', done: 'đã đăng', nocontent: 'chưa có bài', off: 'tắt tự động', missed: 'quá giờ', failed: 'lỗi' })[MP.autoInfo(it).kind]}</span></div></td>
-        <td><div class="cell-title">${esc(it.title)}${it.flag ? ' <span class="badge warning">' + icon('alert') + 'Gần trùng</span>' : ''}</div><div class="cell-hook">${esc(MP.quoteHook(it.hook))}</div></td>
-        <td>${MP.statusBadge(it.status)}</td></tr>`).join('') + '</tbody></table>';
+        <td><div class="row wrap" style="gap:4px">${MP.channelBadge(it.channel)}${MP.formatBadge(it.format)}</div><div class="row mt-1" style="gap:4px" title="${esc(MP.autoInfo(it).text)}"><span class="c-${MP.autoInfo(it).kind === 'auto' ? 'edu' : 'fun'}" style="display:inline-flex">${icon(MP.autoInfo(it).icon, 'sm')}</span><span class="subtle">${it.time} · ${(MP.KIND_LABEL[MP.autoInfo(it).kind] || '').toLowerCase()}</span></div></td>
+        <td><div class="cell-title">${esc(it.title)}${it.flag ? ' <span class="badge warning">' + icon('alert') + 'Gần trùng</span>' : ''}${it.event ? ' <span class="badge info">' + icon('star') + esc(it.event) + '</span>' : ''}</div><div class="cell-hook">${esc(MP.quoteHook(it.hook))}</div></td>
+        <td>${MP.isLocked(it) && !it.content ? '<span class="badge">' + icon('lock') + 'Khoá · dùng thử</span>' : MP.statusBadge(it.status)}</td></tr>`).join('') + '</tbody></table>';
     const tb = document.querySelector('#view-table tbody');
     let dragId = null;
     tb.querySelectorAll('tr').forEach(tr => {
@@ -188,64 +194,194 @@
     const A = state.automation; const all = MP.items(); const t = MP.today();
     const next = all.filter(i => i.date >= t && i.status !== 'published');
     const needAppr = next.filter(i => i.content && i.status !== 'approved' && i.date <= D.addDays(t, 2)).length;
-    const off = Object.entries(A.connections).filter(([k, c]) => !c.connected && PL.channels.includes(k)).map(([k]) => D.CHANNELS[k].name);
+    const off = PL.channels.filter(k => D.CHANNELS[k].level === 0 || !A.connections[k].connected).map(k => D.CHANNELS[k].name);
     document.getElementById('auto-banner').innerHTML = `<div class="card card-pad mb-4 row wrap" style="gap:14px">
       <span class="ic-box ${A.enabled ? 'primary' : ''}">${icon(A.enabled ? 'zap' : 'pause')}</span>
-      <div class="grow" style="min-width:220px"><b>Tự động đăng ${A.enabled ? 'đang bật' : 'đang tắt'}</b><div class="subtle">${A.enabled ? 'Bài đã duyệt sẽ tự lên kênh đúng giờ đăng.' : 'Bài sẽ không tự lên kênh.'}${needAppr ? ` · <b style="color:var(--warning)">${needAppr} bài trong 3 ngày tới chưa duyệt</b>` : ''}${off.length ? ` · ${off.join(', ')} chưa kết nối (sẽ nhắc đăng tay)` : ''}</div></div>
-      <a class="btn sm" href="automation.html">${icon('branch', 'sm')}Xem workflow</a></div>`;
+      <div class="grow" style="min-width:220px"><b>Tự động đăng ${A.enabled ? 'đang bật' : 'đang tắt'}</b><div class="subtle">${A.enabled ? 'Bài đã duyệt được hẹn giờ và tự lên Facebook/Instagram (Mức 1).' : 'Bài sẽ không tự lên kênh.'}${off.length ? ` · ${off.join(', ')} đăng tay (Mức 0): đến giờ gửi gói nhận bài qua ${MP.notifyText()}` : ''}${needAppr ? ` · <b style="color:var(--warning)">${needAppr} bài trong 3 ngày tới chưa duyệt</b>` : ''}</div></div>
+      ${needAppr ? `<a class="btn sm primary" href="review.html">${icon('checkCircle', 'sm')}Duyệt tuần</a>` : ''}<a class="btn sm" href="automation.html">${icon('branch', 'sm')}Xem workflow</a></div>`;
   }
 
   function render() {
-    header(); autoBanner(); pillarCheck(); alerts(); filters();
+    header(); firstHero(); summary(); tier2(); firstWeek(); seasonal(); autoBanner(); pillarCheck(); alerts(); filters();
     document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
     document.getElementById('view-table').hidden = view !== 'table'; document.getElementById('view-cal').hidden = view !== 'cal';
     view === 'table' ? table() : cal();
     const all = MP.items(); document.getElementById('count').textContent = `${visible().length}/${all.length} bài · ${all.filter(i => i.status !== 'planned').length} bài có nội dung`;
   }
 
-  // ---------- Sinh toàn bộ (US-403) ----------
-  document.getElementById('gen-all').onclick = () => {
-    const todo = MP.items().filter(i => i.status === 'planned');
-    if (!todo.length) return;
-    const failIds = new Set(todo.filter((_, i) => i % 7 === 3).slice(0, 2).map(i => i.id));
-    const m = MP.modal({ title: `Đang sinh nội dung ${todo.length} bài`, subtitle: 'Chạy nền tối đa 5 bài cùng lúc. Bạn có thể đóng cửa sổ này — xong sẽ có thông báo.', wide: false,
-      body: `<div class="batch-grid" id="bg">${todo.map(i => `<div class="batch-cell" data-c="${i.id}" title="Ngày ${i.day}">${i.day}</div>`).join('')}</div>
-        <div class="progress lg mt-4"><span id="bp" style="width:0"></span></div><div class="row between mt-2"><span class="subtle" id="bt">0/${todo.length}</span><span class="subtle" id="bcost">Chi phí ước tính: 0đ</span></div><div id="bres" class="mt-3"></div>`,
-      foot: '<button class="btn" data-close>Chạy nền</button>' });
-    let done = 0, running = 0, idx = 0, fails = [];
-    const cell = id => m.el.querySelector('[data-c="' + id + '"]');
-    function finishOne(it, ok) {
-      running--; done++;
-      const c = cell(it.id); if (c) { c.classList.remove('running'); c.classList.add(ok ? 'done' : 'fail'); c.innerHTML = ok ? icon('check', 'sm') : icon('x', 'sm'); }
-      if (ok) { const p = MP.poolItem(it.id); p.status = 'generated'; p.content = D.genContent(p, state.brand, 0); } else fails.push(it);
-      const bp = m.el.querySelector('#bp'); if (bp) bp.style.width = (done / todo.length * 100) + '%';
-      const bt = m.el.querySelector('#bt'); if (bt) bt.textContent = done + '/' + todo.length + ' bài';
-      const bc = m.el.querySelector('#bcost'); if (bc) bc.textContent = 'Chi phí ước tính: ' + (done * 410).toLocaleString('vi-VN') + 'đ';
-      pump();
-    }
-    function pump() {
-      while (running < 5 && idx < todo.length) {
-        const it = todo[idx++]; running++; const c = cell(it.id); if (c) c.classList.add('running');
-        setTimeout(() => finishOne(it, !failIds.has(it.id)), 350 + Math.random() * 700);
+  // ---------- Lần đầu: TTFV (QĐ-J) ----------
+  function firstHero() {
+    const el = document.getElementById('first-hero'); const secs = Number(MP.params.get('ttfv'));
+    if (!secs) { el.innerHTML = ''; return; }
+    const m = Math.floor(secs / 60) + ' phút ' + (secs % 60) + ' giây';
+    el.innerHTML = `<div class="callout ${secs <= 180 ? 'success' : 'warning'} mb-4">${icon(secs <= 180 ? 'checkCircle' : 'clock')}<div><b>Kế hoạch 30 ngày của bạn đã sẵn sàng sau ${m}.</b> ${secs <= 180 ? 'Bài đầu tiên cũng đã viết xong — mở ra xem và duyệt nhé.' : 'Hơi lâu hơn mục tiêu 3 phút — cảm ơn bạn đã kiên nhẫn.'}</div></div>`;
+  }
+
+  // ---------- Tóm tắt chiến lược 3 dòng (CL-22) ----------
+  function summary() {
+    const S = state.strategy; const A = state.brand.answers; const ps = S.personas;
+    const top = S.pillars.slice().sort((a, b) => b.ratio - a.ratio).slice(0, 2).map(p => D.PILLARS[p.id].name).join(' & ');
+    document.getElementById('summary').innerHTML = `<div class="card" style="height:100%"><div class="card-head"><h3>${icon('target')}Chiến lược trong 3 dòng</h3><a class="btn ghost sm" href="strategy.html">Xem & chỉnh</a></div>
+      <div class="card-body"><dl class="sum3">
+        <dt>Nói với ai</dt><dd>${ps.map(p => esc(p.name) + ' (' + esc(p.age.replace(' tuổi', '')) + ', ' + esc(p.job.split(',')[0].toLowerCase()) + ')').join(' và ')}</dd>
+        <dt>Nói gì</dt><dd>${esc(String(S.usp.primary).split(' — ')[0])}${MP.termInfo('usp')}</dd>
+        <dt>Vì sao</dt><dd>Mục tiêu “${esc(((A.q11 && A.q11.value) || '').toLowerCase())}” → ưu tiên nhóm ${esc(top)}</dd>
+      </dl></div></div>`;
+  }
+
+  // ---------- Câu hỏi tầng 2 — hỏi đúng lúc (CL-01, H7) ----------
+  const hasAns = id => { const a = state.brand.answers[id]; return a && (Array.isArray(a.value) ? a.value.length : String(a.value || '').trim()); };
+  function missingTier2(scope) { return D.TIER2.find(t => (!scope || scope.includes(t.id)) && !hasAns(t.id)); }
+  function tier2Form(t, required) {
+    const q = D.QUESTIONS.find(x => x.id === t.id);
+    const inp = q.type === 'multi' ? `<div class="chips" data-t2multi>${q.options.map(o => `<button type="button" class="chip sm" data-v="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>`
+      : q.type === 'tone' ? `<div class="chips" data-t2single>${D.TONES.map(o => `<button type="button" class="chip sm" data-v="${o.id}" aria-pressed="false">${esc(o.name)}</button>`).join('')}</div>`
+      : `<textarea class="textarea" rows="2" data-t2text placeholder="${esc(q.placeholder || '')}"></textarea>`;
+    return `<div class="stack sm"><b>${esc(q.label)}</b><div class="subtle">${icon('sparkles', 'sm')} ${esc(t.impact)}</div>${inp}<div data-t2vague></div>
+      <div class="row"><button class="btn sm primary" data-t2save>${icon('check', 'sm')}Lưu</button>${required ? '' : '<button class="btn sm ghost" data-t2later>Để sau</button>'}</div></div>`;
+  }
+  function bindTier2(root, t, onSaved) {
+    let vagueShown = false;
+    root.querySelectorAll('[data-t2multi] .chip').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') !== 'true'));
+    root.querySelectorAll('[data-t2single] .chip').forEach(c => c.onclick = () => root.querySelectorAll('[data-t2single] .chip').forEach(x => x.setAttribute('aria-pressed', x === c)));
+    root.querySelector('[data-t2save]').onclick = () => {
+      const ta = root.querySelector('[data-t2text]'); let v;
+      if (ta) v = ta.value.trim(); else if (root.querySelector('[data-t2single]')) v = (root.querySelector('[data-t2single] [aria-pressed="true"]') || {}).dataset?.v; else v = [...root.querySelectorAll('[data-t2multi] [aria-pressed="true"]')].map(c => c.dataset.v);
+      if (!v || (Array.isArray(v) && !v.length)) { MP.toast('Chọn hoặc gõ câu trả lời trước nhé', 'alert'); return; }
+      // CL-04: câu trả lời chung chung → gợi ý cụ thể hơn đúng 1 lần
+      if (ta && !vagueShown && D.VAGUE_FOLLOWUP[t.id] && MP.isVague(v)) {
+        vagueShown = true; MP.track('vague_detected', { q: t.id }); const f = D.VAGUE_FOLLOWUP[t.id];
+        root.querySelector('[data-t2vague]').innerHTML = `<div class="callout warning">${icon('info')}<div><b>${esc(f.ask)}</b> Câu trả lời cụ thể giúp bài không giống mọi shop khác.<div class="chips mt-2">${f.chips(state.brand.industry).map(c => `<button type="button" class="chip sm" data-vg="${esc(c)}">${esc(c)}</button>`).join('')}</div><div class="subtle mt-1">Bấm Lưu lần nữa để giữ nguyên câu của bạn.</div></div></div>`;
+        root.querySelectorAll('[data-vg]').forEach(c => c.onclick = () => { ta.value = c.dataset.vg; ta.focus(); });
+        return;
       }
-      if (done === todo.length) complete();
-    }
-    function complete() {
-      MP.save(); render();
-      state.activity.unshift({ t: 0, icon: 'sparkles', text: `Sinh nội dung ${todo.length - fails.length} bài` }); MP.save();
-      const res = m.el.querySelector('#bres'); if (!res) { MP.toast(`Xong: ${todo.length - fails.length} bài có nội dung${fails.length ? ', ' + fails.length + ' bài lỗi' : ''}`); return; }
-      if (!fails.length) { res.innerHTML = `<div class="callout success">${icon('checkCircle')}<div>Xong ${todo.length} bài.</div></div>`; return; }
-      res.innerHTML = `<div class="callout warning">${icon('alert')}<div class="grow"><b>${todo.length - fails.length} bài xong, ${fails.length} bài lỗi</b> (${fails.map(f => 'ngày ' + f.day).join(', ')}) do nhà cung cấp AI quá tải. Các bài đã xong vẫn dùng được bình thường.<div class="mt-2"><button class="btn sm primary" id="retry">${icon('refresh', 'sm')}Thử lại ${fails.length} bài lỗi</button></div></div></div>`;
-      res.querySelector('#retry').onclick = () => {
-        const f = fails.slice(); fails = []; res.innerHTML = '<p class="subtle">Đang thử lại qua nhà cung cấp dự phòng…</p>';
-        f.forEach((it, k) => { const c = cell(it.id); c.className = 'batch-cell running'; c.textContent = it.day; setTimeout(() => {
-          c.className = 'batch-cell done'; c.innerHTML = icon('check', 'sm'); const p = MP.poolItem(it.id); p.status = 'generated'; p.content = D.genContent(p, state.brand, 0);
-          if (k === f.length - 1) { MP.save(); render(); res.innerHTML = `<div class="callout success">${icon('checkCircle')}<div>Đã sinh đủ ${todo.length} bài.</div></div>`; }
-        }, 700 + k * 300); });
-      };
-    }
-    pump();
+      state.brand.answers[t.id] = { value: v, source: 'user' }; if (t.id === 'q12') state.brand.tone = v;
+      MP.save(); MP.track('tier2_answered', { q: t.id }); MP.toast('Đã lưu vào hồ sơ — các bài sinh sau sẽ dùng'); onSaved && onSaved();
+    };
+    const later = root.querySelector('[data-t2later]'); if (later) later.onclick = () => { sessionStorage.setItem('t2later', t.id); render(); };
+  }
+  function tier2() {
+    const el = document.getElementById('tier2'); let t = missingTier2(['q8', 'q4', 'q10', 'q7']);
+    let skipped = null; try { skipped = sessionStorage.getItem('t2later'); } catch (e) {}
+    if (t && skipped === t.id) t = null;
+    if (!t) { el.innerHTML = ''; document.getElementById('top-row').className = 'mb-4'; return; }
+    document.getElementById('top-row').className = 'grid c2 mb-4';
+    el.innerHTML = `<div class="card accent" style="height:100%"><div class="card-head"><h3>${icon('sparkles')}Trả lời 1 câu để bài hay hơn</h3><span class="badge">Mất ~20 giây</span></div><div class="card-body">${tier2Form(t, false)}</div></div>`;
+    bindTier2(el, t, render);
+  }
+  // H7: sau 7 bài đầu, bắt trả lời 1 câu còn thiếu có tác động lớn nhất trước khi sinh tiếp
+  function requireTier2(onOk) {
+    const n = MP.items().filter(i => i.content).length; const t = missingTier2(['q8', 'q4', 'q10', 'q7']);
+    if (n < 7 || !t) return onOk();
+    const m = MP.modal({ title: 'Một câu trước khi viết tiếp', subtitle: 'Bạn đã có 7 bài. Để các bài sau không chung chung, cần thêm 1 thông tin quan trọng nhất còn thiếu.', body: tier2Form(t, true) });
+    bindTier2(m.el, t, () => { m.close(); render(); onOk(); });
+  }
+
+  // ---------- Tuần đầu tiên của bạn (CL-22) ----------
+  function firstWeek() {
+    const el = document.getElementById('first-week'); if (!FIRST) { el.innerHTML = ''; return; }
+    const wk = MP.items().slice(0, 7); const first = wk[0];
+    const firstOk = ['approved', 'published', 'received'].includes(first.status);
+    const need = wk.filter(i => !i.content && !MP.isLocked(i)).length;
+    el.innerHTML = `<div class="card mb-4"><div class="card-head"><h3>${icon('calendar')}Tuần đầu tiên của bạn</h3><span class="subtle">${wk.filter(i => i.content).length}/7 bài đã viết</span></div>
+      <div class="card-body stack"><div class="week-strip">${wk.map((it, k) => `<a class="week-card ${k === 0 ? 'first' : ''}" href="post.html?id=${it.id}">
+        <span class="subtle">${MP.fmtDate(it.date)}</span>${MP.pillarBadge(it.pillar)}<span class="t">${esc(it.title)}</span>
+        <span class="grow"></span>${k === 0 && !firstOk ? '<span class="badge primary">' + icon('sparkles') + 'Đã viết · mở để duyệt</span>' : MP.statusBadge(it.status)}</a>`).join('')}</div>
+        <div class="row wrap between"><span class="subtle">${firstOk ? 'Bạn đã duyệt bài đầu — AI viết tiếp theo đúng giọng đó.' : 'Duyệt bài đầu tiên trước — để AI viết 5 bài còn lại đúng ý bạn.'}</span>
+        <button class="btn ${firstOk ? 'primary' : ''}" id="gen-week" ${firstOk && need ? '' : 'disabled'}>${icon('sparkles', 'sm')}${need ? 'Viết ' + need + ' bài còn lại của tuần' : 'Đã viết đủ tuần đầu'}</button></div></div></div>`;
+    const b = document.getElementById('gen-week');
+    if (b) b.onclick = () => runBatch(wk.filter(i => !i.content && !MP.isLocked(i)), 'Viết bài còn lại của tuần đầu');
+  }
+
+  // ---------- Sự kiện & mùa vụ (CL-17, H11) ----------
+  function seasonal() {
+    const el = document.getElementById('seasonal'); const end = D.addDays(PL.start, 29); const ind = state.brand.industry; const SS = state.seasonal = state.seasonal || {};
+    const inWin = D.EVENTS.filter(e => e.date >= PL.start && e.date <= end && e.date >= MP.today() && e.industries.includes(ind) && !SS[e.id]);
+    const later = D.EVENTS.filter(e => e.date > end && e.date <= D.addDays(end, 45) && e.industries.includes(ind));
+    const product = (state.brand.answers.q2 && state.brand.answers.q2.value) || 'sản phẩm';
+    const ang = state.strategy.angles[0];
+    el.innerHTML = inWin.map(e => {
+      const chain = [[-4, 'Báo trước'], [0, 'Ngày chính'], [1, 'Nhắc lại']].map(([d, l]) => [D.addDays(e.date, d), l]).filter(([d]) => d >= MP.today() && d <= end);
+      return `<div class="callout">${icon('star')}<div class="grow"><b>${MP.fmtDate(e.date, 'short')} · ${esc(e.name)}</b> nằm trong kế hoạch này ${e.src === 'AI đề xuất' ? '<span class="badge primary">' + icon('sparkles') + 'AI đề xuất</span>' : ''}${e.lunar ? ' <span class="subtle">(' + esc(e.lunar) + ' · ngày tính bằng thư viện lịch)</span>' : ''}
+        <div class="subtle mt-1">Tạo chuỗi ${chain.length} bài: ${chain.map(([d, l]) => l + ' ' + MP.fmtDate(d, 'short')).join(' → ')}. Bài dùng góc riêng của bạn “${esc(ang.name)}”, không dùng mẫu chung.</div>
+        <div class="row mt-2 wrap"><button class="btn sm primary" data-ev-add="${e.id}">${icon('plus', 'sm')}Thêm chuỗi ${chain.length} bài</button><button class="btn sm ghost" data-ev-skip="${e.id}">Bỏ qua</button></div></div></div>`;
+    }).join('') + (later.length ? `<p class="subtle">${icon('calendar', 'sm')} Sắp tới, ngoài 30 ngày này: ${later.map(e => MP.fmtDate(e.date, 'short') + ' ' + esc(e.name)).join(' · ')} — sẽ gợi ý khi lập kế hoạch tháng sau.</p>` : '');
+    el.querySelectorAll('[data-ev-skip]').forEach(b => b.onclick = () => { SS[b.dataset.evSkip] = 'skipped'; MP.save(); MP.track('season_skip', { id: b.dataset.evSkip }); render(); });
+    el.querySelectorAll('[data-ev-add]').forEach(b => b.onclick = () => {
+      const e = D.EVENTS.find(x => x.id === b.dataset.evAdd); const dm = MP.fmtDate(e.date, 'short');
+      const T = { 'Báo trước': [`Sắp ${e.name}: món quà “${ang.name.toLowerCase()}” cho người bạn thương`, `Quà ${dm} năm nay: thứ cô ấy dùng mỗi tối, không phải để trưng.`],
+        'Ngày chính': [`${e.name}: ${product} — ${String(state.strategy.usp.primary).split(/[—,]/)[0].trim().toLowerCase()}`, `Hôm nay ${dm} — dành 3 phút chăm làn da của chính bạn.`],
+        'Nhắc lại': [`Nhắc lại: ưu đãi ${e.name} còn đến hết hôm nay`, `Lỡ ${dm}? Vẫn kịp — ưu đãi đến 23:59 hôm nay.`] };
+      let n = 0;
+      [[-4, 'Báo trước'], [0, 'Ngày chính'], [1, 'Nhắc lại']].forEach(([d, l]) => {
+        const date = D.addDays(e.date, d); if (date < MP.today() || date > end) return;
+        const sc = PL.schedule.find(x => x.date === date); if (!sc) return; const p = MP.poolItem(sc.id);
+        p.title = T[l][0]; p.hook = T[l][1]; p.event = dm + ' · ' + l.toLowerCase(); p.angle = ang.id;
+        if (p.content) { p.content = D.genContent(p, state.brand, 0); p.status = 'generated'; }
+        n++;
+      });
+      SS[e.id] = 'added'; state.activity.unshift({ t: 0, icon: 'star', text: 'Thêm chuỗi ' + n + ' bài ' + e.name }); MP.save(); MP.track('season_add', { id: e.id, bài: n }); render();
+      MP.toast('Đã thêm chuỗi ' + n + ' bài ' + e.name, 'star');
+    });
+  }
+
+  // ---------- Sinh theo lô (US-403, CL-12, CL-19, CL-20) ----------
+  document.getElementById('gen-all').onclick = () => {
+    const planned = MP.items().filter(i => i.status === 'planned');
+    const open = planned.filter(i => !MP.isLocked(i));
+    if (!open.length && planned.length) return upgradeAsk(planned.length);
+    runBatch(open, 'Sinh nội dung');
   };
+  function upgradeAsk(n) {
+    const m = MP.modal({ title: 'Mở ' + n + ' bài còn lại', subtitle: 'Bản dùng thử có nội dung đầy đủ 7 bài đầu. Khung 30 ngày vẫn là của bạn — không mất gì khi hết hạn.',
+      body: `<div class="callout">${icon('lock')}<div>Đang khoá: nội dung ${n} bài từ ngày 8 trở đi. Vẫn xem được tiêu đề, ngày đăng, nhóm nội dung.</div></div>`,
+      foot: '<button class="btn" data-close>Để sau</button><button class="btn primary" data-upgrade>Tiếp tục dùng</button>' });
+    m.el.querySelector('[data-upgrade]').onclick = () => { m.close(); document.querySelector('.sidebar [data-upgrade]').click(); };
+  }
+  function runBatch(list, title) {
+    if (!list.length) return;
+    requireTier2(() => {
+      const left = MP.postsLeft(); let todo = list.slice(0, left); const cut = list.length - todo.length;
+      if (!todo.length) { MP.toast(MP.sub().mode === 'trial' ? 'Đã dùng hết 7 bài dùng thử' : 'Hết lượt bài tháng này — liên hệ nâng gói', 'alert'); return; }
+      const lot = 'L-' + MP.today().slice(5).replace('-', '') + '-' + String(Math.floor(Math.random() * 90) + 10);
+      const failIds = new Set(todo.length > 6 ? todo.filter((_, i) => i % 7 === 3).slice(0, 2).map(i => i.id) : []);
+      const m = MP.modal({ title: `${title} · ${todo.length} bài`, subtitle: `Lô ${lot} · chạy nền tối đa 5 bài cùng lúc. Bạn có thể đóng cửa sổ này.`,
+        body: (cut ? `<div class="callout warning mb-3">${icon('info')}<div>Còn ${left} bài trong hạn mức — ${cut} bài sau để tháng sau hoặc khi nâng gói.</div></div>` : '') +
+          `<div class="batch-grid">${todo.map(i => `<div class="batch-cell" data-c="${i.id}" title="Ngày ${i.day}">${i.day}</div>`).join('')}</div>
+          <div class="progress lg mt-4"><span id="bp" style="width:0"></span></div><div class="row between mt-2"><span class="subtle" id="bt">0/${todo.length}</span><span class="subtle">Mỗi bài trừ 1 lượt bài</span></div><div id="bres" class="mt-3"></div>`,
+        foot: '<button class="btn" data-close>Chạy nền</button>' });
+      let done = 0, running = 0, idx = 0, fails = [];
+      const cell = id => m.el.querySelector('[data-c="' + id + '"]');
+      const ok1 = it => { const p = MP.poolItem(it.id); p.status = 'generated'; p.content = D.genContent(p, state.brand, 0); MP.usePosts(1); };
+      function finishOne(it, ok) {
+        running--; done++;
+        const c = cell(it.id); if (c) { c.classList.remove('running'); c.classList.add(ok ? 'done' : 'fail'); c.innerHTML = ok ? icon('check', 'sm') : icon('x', 'sm'); }
+        if (ok) ok1(it); else fails.push(it);
+        const bp = m.el.querySelector('#bp'); if (bp) bp.style.width = (done / todo.length * 100) + '%';
+        const bt = m.el.querySelector('#bt'); if (bt) bt.textContent = done + '/' + todo.length + ' bài';
+        pump();
+      }
+      function pump() {
+        while (running < 5 && idx < todo.length) { const it = todo[idx++]; running++; const c = cell(it.id); if (c) c.classList.add('running'); setTimeout(() => finishOne(it, !failIds.has(it.id)), 350 + Math.random() * 600); }
+        if (done === todo.length) complete();
+      }
+      function complete() {
+        state.activity.unshift({ t: 0, icon: 'sparkles', text: `Sinh nội dung ${todo.length - fails.length} bài (lô ${lot})` }); MP.save(); render();
+        MP.track('batch_generated', { lô: lot, xong: todo.length - fails.length, lỗi: fails.length });
+        const res = m.el.querySelector('#bres'); if (!res) { MP.toast(`Xong: ${todo.length - fails.length} bài${fails.length ? ', ' + fails.length + ' bài chưa tạo được' : ''}`); return; }
+        if (!fails.length) { res.innerHTML = `<div class="callout success">${icon('checkCircle')}<div>Xong ${todo.length} bài.</div></div>`; return; }
+        res.innerHTML = `<div class="callout warning">${icon('alert')}<div class="grow"><b>${todo.length - fails.length} bài xong, ${fails.length} bài chưa tạo được</b> (${fails.map(f => 'ngày ' + f.day).join(', ')}). Các bài đã tạo được giữ nguyên — không xoá, không tạo trùng.<div class="mt-2"><button class="btn sm primary" id="retry">${icon('refresh', 'sm')}Tạo tiếp ${fails.length} bài còn thiếu</button></div></div></div>`;
+        res.querySelector('#retry').onclick = () => {
+          const f = fails.slice(); fails = []; res.innerHTML = '<p class="subtle">Đang tạo tiếp phần còn thiếu của lô ' + lot + '…</p>';
+          f.forEach((it, k) => { const c = cell(it.id); c.className = 'batch-cell running'; c.textContent = it.day; setTimeout(() => {
+            c.className = 'batch-cell done'; c.innerHTML = icon('check', 'sm'); ok1(it);
+            if (k === f.length - 1) { MP.save(); render(); res.innerHTML = `<div class="callout success">${icon('checkCircle')}<div>Lô ${lot} đã đủ ${todo.length} bài.</div></div>`; }
+          }, 700 + k * 300); });
+        };
+      }
+      pump();
+    });
+  }
 
   // ---------- Xuất file (US-305) ----------
   const menu = document.getElementById('export-menu'); const eb = document.getElementById('export-btn');
@@ -254,8 +390,8 @@
   function rowsForExport() {
     return MP.items().map(it => ({
       'Ngày': it.day, 'Ngày đăng': MP.fmtDate(it.date, 'short') + '/' + it.date.slice(0, 4), 'Thứ': MP.fmtDate(it.date).split(',')[0],
-      'Pillar': D.PILLARS[it.pillar].name, 'Angle': MP.angleName(it.angle), 'Kênh': D.CHANNELS[it.channel].name, 'Định dạng': D.FORMATS[it.format].name,
-      'Giờ đăng': it.time, 'Tiêu đề': it.title, 'Hook': it.hook, 'Trạng thái': D.STATUSES[it.status].name,
+      'Nhóm nội dung': D.PILLARS[it.pillar].name, 'Góc kể chuyện': MP.angleName(it.angle), 'Kênh': D.CHANNELS[it.channel].name, 'Định dạng': D.FORMATS[it.format].name,
+      'Giờ đăng': it.time, 'Tiêu đề': it.title, 'Câu mở đầu': it.hook, 'Trạng thái': D.STATUSES[it.status].name,
       'Caption': it.content ? it.content.caption : '', 'Hashtag': it.content ? it.content.hashtags.join(' ') : '', 'Gợi ý hình': it.content ? it.content.imageBrief : ''
     }));
   }
@@ -281,6 +417,7 @@
   document.querySelectorAll('[data-export]').forEach(b => b.onclick = () => { menu.hidden = true; b.dataset.export === 'csv' ? exportCSV() : exportXLSX(); });
 
   render();
+  if (FIRST && !state.notify.asked) setTimeout(() => MP.askPush(), 1400);
 })();
 </script>
 </body>

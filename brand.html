@@ -3,23 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Brand Brain · Marketing Agent</title>
+  <title>Hồ sơ thương hiệu · Marketing Agent</title>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929">
-  <script src="assets/theme.js?v=20260929"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
 </head>
 <body data-page="brand">
 <main id="page" hidden>
   <div class="page-header">
     <div>
-      <div class="eyebrow"><span class="step-dot">2</span>Bước 2 · sau onboarding</div>
-      <h1>Brand Brain</h1>
-      <p class="subtitle">Hồ sơ thương hiệu được lưu lại vĩnh viễn. Mọi chiến lược, bài viết và kịch bản đều lấy thông tin từ đây — sửa ở đây là các lần sinh sau dùng bản mới.</p>
+      <div class="eyebrow"><span class="step-dot">2</span>Bước 2 · sau 5 câu bắt đầu</div>
+      <h1>Hồ sơ thương hiệu<span data-ti="brain"></span></h1>
+      <p class="subtitle">Mọi chiến lược và bài viết lấy thông tin từ đây — sửa ở đây là các lần sinh sau dùng bản mới. Không cần điền hết một lúc: mỗi câu còn thiếu sẽ được hỏi đúng lúc cần.</p>
     </div>
     <div class="actions">
       <a class="btn" href="onboarding.html?fresh=1"><i data-icon="refresh"></i>Làm lại từ đầu</a>
@@ -28,8 +28,9 @@
   </div>
 
   <div class="tabs" role="tablist">
-    <button role="tab" aria-selected="true" data-tab="profile"><i data-icon="brain" class="sm"></i>Hồ sơ · 12 trường</button>
-    <button role="tab" aria-selected="false" data-tab="voice"><i data-icon="message" class="sm"></i>Giọng thương hiệu</button>
+    <button role="tab" aria-selected="true" data-tab="profile"><i data-icon="brain" class="sm"></i>Hồ sơ</button>
+    <button role="tab" aria-selected="false" data-tab="voice"><i data-icon="message" class="sm"></i>Giọng &amp; từ cần tránh</button>
+    <button role="tab" aria-selected="false" data-tab="images"><i data-icon="image" class="sm"></i>Kho ảnh</button>
   </div>
 
   <section data-panel="profile">
@@ -52,13 +53,16 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head"><h3><i data-icon="ban"></i>Từ và cụm từ không được dùng</h3><span class="subtle">US-502</span></div>
+      <div class="card" id="forbidden-card">
+        <div class="card-head"><h3><i data-icon="ban"></i>Từ và cách nói cần tránh</h3><span class="subtle">US-502 · CL-06</span></div>
         <div class="card-body stack">
-          <p class="muted">Bài nào chứa các từ này sẽ tự động sinh lại (tối đa 2 lần). Hữu ích cho quy định quảng cáo mỹ phẩm.</p>
-          <div class="chips" id="forbidden"></div>
-          <form class="input-group" id="add-forbidden" style="max-width:480px">
-            <input class="input" id="fw" placeholder="Thêm từ cấm, vd: “trắng bật tông”" aria-label="Thêm từ cấm">
+          <p class="muted"><b style="color:var(--danger)">Cấm</b>: bài có từ này không duyệt được (sửa 1 chạm bằng cách viết thay). <b style="color:var(--warning)">Cảnh báo</b>: duyệt được sau khi bạn xác nhận hiểu rủi ro. Nạp sẵn theo ngành, bạn tắt được từng mục.</p>
+          <div class="callout warning"><i data-icon="alert"></i><div>Danh sách mẫu do BA soạn — <b>cần người am hiểu quy định quảng cáo rà lại</b> trước khi dùng thật (H8).</div></div>
+          <div id="forbidden"></div>
+          <form class="row wrap" id="add-forbidden" style="gap:8px">
+            <input class="input grow" id="fw" placeholder="Từ cần tránh, vd: “trắng bật tông”" aria-label="Thêm từ" style="min-width:180px">
+            <input class="input grow" id="fa" placeholder="Viết thay bằng (không bắt buộc)" aria-label="Viết thay" style="min-width:160px">
+            <select class="select" id="fl" style="width:auto"><option value="warn">Cảnh báo</option><option value="ban">Cấm</option></select>
             <button class="btn" type="submit"><i data-icon="plus" class="sm"></i>Thêm</button>
           </form>
         </div>
@@ -75,14 +79,28 @@
       </div>
     </div>
   </section>
+
+  <section data-panel="images" hidden>
+    <div class="split">
+      <div class="card">
+        <div class="card-head"><h3><i data-icon="image"></i>Ảnh của shop</h3><div class="row"><label class="btn sm primary" for="img-up"><i data-icon="upload" class="sm"></i>Tải ảnh lên</label><input type="file" id="img-up" accept="image/png,image/jpeg" multiple hidden></div></div>
+        <div class="card-body"><p class="subtle mb-3">JPG/PNG ≤ 5 MB. AI gắn nhãn (sản phẩm nào, kiểu ảnh) và tự chọn ảnh hợp cho từng bài, tránh lặp ảnh 3 ngày gần nhau.</p><div class="img-grid" id="imgs"></div></div>
+      </div>
+      <aside class="stack">
+        <div class="card"><div class="card-head"><h3><i data-icon="camera"></i>Cần chụp thêm</h3></div><div class="card-body stack sm" id="need"></div></div>
+        <div class="callout"><i data-icon="info"></i><div>Không dùng ảnh mẫu có sẵn theo ngành (tránh rủi ro bản quyền — H10). Ảnh thật của shop luôn được khách tin hơn.</div></div>
+      </aside>
+    </div>
+  </section>
 </main>
 
-<script src="assets/data.js?v=20260929"></script>
-<script src="assets/app.js?v=20260929"></script>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
-  MP.shell({ active: 'brand', crumbs: ['Quy trình', 'Brand Brain'] });
+  MP.shell({ active: 'brand', crumbs: ['Quy trình', 'Hồ sơ thương hiệu'] });
+  document.querySelectorAll('[data-ti]').forEach(el => { el.outerHTML = MP.termInfo(el.dataset.ti); });
   const B = state.brand;
 
   // Tabs
@@ -90,10 +108,12 @@
     document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
     document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
   });
-  if (location.hash === '#voice') document.querySelector('[data-tab="voice"]').click();
+  const HASH = location.hash.slice(1);
+  if (HASH === 'voice' || HASH === 'forbidden') document.querySelector('[data-tab="voice"]').click();
+  if (HASH === 'images') document.querySelector('[data-tab="images"]').click();
 
   // ---------- Hồ sơ ----------
-  const SRC = { user: ['Bạn nhập', ''], scraped: ['Bóc từ link', 'info'], inferred: ['AI suy ra', 'primary'] };
+  const SRC = { user: ['Bạn nhập', ''], scraped: ['Bóc từ link', 'info'], screenshot: ['Lấy từ ảnh', 'info'], inferred: ['AI suy ra', 'primary'], default: ['Mặc định theo ngành', 'outline'] };
   const label = q => (q.labelBy && q.labelBy[B.industry]) || q.label;
   function display(q) {
     const a = B.answers[q.id]; if (!a || (Array.isArray(a.value) ? !a.value.length : !a.value)) return '<span class="subtle">Chưa có — bấm sửa để bổ sung</span>';
@@ -112,7 +132,7 @@
         <div class="list-item" style="align-items:flex-start" id="row-${q.id}">
           <span class="q-num">${n}</span>
           <div class="grow stack sm" style="gap:4px">
-            <div class="row wrap"><span class="subtle">${esc(label(q))}</span>${srcBadge(q)}<span class="subtle">· dùng ở bước ${q.uses.join(' ')}</span></div>
+            <div class="row wrap"><span class="subtle">${esc(label(q))}</span>${srcBadge(q)}${q.tier === 1 ? '<span class="badge outline">Bắt buộc</span>' : D.COMPLETENESS.high.ids.includes(q.id) ? '<span class="badge outline">Tác động lớn</span>' : ''}</div>
             <div class="val" style="font-weight:500">${display(q)}</div>
           </div>
           <button class="btn ghost sm" data-edit="${q.id}">${icon('pencil', 'sm')}Sửa</button>
@@ -138,8 +158,15 @@
       else { tmp = c.dataset.v; val.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === c)); }
     });
     val.querySelector('[data-cancel]').onclick = renderGroups;
+    let vagueShown = false;
     val.querySelector('[data-save]').onclick = () => {
       if (inp) tmp = inp.value.trim();
+      if (inp && !vagueShown && D.VAGUE_FOLLOWUP[id] && id !== 'q2' && MP.isVague(tmp)) {
+        vagueShown = true; MP.track('vague_detected', { q: id }); const f = D.VAGUE_FOLLOWUP[id];
+        val.insertAdjacentHTML('beforeend', `<div class="callout warning mt-2">${icon('info')}<div><b>${esc(f.ask)}</b> Câu trả lời cụ thể giúp bài không giống mọi shop khác.<div class="chips mt-2">${f.chips(B.industry).map(c => `<button type="button" class="chip sm" data-vg="${esc(c)}">${esc(c)}</button>`).join('')}</div><div class="subtle mt-1">Bấm Lưu lần nữa để giữ nguyên.</div></div></div>`);
+        val.querySelectorAll('[data-vg]').forEach(c => c.onclick = () => { inp.value = c.dataset.vg; inp.focus(); });
+        return;
+      }
       B.answers[id] = { value: tmp, source: 'user' };
       if (id === 'q12') B.tone = tmp;
       MP.save(); renderGroups(); renderSide(); renderTones();
@@ -147,29 +174,35 @@
     };
   }
 
+  // ---------- Độ đầy theo nhóm, gắn lợi ích (CL-05) ----------
+  const hasA = id => { const a = B.answers[id]; return a && (Array.isArray(a.value) ? a.value.length : a.value); };
   function renderSide() {
-    const filled = D.QUESTIONS.filter(q => { const a = B.answers[q.id]; return a && (Array.isArray(a.value) ? a.value.length : a.value); }).length;
-    const cnt = s => D.QUESTIONS.filter(q => B.answers[q.id] && B.answers[q.id].source === s).length;
-    const ind = D.INDUSTRIES.find(i => i.id === B.industry) || D.INDUSTRIES[0];
+    const G = D.COMPLETENESS; const ind = D.INDUSTRIES.find(i => i.id === B.industry) || D.INDUSTRIES[0];
+    const grp = k => ({ k, name: G[k].name, done: G[k].ids.filter(hasA).length, total: G[k].ids.length });
+    const rows = ['required', 'high', 'extra'].map(grp);
+    const voiceOk = B.voiceTraits.length > 0;
+    const nextT = D.TIER2.find(t => !hasA(t.id));
+    const sugg = nextT ? { text: nextT.impact, q: nextT.id } : !voiceOk ? { text: 'Dán 3 bài cũ → bài viết giống giọng bạn hơn', tab: 'voice' } : null;
+    const level = rows[1].done === rows[1].total ? 'Đủ để viết tốt' : rows[0].done === rows[0].total ? 'Đủ để chạy' : 'Chưa đủ để chạy';
     document.getElementById('side').innerHTML = `
       <div class="card card-pad stack">
-        <div class="row between"><b>Độ đầy đủ</b><b>${filled}/12</b></div>
-        <div class="progress ${filled === 12 ? 'success' : ''}"><span style="width:${filled / 12 * 100}%"></span></div>
-        <dl class="kv mt-2" style="grid-template-columns:100px 1fr">
+        <div class="row between"><b>Độ đầy hồ sơ</b><span class="badge ${rows[1].done === rows[1].total ? 'success' : 'primary'}">${level}</span></div>
+        ${rows.map(r => `<div><div class="row between"><span class="muted">${r.name}</span><b>${r.done}/${r.total}</b></div><div class="progress mt-1 ${r.done === r.total ? 'success' : ''}"><span style="width:${r.done / r.total * 100}%"></span></div></div>`).join('')}
+        ${sugg ? `<div class="callout mt-1">${icon('sparkles')}<div class="grow"><b>Nên điền tiếp:</b> ${esc(sugg.q ? D.QUESTIONS.find(q => q.id === sugg.q).label : 'Bắt chước giọng từ bài cũ')}<div class="subtle">→ ${esc(sugg.text)}</div><button class="btn sm primary mt-2" id="fill-now" ${sugg.q ? `data-q="${sugg.q}"` : ''}>Điền ngay</button></div></div>` : `<div class="callout success">${icon('checkCircle')}<div>Hồ sơ đã đủ các mục có tác động lớn.</div></div>`}
+        <dl class="kv mt-1" style="grid-template-columns:100px 1fr">
           <dt>Ngành</dt><dd>${esc(ind.name)}</dd>
-          <dt>Preset</dt><dd>${ind.preset ? 'v1.0 · có preset' : 'Bộ câu hỏi chung'}</dd>
           <dt>Giọng</dt><dd>${esc((D.TONES.find(t => t.id === B.tone) || {}).name || '')}</dd>
-          <dt>Từ cấm</dt><dd>${B.forbidden.length} mục</dd>
+          <dt>Từ cần tránh</dt><dd>${B.forbidden.filter(f => f.on !== false).length} mục đang bật</dd>
+          <dt>Kho ảnh</dt><dd>${B.images.length} ảnh</dd>
         </dl>
       </div>
       <div class="card card-pad stack sm">
         <b>Nguồn dữ liệu</b>
-        <p class="subtle">Khi nội dung sai, cột này cho biết sai từ đâu.</p>
-        <div class="row between"><span class="badge">Bạn nhập</span><b>${cnt('user')}</b></div>
-        <div class="row between"><span class="badge info">Bóc từ link</span><b>${cnt('scraped')}</b></div>
-        <div class="row between"><span class="badge primary">AI suy ra</span><b>${cnt('inferred')}</b></div>
-      </div>
-      <div class="callout">${icon('shield')}<div>Mọi bài viết đều được kiểm tự động: phải nhắc ít nhất 1 thông tin thật từ hồ sơ này (tên sản phẩm, giá, lợi ích).</div></div>`;
+        <p class="subtle">Khi nội dung sai, cột này cho biết sai từ đâu. Dữ liệu suy đoán không được coi là sự thật cho tới khi bạn xác nhận.</p>
+        ${Object.entries(SRC).map(([k, v]) => { const n = D.QUESTIONS.filter(q => B.answers[q.id] && B.answers[q.id].source === k).length; return n ? `<div class="row between"><span class="badge ${v[1]}">${v[0]}</span><b>${n}</b></div>` : ''; }).join('')}
+      </div>`;
+    const fn = document.getElementById('fill-now');
+    if (fn) fn.onclick = () => { if (fn.dataset.q) { edit(fn.dataset.q); document.getElementById('row-' + fn.dataset.q).scrollIntoView({ behavior: 'smooth', block: 'center' }); } else document.querySelector('[data-tab="voice"]').click(); };
   }
 
   // ---------- Giọng ----------
@@ -187,12 +220,35 @@
   }
 
   function renderForbidden() {
-    document.getElementById('forbidden').innerHTML = B.forbidden.map((w, i) => `<span class="chip" style="cursor:default">${icon('ban', 'sm')}${esc(w)}<button class="btn ghost sm icon" style="width:22px;height:22px" data-rm="${i}" aria-label="Xoá ${esc(w)}">${icon('x', 'sm')}</button></span>`).join('') || '<span class="subtle">Chưa có từ cấm nào.</span>';
+    const L = { ban: ['danger', 'Cấm'], warn: ['warning', 'Cảnh báo'] };
+    document.getElementById('forbidden').innerHTML = B.forbidden.map((f, i) => `<div class="fw-row ${f.on === false ? 'off' : ''}">
+      <span class="badge ${L[f.level][0]}">${L[f.level][1]}</span>
+      <div><b>${esc(f.w)}</b> ${f.alt ? '<span class="subtle">→ viết thay: “' + esc(f.alt) + '”</span>' : ''}${f.why ? '<div class="subtle">' + esc(f.why) + '</div>' : ''}</div>
+      <label class="switch-mini check" title="Bật/tắt"><input type="checkbox" data-on="${i}" ${f.on !== false ? 'checked' : ''}>Bật</label>
+      ${f.preset ? '<span class="subtle" style="width:22px"></span>' : `<button class="btn ghost sm icon" data-rm="${i}" aria-label="Xoá ${esc(f.w)}">${icon('x', 'sm')}</button>`}</div>`).join('') || '<span class="subtle">Chưa có mục nào.</span>';
+    document.querySelectorAll('[data-on]').forEach(c => c.onchange = () => { B.forbidden[Number(c.dataset.on)].on = c.checked; MP.save(); renderForbidden(); renderSide(); });
     document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { B.forbidden.splice(Number(b.dataset.rm), 1); MP.save(); renderForbidden(); renderSide(); });
   }
   document.getElementById('add-forbidden').onsubmit = e => {
     e.preventDefault(); const v = document.getElementById('fw').value.trim(); if (!v) return;
-    if (!B.forbidden.includes(v)) B.forbidden.push(v); document.getElementById('fw').value = ''; MP.save(); renderForbidden(); renderSide();
+    if (!B.forbidden.find(f => f.w.toLowerCase() === v.toLowerCase())) B.forbidden.push({ w: v, alt: document.getElementById('fa').value.trim(), level: document.getElementById('fl').value, why: 'Bạn tự thêm', on: true, preset: false });
+    document.getElementById('fw').value = ''; document.getElementById('fa').value = ''; MP.save(); renderForbidden(); renderSide();
+  };
+
+  // ---------- Kho ảnh (CL-15) ----------
+  function renderImages() {
+    const use = id => MP.items().filter(i => i.imageId === id).length;
+    document.getElementById('imgs').innerHTML = B.images.map(im => `<div class="stack sm">${MP.imageTile(im)}<div class="row wrap" style="gap:4px">${im.tags.map(t => '<span class="badge outline">' + esc(t) + '</span>').join('')}</div><span class="subtle">Dùng trong ${use(im.id)} bài</span></div>`).join('');
+    const miss = MP.items().filter(i => !i.imageId && i.date >= MP.today());
+    const byP = {}; miss.forEach(i => { (byP[i.pillar] = byP[i.pillar] || []).push(i); });
+    document.getElementById('need').innerHTML = miss.length ? Object.entries(byP).map(([pid, its]) => `<div class="stack sm"><div class="row between">${MP.pillarBadge(pid)}<span class="subtle">${its.length} bài · gần nhất ${MP.fmtDate(its[0].date, 'short')}${its.some(MP.needsImage) ? ' · <b style="color:var(--danger)">có bài Instagram</b>' : ''}</span></div>
+      <dl class="kv" style="grid-template-columns:80px 1fr">${(D.SHOT_LIST[pid] || []).map(s => '<dt>' + s[0] + '</dt><dd style="font-weight:400">' + esc(s[1]) + '</dd>').join('')}</dl></div>`).join('<div class="divider" style="margin:4px 0"></div>')
+      : '<p class="muted">Mọi bài sắp tới đã có ảnh.</p>';
+  }
+  document.getElementById('img-up').onchange = e => {
+    const files = [...e.target.files]; const bad = files.filter(f => !/image\/(png|jpeg)/.test(f.type) || f.size > 5 * 1024 * 1024);
+    files.filter(f => !bad.includes(f)).forEach(f => B.images.push({ id: 'img' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), label: f.name.replace(/\.[^.]+$/, ''), tags: ['Chờ AI gắn nhãn'], hue: Math.floor(Math.random() * 360) }));
+    MP.save(); renderImages(); renderSide(); MP.toast(bad.length ? bad.length + ' ảnh không hợp lệ (chỉ JPG/PNG ≤ 5 MB)' : 'Đã thêm ' + files.length + ' ảnh', bad.length ? 'alert' : 'image');
   };
 
   const SAMPLES = [
@@ -231,16 +287,18 @@
   };
 
   document.getElementById('regen-strategy').onclick = () => {
-    MP.runSteps('Tạo lại chiến lược từ Brand Brain', [
-      { label: 'Tìm USP từ điểm khác biệt', ms: 900 }, { label: 'Tạo góc bán hàng (Angle)', ms: 900 },
-      { label: 'Vẽ chân dung khách hàng', ms: 700 }, { label: 'Đề xuất pillar & tỷ lệ', ms: 500 }
+    MP.runSteps('Tạo lại chiến lược từ hồ sơ', [
+      { label: 'Tìm lý do khách chọn bạn', ms: 900 }, { label: 'Tạo góc kể chuyện', ms: 900 },
+      { label: 'Vẽ khách hàng điển hình', ms: 700 }, { label: 'Đề xuất tỷ lệ nhóm nội dung', ms: 500 }
     ], () => {
-      const S = state.strategy; S.version = S.versions.length + 1; S.versions.push({ v: S.version, label: 'v' + S.version + ' · tạo lại từ Brand Brain', date: 0 });
+      const S = state.strategy; S.version = S.versions.length + 1; S.versions.push({ v: S.version, label: 'v' + S.version + ' · tạo lại từ hồ sơ', date: 0 });
       state.activity.unshift({ t: 0, icon: 'target', text: 'Tạo lại chiến lược v' + S.version }); MP.save(); location.href = 'strategy.html';
     }, 'Bản chiến lược cũ được giữ lại — bạn quay về được bất cứ lúc nào.');
   };
 
-  renderGroups(); renderSide(); renderTones(); renderForbidden(); renderSamples(); renderTraits();
+  renderGroups(); renderSide(); renderTones(); renderForbidden(); renderSamples(); renderTraits(); renderImages();
+  if (/^q\d+$/.test(HASH) && document.getElementById('row-' + HASH)) { edit(HASH); setTimeout(() => document.getElementById('row-' + HASH).scrollIntoView({ block: 'center' }), 60); }
+  if (HASH === 'forbidden') setTimeout(() => document.getElementById('forbidden-card').scrollIntoView({ block: 'start' }), 60);
 })();
 </script>
 </body>

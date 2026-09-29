@@ -7,35 +7,54 @@ Prototype bấm được cho **Phase 1 (MVP)** của nền tảng Marketing Agen
 - **Không gọi AI thật** — nội dung "AI sinh" được ghép từ mẫu viết sẵn trong `assets/data.js`.
 - Thay đổi của người xem được lưu trong trình duyệt (localStorage). Nút **Bản đồ prototype → Đặt lại dữ liệu demo** để về trạng thái ban đầu.
 
+## Cập nhật 29/09/2026 — theo kết quả brainstorm đa AI
+
+Prototype đã được cập nhật theo **21 ý Phase 1** trong `outputs/30-BRAINSTORM-DA-AI.md` §9. Chi tiết từng màn: `outputs/31-YEU-CAU-CAP-NHAT-PROTOTYPE.md`.
+
+- **Người mới:** chỉ 5 câu (≈ 90 giây) → thấy ngay **Lịch 30 ngày** + bài đầu tiên đã viết (TTFV < 3 phút). Các câu còn lại hỏi đúng lúc cần, mỗi lần 1 câu.
+- **Tên tiếng Việt thống nhất:** Hồ sơ thương hiệu · Lý do khách chọn bạn · Góc kể chuyện · Khách hàng điển hình · Nhóm nội dung · Câu mở đầu · Lời kêu gọi (nút ⓘ giải thích 1 dòng).
+- **Kênh đăng:** Facebook/Instagram tự đăng (Mức 1, app Meta của công ty TTS); Zalo OA đăng tay (Mức 0) qua màn **Đăng bài này**. Nhắc bằng **thông báo đẩy + email** (không cần Zalo OA).
+- **Dùng thử 7 ngày / hạn mức:** Bản đồ prototype → *Xem như: Dùng thử / Đã trả phí*.
+
 ## Phạm vi Phase 1
 
-**Onboarding → Brand Brain → Chiến lược → Lịch đăng → Bài viết → Tự động đăng (workflow ERP)**
+**Bắt đầu (5 câu) → Lịch 30 ngày → Bài viết → Duyệt tuần → Tự động đăng / Đăng bài này → Báo cáo tháng**
 
-Không làm video / kịch bản / audio ở phase này. Kênh đăng: **Facebook Page, Instagram Business, Zalo OA** (TikTok cần video nên để sau). Đo hiệu quả bài đăng làm sau Phase 1.
+Không làm video / kịch bản / audio ở phase này. Đo hiệu quả bằng số liệu Meta để sau; Phase 1 dùng phản hồi 1 chạm của chủ shop.
 
 ## Các màn hình
 
-| # | File | Màn | User story |
+| # | File | Màn | Ý đã duyệt |
 | --- | --- | --- | --- |
-| — | `index.html` | Tổng quan: "hôm nay / ngày mai đăng gì" kèm việc workflow sẽ làm, tiến độ 6 bước, hạn mức | US-504 |
-| 1 | `onboarding.html` | Wizard 12 câu, chọn ngành, dán link tự điền, tự lưu nháp, đồng hồ TTFV | US-101 → 104 |
-| 2 | `brand.html` | Brand Brain: 12 trường sửa tại chỗ, nguồn dữ liệu, giọng, từ cấm, học giọng từ bài cũ | US-105, 501 → 503 |
-| 3 | `strategy.html` | USP · Angle · Persona · Pillar/kênh/tần suất, sửa tại chỗ, tạo lại từng khối, phiên bản | US-201 → 206 |
-| 4 | `plan.html` | Lịch đăng 30 ngày: bảng + lịch, giờ đăng, kéo-thả, kiểm tỷ lệ pillar, cảnh báo trùng ý, sinh hàng loạt, xuất Excel/CSV | US-301 → 307, 403 |
-| 5 | `post.html` | Bài viết: caption, hashtag, gợi ý hình, kiểm tự động, tạo lại + so sánh, **giờ đăng/kênh, duyệt để tự đăng** | US-401, 404 → 406, 601 |
-| 6 | `automation.html` | **Tự động đăng**: sơ đồ workflow (bấm từng bước để cấu hình), hàng đợi đăng, kết nối kênh, lịch sử chạy từng bước | US-602 → 606 (mới) |
+| — | `index.html` | Tổng quan: hôm nay/ngày mai đăng gì, phản hồi 1 chạm, nhắc duyệt tuần, câu hồ sơ còn thiếu | CL-05, 13, 16 |
+| 1 | `onboarding.html` | Bắt đầu: 5 câu, điền nhanh từ link **hoặc ảnh chụp màn hình**, máy dò câu trả lời mơ hồ | CL-01, 02, 04, 22 |
+| 2 | `brand.html` | Hồ sơ thương hiệu: độ đầy theo nhóm + Điền ngay, từ **Cấm/Cảnh báo** theo ngành, **Kho ảnh** | CL-05, 06, 15 |
+| 3 | `strategy.html` | Chiến lược: tóm tắt 3 dòng, tên tiếng Việt, câu tầng 2 đúng chỗ | CL-21, 22, 01 |
+| 4 | `plan.html` | Lịch 30 ngày: lần đầu (TTFV, Tuần đầu tiên, hỏi bật thông báo), sự kiện & mùa vụ, tạo theo lô, khoá dùng thử | CL-12, 17, 19, 20, 22, 25 |
+| 5 | `post.html` | Bài viết: Vì sao bài này, đổi câu mở đầu, kiểm 2 mức, ảnh, hẹn giờ/Huỷ hẹn, phản hồi 24h | CL-06, 07, 09, 11, 15, 16 |
+| 6 | `automation.html` | Tự động đăng: sơ đồ hẹn giờ có mã hẹn, kênh Mức 0/1, kênh nhắc, mô phỏng “Cần kiểm tra” | CL-10, 11, 25 |
+| — | `review.html` | **Duyệt tuần** trong 5 phút (thẻ, Sửa nhanh 3 trường, Duyệt tất cả khi xem ≥ 50%) | CL-13 |
+| — | `publish.html` | **Đăng bài này** (điện thoại, Mức 0): 2 nút, Đã nhận → Đã đăng | CL-10 v2 |
+| — | `report.html` | **Báo cáo tháng**: tách số ghi nhận / ước tính, lập kế hoạch tháng sau | CL-18 |
 
 `script.html` chỉ còn là trang chuyển hướng sang `automation.html` — có thể xoá.
 
-### Workflow WF-AUTO-POST (chạy trên engine của HarnexAI)
+### Workflow WF-05 (hẹn giờ từng bài có mã hẹn — engine ERP chưa lặp được qua nhiều bản ghi, H2)
 
-1. **Kích hoạt** — quét lịch mỗi 5 phút, lấy bài đến giờ đăng.
-2. **Điều kiện: bài đã duyệt?** — chưa: nhắc duyệt qua Zalo trước N tiếng, quá giờ thì dời sang hôm sau. (Có chế độ tự đăng mọi bài đạt kiểm.)
-3. **Kiểm tra trước khi đăng** — từ cấm, thông tin thương hiệu, có ảnh, độ dài theo kênh. Không đạt: tạm dừng + báo.
-4. **Điều kiện: kênh đã kết nối?** — chưa: gửi nội dung qua Zalo để đăng tay, chủ shop bấm "Tôi đã đăng".
-5. **Đăng lên kênh** — thử lại 3 lần (30 giây → 2 phút → 10 phút); vẫn lỗi thì đánh dấu "Đăng lỗi" và báo ngay.
-6. **Cập nhật lịch đăng** — "Đã đăng", lưu link bài.
-7. **Báo lại** — Zalo + email.
+1. **Bài được duyệt hoặc đổi giờ** → ghi mã hẹn mới (lưu ngầm) → một lượt chạy riêng cho bài.
+2. **Chờ đến giờ đăng.**
+3. **Bài vẫn đúng lịch hẹn?** — đọc lại chính bài: còn “Đã duyệt” và mã hẹn không đổi. Không → thoát lặng lẽ.
+4. **Kiểm tra** — từ Cấm, cảnh báo đã xác nhận, ảnh (Instagram bắt buộc), độ dài.
+5. **Kênh Mức 1?** — Mức 0 (Zalo OA / chưa cấp quyền): gửi gói nhận bài qua thông báo đẩy + email; quá giờ 30 phút nhắc 1 lần.
+6. **Khoá bài & đăng** — lỗi chắc chắn chưa gửi: thử lại 30 giây / 2 phút / 10 phút; không rõ kết quả: “Cần kiểm tra” + 2 nút.
+7. **Cập nhật lịch** → **Báo lại**. 24 giờ sau hỏi phản hồi 😐 🙂 🔥.
+
+## Luồng thử nhanh
+
+1. Bản đồ prototype → **Đặt lại dữ liệu demo**.
+2. `onboarding.html?fresh=1` → dán link Facebook (bị từ chối) → Ảnh chụp màn hình → Dùng ảnh mẫu → trả lời 5 câu.
+3. Lịch 30 ngày: hộp hỏi thông báo, Tuần đầu tiên, thẻ 20/10 → mở bài đầu → Đổi câu mở đầu → Duyệt & hẹn giờ.
+4. `review.html`, `publish.html`, `report.html?demo=1`, `automation.html`.
 
 ## Chạy thử trên máy
 
@@ -74,12 +93,13 @@ GitHub Pages cũng chạy được (đã có `.nojekyll`): *Settings → Pages �
 ```
 Prototytpe/
 ├─ index.html · onboarding.html · brand.html · strategy.html · plan.html · post.html · automation.html
+├─ review.html · publish.html · report.html   (mới 29/09)
 ├─ 404.html · netlify.toml · .nojekyll · README.md
 └─ assets/
    ├─ styles.css   token 3 tầng (primitive → semantic → component) + component
    ├─ theme.js     đặt sáng/tối trước khi vẽ trang
    ├─ app.js       shell (sidebar, topbar), icon, toast, modal, tạo lại, diff, state
-   ├─ data.js      12 câu hỏi, preset ngành, chiến lược mẫu, 30 mục lịch, bộ ghép nội dung
+   ├─ data.js      12 câu hỏi (5 câu tầng 1), preset ngành, từ Cấm/Cảnh báo, kho ảnh, sự kiện mùa vụ, 30 mục lịch, bộ ghép nội dung
    ├─ favicon.ico · favicon-32.png · apple-touch-icon.png · icon-512.png   (favicon từ logo TuoiTreSoft)
    ├─ favicon.svg  (giữ tương thích, nhúng PNG)
    └─ brand/
@@ -91,7 +111,7 @@ Prototytpe/
 
 - Token trong `styles.css` đặt theo 3 tầng giống `@xbuild/ui` (HarnexAI). Khi package thật sẵn sàng, **thay khối `:root` bằng `tokens.css` của `@xbuild/ui`** — tên biến semantic (`--surface`, `--text-2`, `--primary`…) là chỗ cần map.
 - Đã theo các quy tắc của `12-DESIGN-SYSTEM-REUSE.md`: tiếng Việt sentence case, dark mode hạng nhất, pillar/trạng thái luôn có **icon + chữ** (không chỉ màu), `EmptyState` ở mọi màn trống.
-- Component mới xuất hiện trong prototype (cần đưa vào `DESIGN-SYSTEM.md` §8 trước khi code thật): `Wizard/StepIndicator`, `ContentCalendar`, `ContentItemCard`, `PillarChip` (variant của `Badge`), `GenerationProgress`, `ToneSelector` (variant của `Picker`), `DiffViewer`, `WorkflowCanvas` / `WorkflowNode` (nên lấy từ trình dựng workflow của HarnexAI), `Switch`, `RunLog`.
+- Component mới xuất hiện trong prototype (cần đưa vào `DESIGN-SYSTEM.md` §8 trước khi code thật): `Wizard/StepIndicator`, `ContentCalendar`, `ContentItemCard`, `PillarChip` (variant của `Badge`), `GenerationProgress`, `ToneSelector` (variant của `Picker`), `DiffViewer`, `WorkflowCanvas` / `WorkflowNode` (nên lấy từ trình dựng workflow của HarnexAI), `Switch`, `RunLog`; mới 29/09: `TermInfo` (nút ⓘ), `ChipGroup` loại trừ, `ImageTile`/`ImagePicker`, `FeedbackButtons`, `ReviewCard`, `BigActionButton` (màn điện thoại), `QuotaCard`.
 
 ## Phụ thuộc bên ngoài
 

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng bài này · Marketing Agent</title>
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta name="theme-color" content="#27AAE1">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
+  <script src="assets/theme.js?v=20260929b"></script>
+</head>
+<body data-page="publish">
+<div class="phone-page">
+  <div class="phone" id="app">
+    <div class="row between"><a class="logo" href="index.html" style="padding:0"><img class="logo-img" src="assets/brand/tuoitresoft-mark.png" alt="TuoiTreSoft" width="36" height="24"><span style="font-size:14px">Đăng bài này<small>Marketing Agent</small></span></a>
+      <div class="row"><button class="btn ghost icon" data-theme-toggle aria-label="Đổi giao diện sáng/tối"><i data-icon="moon"></i></button><a class="btn ghost sm" href="plan.html">Lịch</a></div></div>
+    <div id="body" class="stack"></div>
+  </div>
+</div>
+<script src="assets/data.js?v=20260929b"></script>
+<script src="assets/app.js?v=20260929b"></script>
+<script>
+(function () {
+  const { D, state, icon, esc } = MP;
+  MP.hydrateIcons(document); MP.bindThemeToggle(document);
+  { const b = document.querySelector('[data-theme-toggle]'); b.innerHTML = icon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon'); }
+  const all = MP.items(); let id = Number(MP.params.get('id'));
+  if (!all.find(i => i.id === id)) { const c = all.find(i => i.content && D.CHANNELS[i.channel].level === 0 && !['published', 'skipped'].includes(i.status) && i.date >= MP.today()) || all.find(i => i.content && i.status !== 'published'); id = c.id; }
+  const p = MP.poolItem(id);
+  // Mở link = Đã nhận (CL-10 v2)
+  if (p.content && ['generated', 'edited', 'approved'].includes(p.status)) { p.status = 'received'; p.receivedAt = new Date().toISOString(); MP.track('package_opened', { ngày: MP.item(id).day }); MP.save(); }
+  let fallback = false, confirming = false;
+
+  function imgFile(img) {
+    const cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1080; const g = cv.getContext('2d');
+    const h = img ? img.hue : 200; const gr = g.createLinearGradient(0, 0, 1080, 1080); gr.addColorStop(0, `hsl(${h},45%,58%)`); gr.addColorStop(1, `hsl(${h + 35},50%,38%)`);
+    g.fillStyle = gr; g.fillRect(0, 0, 1080, 1080); g.fillStyle = '#fff'; g.font = 'bold 56px sans-serif'; g.textAlign = 'center'; g.fillText(img ? img.label : 'Ảnh bài đăng', 540, 560);
+    return new Promise(r => cv.toBlob(b => r(new File([b], 'bai-dang.png', { type: 'image/png' })), 'image/png'));
+  }
+  function render() {
+    const x = MP.item(id); const c = p.content; const img = MP.imageOf(x); const ch = D.CHANNELS[x.channel].name;
+    const body = document.getElementById('body');
+    if (!c) { body.innerHTML = `<div class="card card-pad">Bài này chưa có nội dung. <a href="post.html?id=${id}">Mở bài</a></div>`; return; }
+    const text = c.caption + '\n\n' + c.hashtags.join(' ');
+    const now = new Date(); const due = new Date(x.date + 'T' + x.time + ':00'); const late = (now - due) / 6e4 >= 30;
+    if (x.status === 'published') {
+      body.innerHTML = `<div class="card card-pad stack" style="text-align:center"><div class="em-ic" style="margin:0 auto">${icon('checkCircle', 'xl')}</div><h2>Đã ghi nhận bài lên ${esc(ch)}</h2>
+        <p class="muted">Cảm ơn bạn! 24 giờ sau mình sẽ hỏi 1 câu: bài này thế nào?</p>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">Xem bài</a>` : ''}
+        <a class="btn block" href="plan.html">Về Lịch 30 ngày</a></div>`; return;
+    }
+    if (x.status === 'skipped') { body.innerHTML = `<div class="card card-pad stack" style="text-align:center"><h2>Đã bỏ qua bài này</h2><p class="muted">Lịch vẫn giữ bài, bạn có thể đăng lại sau.</p><button class="btn" id="unskip">Hoàn tác</button></div>`; document.getElementById('unskip').onclick = () => { p.status = 'received'; MP.save(); render(); }; return; }
+    body.innerHTML = `
+      <div class="callout" style="font-size:12.5px">${icon('bell')}<div><b>Prototype:</b> màn này mở khi bạn chạm vào ${esc(MP.notifyText())} lúc ${esc(x.time)} — ${esc(ch)} là kênh đăng tay (Mức 0). Trạng thái đã chuyển sang <b>Đã nhận</b>.</div></div>
+      ${late ? `<div class="callout warning">${icon('clock')}<div class="grow"><b>Đã quá giờ đăng 30 phút.</b> Bạn đã đăng chưa?<div class="row mt-2 wrap"><button class="btn sm primary" data-posted>Đã đăng (dán link)</button><button class="btn sm" data-skip>Bỏ qua bài này</button></div></div></div>` : ''}
+      <div class="card"><div class="card-body stack sm">
+        <div class="row between wrap"><span class="row" style="gap:6px">${MP.channelBadge(x.channel)}<b>${MP.fmtDate(x.date)} · ${x.time}</b></span>${MP.statusBadge(x.status)}</div>
+        <b style="font-size:16px">${esc(x.title)}</b>
+        ${MP.imageTile(img)}
+        <details><summary class="muted" style="cursor:pointer">Xem nội dung sẽ dán (${c.caption.length} ký tự)</summary><div class="content-block mt-2" style="font-size:13px">${esc(text)}</div></details>
+      </div></div>
+      ${confirming ? `<div class="card card-pad stack sm"><b>Dán link bài vừa đăng</b><span class="subtle">Không bắt buộc — có link thì báo cáo tháng chính xác hơn.</span><input class="input" id="link" placeholder="https://facebook.com/..." inputmode="url"><div class="row"><button class="btn primary grow" id="ok">${icon('check', 'sm')}Xác nhận đã đăng</button><button class="btn ghost" id="cancel">Huỷ</button></div></div>` : `
+      <button class="big-btn primary" id="share"><span class="n">1</span><span class="grow">Sao chép chữ &amp; mở chia sẻ ảnh<small>Chữ vào bộ nhớ tạm → chọn ${esc(ch)} → dán vào ô viết bài</small></span>${icon('share')}</button>
+      ${fallback ? `<div class="grid c2" style="gap:10px"><button class="btn" id="copy">${icon('copy', 'sm')}Sao chép chữ</button><button class="btn" id="save">${icon('download', 'sm')}Lưu ảnh</button></div><p class="subtle">Máy này chưa hỗ trợ chia sẻ ảnh trực tiếp — dùng 2 nút trên rồi mở ${esc(ch)}.</p>` : ''}
+      <button class="big-btn" id="posted"><span class="n">2</span><span class="grow">Tôi đã đăng<small>Có thể dán link bài</small></span>${icon('check')}</button>`}
+      <p class="subtle" style="text-align:center">Tổng cộng khoảng 5 chạm · <a href="#" data-skip>Bỏ qua bài này</a></p>`;
+    const $ = s => body.querySelector(s);
+    body.querySelectorAll('[data-posted]').forEach(b => b.onclick = () => { confirming = true; render(); });
+    body.querySelectorAll('[data-skip]').forEach(b => b.onclick = e => { e.preventDefault(); p.status = 'skipped'; MP.track('package_skipped', { ngày: x.day }); MP.save(); render(); });
+    if ($('#posted')) $('#posted').onclick = () => { confirming = true; render(); setTimeout(() => $('#link') && document.getElementById('link').focus(), 30); };
+    if ($('#cancel')) $('#cancel').onclick = () => { confirming = false; render(); };
+    if ($('#ok')) $('#ok').onclick = () => {
+      const url = document.getElementById('link').value.trim(); const n = new Date();
+      p.status = 'published'; p.manual = true; p.url = url || null; p.publishedAt = D.isoDate(n) + 'T' + String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+      state.activity.unshift({ t: 0, icon: 'send', text: 'Đăng tay bài ngày ' + x.day + ' lên ' + ch }); MP.track('publish_confirmed', { ngày: x.day, có_link: !!url, giây_từ_lúc_mở: p.receivedAt ? Math.round((n - new Date(p.receivedAt)) / 1000) : '—' });
+      MP.save(); confirming = false; render();
+    };
+    if ($('#share')) $('#share').onclick = async () => {
+      MP.copy(text);
+      try {
+        const f = await imgFile(img);
+        if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); MP.track('share_opened', { ngày: x.day }); return; }
+      } catch (e) { if (e && e.name === 'AbortError') return; }
+      fallback = true; render();
+    };
+    if ($('#copy')) $('#copy').onclick = e => MP.copy(text, e.currentTarget);
+    if ($('#save')) $('#save').onclick = async () => MP.download('bai-ngay-' + x.day + '.png', await imgFile(img));
+  }
+  render();
+})();
+</script>
+</body>
+</html>
