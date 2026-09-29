@@ -80,7 +80,11 @@ Prototytpe/
    ├─ theme.js     đặt sáng/tối trước khi vẽ trang
    ├─ app.js       shell (sidebar, topbar), icon, toast, modal, tạo lại, diff, state
    ├─ data.js      12 câu hỏi, preset ngành, chiến lược mẫu, 30 mục lịch, bộ ghép nội dung
-   └─ favicon.svg
+   ├─ favicon.ico · favicon-32.png · apple-touch-icon.png · icon-512.png   (favicon từ logo TuoiTreSoft)
+   ├─ favicon.svg  (giữ tương thích, nhúng PNG)
+   └─ brand/
+      ├─ tuoitresoft-logo.png   logo đầy đủ (kèm chữ TUOITRESOFT.COM, nền trong suốt)
+      └─ tuoitresoft-mark.png   biểu tượng kim cương — dùng ở sidebar và đầu trang onboarding
 ```
 
 ## Ghi chú về design system

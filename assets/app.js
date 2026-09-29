@@ -275,7 +275,7 @@
     const wrap = document.createElement('div'); wrap.className = 'shell';
     wrap.innerHTML =
       '<aside class="sidebar" aria-label="Điều hướng chính">' +
-        '<a class="logo" href="index.html"><span class="logo-mark">' + icon('sparkles') + '</span><span>Marketing Agent<small>Prototype · MVP</small></span></a>' +
+        '<a class="logo" href="index.html" title="Marketing Agent — TuoiTreSoft"><img class="logo-img" src="assets/brand/tuoitresoft-mark.png" alt="TuoiTreSoft" width="44" height="30"><span>Marketing Agent<small>by TuoiTreSoft</small></span></a>' +
         '<button class="brand-switch" type="button" data-brand-switch><span class="avatar">' + esc(brandName.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()) + '</span><span class="grow"><b class="truncate" style="display:block">' + esc(brandName) + '</b><span class="subtle">' + esc((D.INDUSTRIES.find(i => i.id === state.brand.industry) || {}).name || '') + '</span></span>' + icon('down', 'sm') + '</button>' +
         '<nav class="nav">' + nav + '</nav>' +
         '<div class="sidebar-foot"><div class="quota"><div class="row between"><b>Gói Chuyên nghiệp</b><span class="badge primary">599k</span></div>' +
