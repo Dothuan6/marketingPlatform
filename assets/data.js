@@ -19,10 +19,10 @@
   ];
 
   const PILLARS = {
-    edu: { id: 'edu', name: 'Giáo dục', icon: 'book', desc: 'Kiến thức giúp khách hiểu vấn đề của mình' },
-    prod: { id: 'prod', name: 'Sản phẩm', icon: 'package', desc: 'Giới thiệu sản phẩm, cách dùng, ưu đãi' },
-    proof: { id: 'proof', name: 'Chứng thực', icon: 'star', desc: 'Feedback, before/after, giấy tờ' },
-    fun: { id: 'fun', name: 'Giải trí', icon: 'smile', desc: 'Nội dung vui, bắt trend, gần gũi' }
+    edu: { id: 'edu', cat: 1, name: 'Giáo dục', icon: 'book', desc: 'Kiến thức giúp khách hiểu vấn đề của mình' },
+    prod: { id: 'prod', cat: 2, name: 'Sản phẩm', icon: 'package', desc: 'Giới thiệu sản phẩm, cách dùng, ưu đãi' },
+    proof: { id: 'proof', cat: 3, name: 'Chứng thực', icon: 'star', desc: 'Feedback, before/after, giấy tờ' },
+    fun: { id: 'fun', cat: 4, name: 'Giải trí', icon: 'smile', desc: 'Nội dung vui, bắt trend, gần gũi' }
   };
 
   const CHANNELS = {

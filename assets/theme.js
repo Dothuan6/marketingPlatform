@@ -4,4 +4,5 @@
   try { t = localStorage.getItem('mp-theme'); } catch (e) {}
   if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', t);
+  document.documentElement.setAttribute('data-brand', 'crm'); // theme HubSpot (DESIGN-SYSTEM-HUBSPOT.md)
 })();

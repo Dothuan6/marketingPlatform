@@ -7,71 +7,87 @@
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <meta name="theme-color" content="#27AAE1">
+  <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930">
-  <script src="assets/theme.js?v=20260930"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
+  <script src="assets/theme.js?v=20260930hs"></script>
 </head>
 <body data-page="plan">
 <main id="page" hidden>
-  <div class="page-header">
-    <div>
-      <div class="eyebrow"><span class="step-dot">4</span>Kế hoạch</div>
-      <h1>Lịch 30 ngày</h1>
-      <p class="subtitle" id="sub"></p>
-    </div>
+  <div class="obj-head">
+    <button class="obj-title" id="obj-title" aria-haspopup="menu" aria-expanded="false">Lịch 30 ngày<i data-icon="down"></i></button>
+    <span class="obj-count" id="obj-count"></span>
     <div class="actions">
       <div style="position:relative">
-        <button class="btn" id="export-btn" aria-haspopup="menu" aria-expanded="false"><i data-icon="download"></i>Xuất file<i data-icon="down" class="sm"></i></button>
-        <div class="popover" id="export-menu" hidden style="right:0;left:auto;top:42px;width:240px;padding:6px">
-          <button class="btn ghost block" style="justify-content:flex-start" data-export="xlsx"><i data-icon="table"></i>Excel (.xlsx)</button>
-          <button class="btn ghost block" style="justify-content:flex-start" data-export="csv"><i data-icon="file"></i>CSV — mở được bằng Notion</button>
+        <button class="btn" id="export-btn" aria-haspopup="menu" aria-expanded="false"><i data-icon="download" class="sm"></i>Xuất file<i data-icon="caret" class="sm"></i></button>
+        <div class="popover menu" id="export-menu" hidden style="right:0;left:auto;top:38px;width:260px">
+          <button class="mi" data-export="xlsx"><i data-icon="table"></i>Excel (.xlsx)</button>
+          <button class="mi" data-export="csv"><i data-icon="file"></i>CSV — mở được bằng Notion</button>
         </div>
       </div>
-      <button class="btn primary" id="gen-all"><i data-icon="sparkles"></i>Sinh toàn bộ nội dung</button>
+      <button class="btn primary" id="gen-all"><i data-icon="sparkles" class="sm"></i>Sinh toàn bộ nội dung</button>
     </div>
   </div>
+  <p class="subtle" id="sub" style="padding:2px 16px 0"></p>
 
-  <div id="first-hero"></div>
-  <div class="grid c2 mb-4" id="top-row"><div id="summary"></div><div id="tier2"></div></div>
-  <div id="first-week"></div>
-  <div id="seasonal" class="stack mb-4"></div>
-  <div id="auto-banner"></div>
-  <div id="alerts" class="stack mb-4"></div>
-
-  <div class="grid c4 mb-4" id="pillar-check"></div>
-
-  <div class="card">
-    <div class="card-head" style="flex-wrap:wrap">
-      <div class="segmented" role="group" aria-label="Chế độ xem">
-        <button data-view="table" aria-pressed="true"><i data-icon="table" class="sm"></i>Bảng</button>
-        <button data-view="cal" aria-pressed="false"><i data-icon="calendar" class="sm"></i>Lịch</button>
-      </div>
-      <div class="row wrap">
-        <div class="chips" id="pf" role="group" aria-label="Lọc nhóm nội dung"></div>
-        <select class="select" id="cf" style="width:auto;min-height:32px;height:32px;padding:0 8px" aria-label="Lọc kênh"></select>
-      </div>
-    </div>
-    <div id="view-table" class="table-wrap"></div>
-    <div id="view-cal" hidden></div>
-    <div class="card-foot" style="justify-content:space-between"><span class="subtle"><i data-icon="grip" class="sm"></i> Kéo-thả để đổi ngày · thay đổi được lưu ngay</span><span class="subtle" id="count"></span></div>
+  <div class="plan-top">
+    <div id="first-hero"></div>
+    <div class="grid c2 mb-3" id="top-row"><div id="summary"></div><div id="tier2"></div></div>
+    <div id="first-week"></div>
+    <div id="seasonal" class="stack mb-3"></div>
+    <div id="auto-banner"></div>
+    <div id="alerts" class="stack mb-3"></div>
+    <div class="grid c4" id="pillar-check"></div>
   </div>
+
+  <div class="vtabs" role="tablist" aria-label="Chế độ xem đã lưu" id="vtabs"></div>
+  <div class="tools">
+    <label class="search-box"><i data-icon="search" class="sm"></i><input id="q" type="search" placeholder="Tìm bài" aria-label="Tìm bài"></label>
+    <span class="grow"></span>
+    <div class="segmented icons" role="group" aria-label="Kiểu hiển thị">
+      <button data-view="table" aria-pressed="true" title="Bảng" aria-label="Bảng"><i data-icon="table" class="sm"></i></button>
+      <button data-view="board" aria-pressed="false" title="Board theo trạng thái" aria-label="Board"><i data-icon="board" class="sm"></i></button>
+      <button data-view="cal" aria-pressed="false" title="Lịch tháng" aria-label="Lịch"><i data-icon="calendar" class="sm"></i></button>
+    </div>
+    <button class="btn icon" id="dense" title="Dòng gọn" aria-label="Bật/tắt dòng gọn" aria-pressed="false"><i data-icon="sliders" class="sm"></i></button>
+  </div>
+  <div class="qfbar" id="qfbar"></div>
+  <div id="view-table" class="lt-wrap"></div>
+  <div id="view-board" hidden></div>
+  <div id="view-cal" hidden></div>
+  <div class="tfoot"><span class="count-pill" id="count"></span><span class="subtle grow"><i data-icon="grip" class="sm"></i> Kéo-thả để đổi ngày · lưu ngay</span><span class="subtle hide-sm" id="count2"></span></div>
 </main>
 
-<script src="assets/data.js?v=20260930"></script>
-<script src="assets/app.js?v=20260930"></script>
+<script src="assets/data.js?v=20260930hs"></script>
+<script src="assets/app.js?v=20260930hs"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
-  MP.shell({ active: 'plan', crumbs: ['Quy trình', 'Lịch 30 ngày'] });
+  MP.shell({ active: 'plan', template: 'list', crumbs: ['Quy trình', 'Lịch 30 ngày'] });
   const FIRST = MP.params.get('first') === '1' || state.firstRun;
   const PL = state.plan;
-  let view = 'table', fPillar = new Set(Object.keys(D.PILLARS)), fChannel = 'all';
-  try { view = localStorage.getItem('mp-plan-view') || 'table'; } catch (e) {}
+  let view = 'table', fPillar = new Set(), fChannel = new Set(), fStatus = new Set(), q = '', saved = 'all', dense = false;
+  try { view = localStorage.getItem('mp-plan-view') || 'table'; dense = localStorage.getItem('mp-plan-dense') === '1'; } catch (e) {}
+  // Trạng thái lọc lưu vào URL query (quy tắc file gốc)
+  (function () { const u = MP.params; if (u.get('nhom')) fPillar = new Set(u.get('nhom').split(',')); if (u.get('kenh')) fChannel = new Set(u.get('kenh').split(',')); if (u.get('tt')) fStatus = new Set(u.get('tt').split(',')); if (u.get('view')) saved = u.get('view'); })();
+  function syncUrl() { try { const u = new URLSearchParams(location.search); [['nhom', fPillar], ['kenh', fChannel], ['tt', fStatus]].forEach(([k, v]) => v.size ? u.set(k, [...v].join(',')) : u.delete(k)); saved !== 'all' ? u.set('view', saved) : u.delete('view'); history.replaceState(null, '', location.pathname + (u.toString() ? '?' + u : '')); } catch (e) {} }
+  const STG = { khung: ['planned'], noidung: ['generated', 'edited'], hen: ['approved', 'received'], dang: ['published'], xuly: ['needcheck', 'failed', 'skipped'] };
+  const STG_NAME = { khung: 'Đã lên khung', noidung: 'Có nội dung · chờ duyệt', hen: 'Đã duyệt · đã hẹn', dang: 'Đã đăng', xuly: 'Cần xử lý' };
+  const stg = st => Object.keys(STG).find(k => STG[k].includes(st)) || 'khung';
+  const SAVED = [
+    { id: 'all', t: 'Tất cả bài', f: () => true },
+    { id: 'week', t: '7 ngày tới', f: i => i.date >= MP.today() && i.date <= D.addDays(MP.today(), 6) },
+    { id: 'review', t: 'Chờ duyệt', f: i => stg(i.status) === 'noidung' },
+    { id: 'sched', t: 'Đã hẹn & đã đăng', f: i => ['hen', 'dang'].includes(stg(i.status)) }
+  ];
+  const norm = x => String(x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
 
   function hrefOf(it) { return 'post.html?id=' + it.id; }
-  function visible() { return MP.items().filter(i => fPillar.has(i.pillar) && (fChannel === 'all' || i.channel === fChannel)); }
+  function visible() {
+    const sv = SAVED.find(x => x.id === saved) || SAVED[0]; const qq = norm(q);
+    return MP.items().filter(i => sv.f(i) && (!fPillar.size || fPillar.has(i.pillar)) && (!fChannel.size || fChannel.has(i.channel)) && (!fStatus.size || fStatus.has(stg(i.status))) && (!qq || norm(i.title + ' ' + i.hook).includes(qq)));
+  }
 
   function header() {
     const all = MP.items(); const end = D.addDays(PL.start, 29);
@@ -87,8 +103,8 @@
     const all = MP.items(); const n = all.length;
     document.getElementById('pillar-check').innerHTML = state.strategy.pillars.map(p => {
       const P = D.PILLARS[p.id]; const c = all.filter(i => i.pillar === p.id).length; const pct = Math.round(c / n * 100); const dev = Math.abs(pct - p.ratio);
-      return `<div class="card card-pad"><div class="row between"><span class="badge pillar-${p.id}">${icon(P.icon)}${P.name}</span>${dev <= 5 ? `<span class="badge success" title="Lệch ${dev}%">${icon('check')}Đúng tỷ lệ</span>` : `<span class="badge warning">${icon('alert')}Lệch ${dev}%</span>`}</div>
-        <div class="row mt-2" style="align-items:baseline"><b style="font-size:22px">${c}</b><span class="subtle">bài · ${pct}% (mục tiêu ${p.ratio}%)</span></div>
+      return `<div class="kpi"><div class="row between" style="gap:6px;flex-wrap:nowrap"><span class="l" style="min-width:0;overflow:hidden">${MP.pillarBadge(p.id)}</span>${dev <= 5 ? `<span class="badge dot success" title="Lệch ${dev}% — đúng tỷ lệ" style="flex:none">Đạt</span>` : `<span class="badge dot warning" style="flex:none">Lệch ${dev}%</span>`}</div>
+        <div class="row mt-2" style="align-items:baseline"><b class="v" style="margin:0">${c}</b><span class="subtle">bài · ${pct}% (mục tiêu ${p.ratio}%)</span></div>
         <div class="progress mt-2"><span class="bg-${p.id}" style="width:${Math.min(100, pct / Math.max(p.ratio, 1) * 100)}%"></span></div></div>`;
     }).join('');
   }
@@ -114,29 +130,59 @@
     });
   }
 
-  // ---------- Bảng ----------
+  // ---------- Bảng (§6.6): cột tên dính trái + "Xem trước" ----------
   function table() {
     const rows = visible();
-    if (!rows.length) { document.getElementById('view-table').innerHTML = `<div class="empty"><div class="em-ic">${icon('filter', 'xl')}</div><h3>Không có bài nào khớp bộ lọc</h3><p>Bật lại pillar hoặc chọn “Tất cả kênh”.</p></div>`; return; }
+    if (!rows.length) { document.getElementById('view-table').innerHTML = `<div class="empty"><div class="em-ic">${icon('filter', 'xl')}</div><h3>Không có bài nào khớp bộ lọc</h3><p>Bỏ bớt bộ lọc nhanh hoặc chọn view “Tất cả bài”.</p><button class="btn sm" id="clear-all">Xoá tất cả bộ lọc</button></div>`; const c = document.getElementById('clear-all'); if (c) c.onclick = clearAll; return; }
     const t = MP.today();
-    document.getElementById('view-table').innerHTML = `<table class="table"><thead><tr><th style="width:28px"><span class="sr-only">Kéo</span></th><th>Ngày</th><th>Nhóm nội dung</th><th>Góc kể chuyện</th><th>Kênh · giờ đăng</th><th>Tiêu đề & câu mở đầu</th><th>Trạng thái</th></tr></thead><tbody>` +
-      rows.map(it => `<tr draggable="true" data-id="${it.id}" data-href="${hrefOf(it)}">
+    document.getElementById('view-table').innerHTML = `<table class="table lt ${dense ? 'dense' : ''}"><thead><tr><th><span class="sr-only">Kéo</span></th><th>Tiêu đề & câu mở đầu</th><th>Ngày đăng</th><th>Nhóm nội dung</th><th>Góc kể chuyện</th><th>Kênh · giờ</th><th>Trạng thái</th></tr></thead><tbody>` +
+      rows.map(it => { const P = D.PILLARS[it.pillar]; const ai = MP.autoInfo(it); return `<tr draggable="true" data-id="${it.id}" data-href="${hrefOf(it)}" tabindex="0">
         <td><span class="grip" title="Kéo để đổi ngày">${icon('grip', 'sm')}</span></td>
-        <td class="nowrap"><b>Ngày ${it.day}</b><div class="subtle">${MP.fmtDate(it.date)}${it.date === t ? ' · <b style="color:var(--primary-soft-text)">Hôm nay</b>' : ''}</div></td>
-        <td>${MP.pillarBadge(it.pillar)}</td>
-        <td><span class="subtle">${esc(it.angle)}</span> <span class="truncate" style="display:inline-block;max-width:150px;vertical-align:bottom">${esc(MP.angleName(it.angle))}</span></td>
-        <td><div class="row wrap" style="gap:4px">${MP.channelBadge(it.channel)}${MP.formatBadge(it.format)}</div><div class="row mt-1" style="gap:4px" title="${esc(MP.autoInfo(it).text)}"><span class="c-${MP.autoInfo(it).kind === 'auto' ? 'edu' : 'fun'}" style="display:inline-flex">${icon(MP.autoInfo(it).icon, 'sm')}</span><span class="subtle">${it.time} · ${(MP.KIND_LABEL[MP.autoInfo(it).kind] || '').toLowerCase()}</span></div></td>
-        <td><div class="cell-title">${esc(it.title)}${it.flag ? ' <span class="badge warning">' + icon('alert') + 'Gần trùng</span>' : ''}${it.event ? ' <span class="badge info">' + icon('star') + esc(it.event) + '</span>' : ''}</div><div class="cell-hook">${esc(MP.quoteHook(it.hook))}</div></td>
-        <td>${MP.isLocked(it) && !it.content ? '<span class="badge">' + icon('lock') + 'Khoá · dùng thử</span>' : MP.statusBadge(it.status)}</td></tr>`).join('') + '</tbody></table>';
+        <td><div class="name-cell"><span class="av" style="background:var(--cat-${P.cat})">${icon(P.icon, 'sm')}</span><span class="nm"><a href="${hrefOf(it)}" tabindex="-1">${esc(it.title)}</a><span class="h">${esc(MP.quoteHook(it.hook))}</span></span>${it.flag ? '<span class="badge warning" title="Gần trùng ý bài khác">' + icon('alert') + '</span>' : ''}<button class="prev-btn" data-prev="${it.id}">Xem trước</button></div></td>
+        <td class="nowrap">${MP.fmtDate(it.date)}<div class="subtle">Ngày ${it.day}${it.date === t ? ' · <b style="color:var(--link)">Hôm nay</b>' : ''}</div></td>
+        <td>${MP.pillarBadge(it.pillar)}${it.event ? ' <span class="tag pk">' + esc(it.event) + '</span>' : ''}</td>
+        <td><span class="truncate" style="display:inline-block;max-width:190px;vertical-align:bottom">${esc(MP.angleName(it.angle))}</span></td>
+        <td class="nowrap">${MP.channelBadge(it.channel)} <span title="${esc(ai.text)}">${it.time}</span><div class="subtle">${(MP.KIND_LABEL[ai.kind] || '').toLowerCase()}</div></td>
+        <td>${MP.isLocked(it) && !it.content ? '<span class="badge dot">Khoá · dùng thử</span>' : MP.statusBadge(it.status)}</td></tr>`; }).join('') + '</tbody></table>';
     const tb = document.querySelector('#view-table tbody');
     let dragId = null;
+    tb.querySelectorAll('[data-prev]').forEach(b => b.onclick = e => { e.stopPropagation(); preview(Number(b.dataset.prev)); });
     tb.querySelectorAll('tr').forEach(tr => {
       tr.onclick = () => { location.href = tr.dataset.href; };
+      tr.onkeydown = e => { if (e.key === 'Enter') location.href = tr.dataset.href; };
       tr.addEventListener('dragstart', e => { dragId = tr.dataset.id; tr.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {} });
       tr.addEventListener('dragend', () => { tr.classList.remove('dragging'); tb.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target')); });
       tr.addEventListener('dragover', e => { e.preventDefault(); tb.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target')); if (tr.dataset.id !== dragId) tr.classList.add('drop-target'); });
       tr.addEventListener('drop', e => { e.preventDefault(); if (dragId && dragId !== tr.dataset.id) swap(Number(dragId), Number(tr.dataset.id)); });
     });
+  }
+
+  // ---------- Board theo trạng thái (§6.7) ----------
+  function board() {
+    const rows = visible(); const cols = Object.keys(STG).filter(k => k !== 'xuly' || rows.some(i => stg(i.status) === 'xuly'));
+    document.getElementById('view-board').innerHTML = '<div class="kb">' + cols.map(k => { const its = rows.filter(i => stg(i.status) === k);
+      return `<section class="kcol" aria-label="${STG_NAME[k]}"><div class="kcol-h">${esc(STG_NAME[k])}<span class="n">${its.length}</span></div><div class="kcol-b">` +
+        (its.length ? its.map(it => `<a class="kc" href="${hrefOf(it)}"><span class="t">${esc(it.title)}</span>
+          <span class="m">${icon('calendar')}${MP.fmtDate(it.date)} · ${it.time}</span><span class="m">${icon('send')}${esc(D.CHANNELS[it.channel].name)}</span>
+          <span class="row wrap" style="gap:4px">${MP.pillarBadge(it.pillar)}${k === 'dang' ? '<span class="badge dot success">Đã lên kênh</span>' : ''}</span></a>`).join('') : '<p class="subtle" style="padding:8px 4px">Trống</p>') + '</div></section>'; }).join('') + '</div>';
+  }
+
+  // ---------- Xem trước (dock phải, §6.10) ----------
+  function preview(pid) {
+    const it = MP.item(pid); const p = MP.poolItem(pid); const ai = MP.autoInfo(it); const P = D.PILLARS[it.pillar];
+    const d = MP.drawer({ title: it.title, dock: true,
+      body: `<div class="row"><span class="id-av" style="width:36px;height:36px;border-radius:8px;background:var(--cat-${P.cat})">${icon(P.icon)}</span><div class="grow"><div class="subtle">Ngày ${it.day} · ${MP.fmtDate(it.date, 'long')}</div>${MP.statusBadge(it.status)}</div></div>
+        <div class="props">
+          <div class="prop"><div class="l">Câu mở đầu</div><div class="v">${esc(it.hook)}</div></div>
+          <div class="prop"><div class="l">Nhóm nội dung</div><div class="v">${MP.pillarBadge(it.pillar)}</div></div>
+          <div class="prop"><div class="l">Góc kể chuyện</div><div class="v">${esc(MP.angleName(it.angle))}</div></div>
+          <div class="prop"><div class="l">Kênh · giờ đăng</div><div class="v">${MP.channelBadge(it.channel)} ${it.time}</div></div>
+          <div class="prop"><div class="l">Tự động đăng</div><div class="v" style="font-weight:400;font-size:13px">${esc(ai.text)}</div></div>
+        </div>
+        ${p.content ? `<div class="card card-pad content-block" style="font-size:13px;max-height:280px;overflow:auto">${esc(p.content.caption)}</div>` : `<div class="callout">${icon('info')}<div>Bài mới có khung — mở bài để viết nội dung.</div></div>`}`,
+      foot: `<a class="btn primary" href="${hrefOf(it)}">${icon('external', 'sm')}Mở bài đầy đủ</a><button class="btn ghost" data-dclose2>Đóng</button>` });
+    d.el.querySelector('[data-dclose2]').onclick = d.close;
+    MP.track('preview_open', { ngày: it.day });
   }
 
   function swap(a, b) {
@@ -180,22 +226,58 @@
     });
   }
 
-  // ---------- Bộ lọc & view ----------
+  // ---------- View đã lưu (§6.3) · bộ lọc nhanh (§6.5) ----------
+  function clearAll() { fPillar.clear(); fChannel.clear(); fStatus.clear(); q = ''; document.getElementById('q').value = ''; syncUrl(); render(); }
   function filters() {
-    document.getElementById('pf').innerHTML = Object.values(D.PILLARS).map(p => `<button class="chip" style="min-height:30px;padding:3px 10px;font-size:12.5px" data-pf="${p.id}" aria-pressed="${fPillar.has(p.id)}"><span class="c-${p.id}">${icon(p.icon, 'sm')}</span>${p.name}</button>`).join('');
-    document.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { const id = b.dataset.pf; fPillar.has(id) ? fPillar.delete(id) : fPillar.add(id); render(); });
-    const cf = document.getElementById('cf');
-    cf.innerHTML = '<option value="all">Tất cả kênh</option>' + PL.channels.map(c => `<option value="${c}" ${fChannel === c ? 'selected' : ''}>${D.CHANNELS[c].name}</option>`).join('');
-    cf.onchange = () => { fChannel = cf.value; render(); };
+    document.getElementById('vtabs').innerHTML = SAVED.map(v => `<button class="vtab" role="tab" data-saved="${v.id}" aria-selected="${saved === v.id}">${esc(v.t)}</button>`).join('') + `<button class="btn ghost sm icon" title="Thêm view (sắp có)" aria-label="Thêm view" onclick="MP.toast('Lưu view riêng — có ở bản thật','info')">${icon('plus', 'sm')}</button>`;
+    document.querySelectorAll('[data-saved]').forEach(b => b.onclick = () => { saved = b.dataset.saved; syncUrl(); render(); });
+    const QF = [
+      { k: 'nhom', t: 'Nhóm nội dung', set: fPillar, opts: Object.values(D.PILLARS).map(p => [p.id, p.name, MP.pillarBadge(p.id)]) },
+      { k: 'kenh', t: 'Kênh', set: fChannel, opts: PL.channels.map(c => [c, D.CHANNELS[c].name, '']) },
+      { k: 'tt', t: 'Trạng thái', set: fStatus, opts: Object.keys(STG).map(k => [k, STG_NAME[k], '']) }
+    ];
+    const any = fPillar.size || fChannel.size || fStatus.size || q;
+    document.getElementById('qfbar').innerHTML = QF.map(f => { const on = f.set.size; const val = on ? ': ' + f.opts.filter(o => f.set.has(o[0])).map(o => o[1]).join(', ') : '';
+      return `<button class="qf ${on ? 'on' : ''}" data-qf="${f.k}" aria-haspopup="dialog" aria-expanded="false">${esc(f.t)}${esc(val.length > 32 ? val.slice(0, 30) + '…' : val)}${icon('caret')}</button>`; }).join('') +
+      (any ? `<span class="vsep"></span><button class="link-btn" id="qf-clear" style="font-size:12px">Xoá tất cả</button>` : '');
+    document.querySelectorAll('[data-qf]').forEach(b => b.onclick = e => { e.stopPropagation(); qfPop(b, QF.find(f => f.k === b.dataset.qf)); });
+    const c = document.getElementById('qf-clear'); if (c) c.onclick = clearAll;
+  }
+  function qfPop(anchor, f) {
+    document.querySelectorAll('.qf-pop').forEach(x => x.remove());
+    const pop = document.createElement('div'); pop.className = 'qf-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', f.t);
+    const temp = new Set(f.set);
+    pop.innerHTML = `<label class="search-box" style="width:100%;margin-bottom:6px">${icon('search', 'sm')}<input placeholder="Tìm ${esc(f.t.toLowerCase())}" aria-label="Tìm"></label><div class="ol">` +
+      f.opts.map(o => `<label class="opt" data-t="${esc(norm(o[1]))}"><input type="checkbox" value="${o[0]}" ${temp.has(o[0]) ? 'checked' : ''}>${o[2] || esc(o[1])}</label>`).join('') +
+      `</div><div class="foot"><button class="btn ghost sm" data-x>Xoá</button><button class="btn primary sm" data-ok>Áp dụng</button></div>`;
+    document.body.appendChild(pop);
+    const r = anchor.getBoundingClientRect(); pop.style.left = Math.min(window.innerWidth - 292, r.left) + 'px'; pop.style.top = (r.bottom + 4 + 260 > window.innerHeight ? r.top - pop.offsetHeight - 4 : r.bottom + 4) + 'px';
+    anchor.setAttribute('aria-expanded', 'true');
+    const close = () => { pop.remove(); anchor.setAttribute('aria-expanded', 'false'); document.removeEventListener('mousedown', out); document.removeEventListener('keydown', key); anchor.focus(); };
+    const out = e => { if (!pop.contains(e.target)) close(); };
+    const key = e => { if (e.key === 'Escape') close(); };
+    setTimeout(() => { document.addEventListener('mousedown', out); document.addEventListener('keydown', key); }, 0);
+    pop.querySelector('input').oninput = e => { const v = norm(e.target.value); pop.querySelectorAll('.opt').forEach(o => o.hidden = v && !o.dataset.t.includes(v)); };
+    pop.querySelector('[data-x]').onclick = () => { f.set.clear(); close(); syncUrl(); render(); };
+    pop.querySelector('[data-ok]').onclick = () => { f.set.clear(); pop.querySelectorAll('.opt input:checked').forEach(i => f.set.add(i.value)); close(); syncUrl(); MP.track('quick_filter', { lọc: f.k, số: f.set.size }); render(); };
   }
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { view = b.dataset.view; try { localStorage.setItem('mp-plan-view', view); } catch (e) {} render(); });
+  document.getElementById('q').oninput = e => { q = e.target.value; ['table', 'board', 'cal'].includes(view) && (view === 'table' ? table() : view === 'board' ? board() : cal()); countLine(); };
+  document.getElementById('dense').onclick = () => { dense = !dense; try { localStorage.setItem('mp-plan-dense', dense ? '1' : ''); } catch (e) {} render(); };
+  document.getElementById('obj-title').onclick = e => MP.menu(e.currentTarget, [{ h: 'Đổi màn' }, { icon: 'calendar', label: 'Lịch 30 ngày', href: 'plan.html' }, { icon: 'review', label: 'Duyệt tuần', href: 'review.html' }, { icon: 'zap', label: 'Hàng đợi tự động đăng', href: 'automation.html#queue' }, { icon: 'report', label: 'Báo cáo tháng', href: 'report.html' }]);
+  function countLine() {
+    const all = MP.items(); const v = visible().length;
+    document.getElementById('count').textContent = v + ' bài';
+    document.getElementById('count2').textContent = `${v}/${all.length} bài · ${all.filter(i => i.status !== 'planned').length} bài có nội dung`;
+    document.getElementById('obj-count').textContent = all.length + ' bài · ' + MP.fmtDate(PL.start, 'short') + ' → ' + MP.fmtDate(D.addDays(PL.start, 29), 'short');
+  }
 
   function autoBanner() {
     const A = state.automation; const all = MP.items(); const t = MP.today();
     const next = all.filter(i => i.date >= t && i.status !== 'published');
     const needAppr = next.filter(i => i.content && i.status !== 'approved' && i.date <= D.addDays(t, 2)).length;
     const off = PL.channels.filter(k => D.CHANNELS[k].level === 0 || !A.connections[k].connected).map(k => D.CHANNELS[k].name);
-    document.getElementById('auto-banner').innerHTML = `<div class="card card-pad mb-4 row wrap" style="gap:14px">
+    document.getElementById('auto-banner').innerHTML = `<div class="card card-pad mb-3 row wrap" style="gap:14px">
       <span class="ic-box ${A.enabled ? 'primary' : ''}">${icon(A.enabled ? 'zap' : 'pause')}</span>
       <div class="grow" style="min-width:220px"><b>Tự động đăng ${A.enabled ? 'đang bật' : 'đang tắt'}</b><div class="subtle">${A.enabled ? 'Bài đã duyệt được hẹn giờ và tự lên Facebook/Instagram (Mức 1).' : 'Bài sẽ không tự lên kênh.'}${off.length ? ` · ${off.join(', ')} đăng tay (Mức 0): đến giờ gửi gói nhận bài qua ${MP.notifyText()}` : ''}${needAppr ? ` · <b style="color:var(--warning)">${needAppr} bài trong 3 ngày tới chưa duyệt</b>` : ''}</div></div>
       ${needAppr ? `<a class="btn sm primary" href="review.html">${icon('checkCircle', 'sm')}Duyệt tuần</a>` : ''}<a class="btn sm" href="automation.html">${icon('branch', 'sm')}Xem workflow</a></div>`;
@@ -204,9 +286,10 @@
   function render() {
     header(); firstHero(); summary(); tier2(); firstWeek(); seasonal(); autoBanner(); pillarCheck(); alerts(); filters();
     document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
-    document.getElementById('view-table').hidden = view !== 'table'; document.getElementById('view-cal').hidden = view !== 'cal';
-    view === 'table' ? table() : cal();
-    const all = MP.items(); document.getElementById('count').textContent = `${visible().length}/${all.length} bài · ${all.filter(i => i.status !== 'planned').length} bài có nội dung`;
+    document.getElementById('dense').setAttribute('aria-pressed', dense); document.getElementById('dense').hidden = view !== 'table';
+    ['table', 'board', 'cal'].forEach(k => { document.getElementById('view-' + k).hidden = view !== k; });
+    view === 'table' ? table() : view === 'board' ? board() : cal();
+    countLine();
   }
 
   // ---------- Lần đầu: TTFV (QĐ-J) ----------
@@ -214,7 +297,7 @@
     const el = document.getElementById('first-hero'); const secs = Number(MP.params.get('ttfv'));
     if (!secs) { el.innerHTML = ''; return; }
     const m = Math.floor(secs / 60) + ' phút ' + (secs % 60) + ' giây';
-    el.innerHTML = `<div class="callout ${secs <= 180 ? 'success' : 'warning'} mb-4">${icon(secs <= 180 ? 'checkCircle' : 'clock')}<div><b>Kế hoạch 30 ngày của bạn đã sẵn sàng sau ${m}.</b> ${secs <= 180 ? 'Bài đầu tiên cũng đã viết xong — mở ra xem và duyệt nhé.' : 'Hơi lâu hơn mục tiêu 3 phút — cảm ơn bạn đã kiên nhẫn.'}</div></div>`;
+    el.innerHTML = `<div class="callout ${secs <= 180 ? 'success' : 'warning'} mb-3">${icon(secs <= 180 ? 'checkCircle' : 'clock')}<div><b>Kế hoạch 30 ngày của bạn đã sẵn sàng sau ${m}.</b> ${secs <= 180 ? 'Bài đầu tiên cũng đã viết xong — mở ra xem và duyệt nhé.' : 'Hơi lâu hơn mục tiêu 3 phút — cảm ơn bạn đã kiên nhẫn.'}</div></div>`;
   }
 
   // ---------- Tóm tắt chiến lược 3 dòng (CL-22) ----------
@@ -262,8 +345,8 @@
     const el = document.getElementById('tier2'); let t = missingTier2(['q8', 'q4', 'q10', 'q7']);
     let skipped = null; try { skipped = sessionStorage.getItem('t2later'); } catch (e) {}
     if (t && skipped === t.id) t = null;
-    if (!t) { el.innerHTML = ''; document.getElementById('top-row').className = 'mb-4'; return; }
-    document.getElementById('top-row').className = 'grid c2 mb-4';
+    if (!t) { el.innerHTML = ''; document.getElementById('top-row').className = 'mb-3'; return; }
+    document.getElementById('top-row').className = 'grid c2 mb-3';
     el.innerHTML = `<div class="card accent" style="height:100%"><div class="card-head"><h3>${icon('sparkles')}Trả lời 1 câu để bài hay hơn</h3><span class="badge">Mất ~20 giây</span></div><div class="card-body">${tier2Form(t, false)}</div></div>`;
     bindTier2(el, t, render);
   }
@@ -281,7 +364,7 @@
     const wk = MP.items().slice(0, 7); const first = wk[0];
     const firstOk = ['approved', 'published', 'received'].includes(first.status);
     const need = wk.filter(i => !i.content && !MP.isLocked(i)).length;
-    el.innerHTML = `<div class="card mb-4"><div class="card-head"><h3>${icon('calendar')}Tuần đầu tiên của bạn</h3><span class="subtle">${wk.filter(i => i.content).length}/7 bài đã viết</span></div>
+    el.innerHTML = `<div class="card mb-3"><div class="card-head"><h3>${icon('calendar')}Tuần đầu tiên của bạn</h3><span class="subtle">${wk.filter(i => i.content).length}/7 bài đã viết</span></div>
       <div class="card-body stack"><div class="week-strip">${wk.map((it, k) => `<a class="week-card ${k === 0 ? 'first' : ''}" href="post.html?id=${it.id}">
         <span class="subtle">${MP.fmtDate(it.date)}</span>${MP.pillarBadge(it.pillar)}<span class="t">${esc(it.title)}</span>
         <span class="grow"></span>${k === 0 && !firstOk ? '<span class="badge primary">' + icon('sparkles') + 'Đã viết · mở để duyệt</span>' : MP.statusBadge(it.status)}</a>`).join('')}</div>

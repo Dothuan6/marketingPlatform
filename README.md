@@ -97,12 +97,13 @@ Prototytpe/
 ├─ review.html · publish.html · report.html   (mới 29/09)
 ├─ 404.html · netlify.toml · .nojekyll · README.md
 └─ assets/
-   ├─ styles.css   token 3 tầng (primitive → semantic → component) + component
+   ├─ styles.css   theme HubSpot (`data-brand="crm"`): token sáng/tối + shell + component
    ├─ theme.js     đặt sáng/tối trước khi vẽ trang
    ├─ app.js       shell (sidebar, topbar), icon, toast, modal, tạo lại, diff, state
    ├─ data.js      12 câu hỏi (5 câu tầng 1), preset ngành, từ Cấm/Cảnh báo, kho ảnh, sự kiện mùa vụ, 30 mục lịch, bộ ghép nội dung
    ├─ favicon.ico · favicon-32.png · apple-touch-icon.png · icon-512.png   (favicon từ logo TuoiTreSoft)
    ├─ favicon.svg  (giữ tương thích, nhúng PNG)
+   ├─ fonts/material-symbols-subset.woff2   bộ icon Material Symbols Outlined rút gọn (~7 KB, 106 icon, tự host)
    └─ brand/
       ├─ tuoitresoft-logo.png   logo đầy đủ (kèm chữ TUOITRESOFT.COM, nền trong suốt)
       └─ tuoitresoft-mark.png   biểu tượng kim cương — dùng ở sidebar và đầu trang onboarding
@@ -110,11 +111,17 @@ Prototytpe/
 
 ## Ghi chú về design system
 
-- Token trong `styles.css` đặt theo 3 tầng giống `@xbuild/ui` (HarnexAI). Khi package thật sẵn sàng, **thay khối `:root` bằng `tokens.css` của `@xbuild/ui`** — tên biến semantic (`--surface`, `--text-2`, `--primary`…) là chỗ cần map.
-- Đã theo các quy tắc của `12-DESIGN-SYSTEM-REUSE.md`: tiếng Việt sentence case, dark mode hạng nhất, pillar/trạng thái luôn có **icon + chữ** (không chỉ màu), `EmptyState` ở mọi màn trống.
-- Component mới xuất hiện trong prototype (cần đưa vào `DESIGN-SYSTEM.md` §8 trước khi code thật): `Wizard/StepIndicator`, `ContentCalendar`, `ContentItemCard`, `PillarChip` (variant của `Badge`), `GenerationProgress`, `ToneSelector` (variant của `Picker`), `DiffViewer`, `WorkflowCanvas` / `WorkflowNode` (nên lấy từ trình dựng workflow của HarnexAI), `Switch`, `RunLog`; mới 29/09: `TermInfo` (nút ⓘ), `ChipGroup` loại trừ, `ImageTile`/`ImagePicker`, `FeedbackButtons`, `ReviewCard`, `BigActionButton` (màn điện thoại), `QuotaCard`.
+**Theme: HubSpot layer của XBuild ERP** (`DESIGN-SYSTEM-HUBSPOT.md`, cập nhật 30/09). Chức năng giữ nguyên 100%, chỉ đổi giao diện.
+
+- **Shell**: topbar tối `#333` 56px (tìm kiếm + `Ctrl K`, “+ Tạo”, chuông duyệt, sáng/tối, avatar) · sidebar tối 236px · nội dung trong khung trắng bo 16px, cách 8px trên nền tối.
+- **Màu**: 1 màu nhấn duy nhất teal `#00494B` (link `#006162`, nền nhạt `#E0F0EF`); chữ `#333/#666`; viền `#CCC/#E3E3E3`; nền trang `#F0F0F0`. Chữ trạng thái đã chỉnh tương phản (xanh `#137333`, cam `#8A4B00`, đỏ `#B3261E`). Dark mode theo §10.
+- **Nút** dạng viên thuốc 32/28px chữ 13/600 · **Badge** trạng thái có chấm 6px · **Tag** cho kênh/định dạng · **OptionPill** nền đặc màu `cat-1…4` cho nhóm nội dung (Giáo dục, Sản phẩm, Chứng thực, Giải trí).
+- **Template**: T1 danh sách (`plan.html` — ObjectHeader, lối tắt đã lưu, QuickFilterBar, bảng cột tên dính + “Xem trước” mở drawer, dạng bảng/board/lịch) · T2 bản ghi 3 cột (`post.html`) · T3 dashboard (`index.html`, `report.html`) · T4 cấu hình (brand, chiến lược, tự động đăng).
+- **Icon**: Material Symbols Outlined, gọi qua `MP.icon('tên')` (map tên → codepoint trong `app.js`). Thêm icon mới = thêm glyph vào file font subset.
+- **Component mới so với design system** (cần bổ sung vào DS trước khi code thật): `ObjectHeader` (tiêu đề + menu góc nhìn), `QuickFilterBar`, `SavedViewTabs`, `OptionPill` cho SELECT, `PropertyList` (“Về bài này”), `Drawer` dạng dock ≥1240px, `CommandPalette` (Ctrl K), `Board` (kanban theo giai đoạn); cùng các component từ các vòng trước: `Wizard/StepIndicator`, `ContentCalendar`, `GenerationProgress`, `DiffViewer`, `WorkflowCanvas/Node`, `RunLog`, `TermInfo`, `ImagePicker`, `FeedbackButtons`, `ReviewCard`, `BigActionButton`, `QuotaCard`.
+- Tiếng Việt sentence case; nhóm nội dung/trạng thái luôn có **chữ** (không chỉ màu); `EmptyState` ở mọi màn trống.
 
 ## Phụ thuộc bên ngoài
 
-- Font **Be Vietnam Pro** (Google Fonts) — mất mạng vẫn chạy bằng font hệ thống.
+- Font **Inter + Be Vietnam Pro** (Google Fonts) — mất mạng vẫn chạy bằng font hệ thống. Icon tự host, không phụ thuộc mạng.
 - **SheetJS** (cdnjs) chỉ tải khi bấm *Xuất Excel*; lỗi tải thì tự chuyển sang CSV.

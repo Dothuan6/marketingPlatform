@@ -5,80 +5,9 @@
   const D = window.MP_DATA;
   const KEY = 'mp-proto-state';
 
-  /* ---------- Icon (nét 24px, tự vẽ theo phong cách outline) ---------- */
-  const P = {
-    home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/>',
-    brain: '<path d="M12 5a3 3 0 0 0-5.8-1A3 3 0 0 0 4 8a3 3 0 0 0 0 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1z"/><path d="M12 5a3 3 0 0 1 5.8-1A3 3 0 0 1 20 8a3 3 0 0 1 0 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1z"/><path d="M12 5v14"/>',
-    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
-    layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
-    calendar: '<rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
-    file: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6M9 9h2"/>',
-    video: '<rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10.5 6-3.5v10l-6-3.5"/>',
-    chart: '<path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/>',
-    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
-    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
-    sparkles: '<path d="M11 3l1.8 4.9L17.5 9.5l-4.7 1.7L11 16l-1.8-4.8L4.5 9.5l4.7-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
-    refresh: '<path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/>',
-    copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
-    download: '<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',
-    check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
-    checkCircle: '<circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/>',
-    alert: '<path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/><path d="M12 10v4M12 17.5v.01"/>',
-    x: '<path d="M6 6l12 12M18 6 6 18"/>',
-    left: '<path d="m15 18-6-6 6-6"/>',
-    right: '<path d="m9 18 6-6-6-6"/>',
-    down: '<path d="m6 9 6 6 6-6"/>',
-    grip: '<circle cx="9" cy="6" r=".8"/><circle cx="15" cy="6" r=".8"/><circle cx="9" cy="12" r=".8"/><circle cx="15" cy="12" r=".8"/><circle cx="9" cy="18" r=".8"/><circle cx="15" cy="18" r=".8"/>',
-    lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
-    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7L11.5 6.8"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.5-1.5"/>',
-    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    book: '<path d="M2 5h6a4 4 0 0 1 4 4v11a3 3 0 0 0-3-3H2z"/><path d="M22 5h-6a4 4 0 0 0-4 4v11a3 3 0 0 1 3-3h7z"/>',
-    package: '<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
-    star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>',
-    smile: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/>',
-    pencil: '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
-    plus: '<path d="M12 5v14M5 12h14"/>',
-    table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
-    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',
-    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
-    play: '<path d="M7 4v16l13-8z"/>',
-    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
-    arrowRight: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-    arrowLeft: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
-    zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
-    menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
-    grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
-    sliders: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
-    message: '<path d="M4 5h16v11H9l-5 4z"/>',
-    hash: '<path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/>',
-    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
-    external: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
-    map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
-    shield: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
-    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-    ban: '<circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/>',
-    type: '<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
-    save: '<path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8M7 21v-7h10v7"/>',
-    undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
-    list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
-    eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
-    trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
-    plug: '<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v4"/>',
-    pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
-    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
-    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
-    branch: '<circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 7v10M18 10c0 5-6 4-12 7"/>',
-    send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
-    filter: '<path d="M3 5h18l-7 8v6l-4 2v-8z"/>',
-    wand: '<path d="m15 4 5 5L9 20l-5-5z"/><path d="M13 6l5 5M4 4v3M2.5 5.5h3M19 16v3M17.5 17.5h3"/>',
-    share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>',
-    upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
-    camera: '<path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/>',
-    phone: '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
-    report: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 17v-3M12 17v-6M15 17v-2"/>'
-  };
-  function icon(name, cls) { return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (P[name] || P.info) + '</svg>'; }
+  /* ---------- Icon: Material Symbols Outlined (bản cắt gọn tự host, gọi theo mã ký tự) ---------- */
+  const P = { home: 0xe88a, brain: 0xe10e, target: 0xe719, layers: 0xe53b, calendar: 0xebcc, file: 0xe873, video: 0xe04b, chart: 0xe26b, sun: 0xe518, moon: 0xe51c, sparkles: 0xe65f, refresh: 0xe5d5, copy: 0xe14d, download: 0xe171, check: 0xe5ca, checkCircle: 0xe86c, alert: 0xe002, x: 0xe14c, left: 0xe408, right: 0xe409, down: 0xe5cf, up: 0xe5ce, grip: 0xe945, lock: 0xe88d, link: 0xe157, clock: 0xe192, book: 0xea19, package: 0xf569, star: 0xe838, smile: 0xe0ed, pencil: 0xe150, plus: 0xe145, table: 0xf101, users: 0xe7ef, user: 0xe7fd, info: 0xe88e, play: 0xe037, mic: 0xe029, arrowRight: 0xe5c8, arrowLeft: 0xe5c4, zap: 0xea0b, menu: 0xe5d2, grid: 0xe9b0, sliders: 0xe429, message: 0xe0b7, hash: 0xe9ef, image: 0xe251, external: 0xe895, map: 0xe55b, shield: 0xe8e8, globe: 0xe80b, ban: 0xe033, type: 0xe262, save: 0xe161, undo: 0xe166, list: 0xe896, eye: 0xe417, trash: 0xe872, plug: 0xe63c, pause: 0xe034, bell: 0xe7f4, mail: 0xe0be, branch: 0xe97a, send: 0xe163, filter: 0xe152, wand: 0xe662, share: 0xe6b8, upload: 0xe2c6, camera: 0xe3b0, phone: 0xe0d4, report: 0xf071, search: 0xe8b6, settings: 0xe8b8, more: 0xe5d4, moreH: 0xe5d3, board: 0xeb7f, help: 0xe887, apps: 0xe5c3, caret: 0xe5c5, sortUp: 0xe5d8, sortDown: 0xe5db, event: 0xe24f, fire: 0xea05, neutral: 0xe812, thumb: 0xe817, bulb: 0xe0f0, store: 0xea12, history: 0xe28e, flag: 0xe153, task: 0xe2e6, dashboard: 0xe66b, preview: 0xe417, addCircle: 0xe147, dateRange: 0xe916, review: 0xf0c5, outward: 0xf8ce, photos: 0xe413, article: 0xef42, editSq: 0xf88d, dot: 0xe836, pending: 0xf1bb, cancel: 0xe5c9, forum: 0xe0bf, campaign: 0xef49, rocket: 0xeb9b, hub: 0xe9f4, note: 0xe745 };
+  function icon(name, cls) { const cp = P[name] || P.info; return '<span class="ic ' + (cls || '') + '" aria-hidden="true">&#x' + cp.toString(16) + ';</span>'; }
   function hydrateIcons(root) {
     (root || document).querySelectorAll('i[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon, el.className); });
   }
@@ -127,11 +56,11 @@
 
   function pillarBadge(pid, short) {
     const p = D.PILLARS[pid]; if (!p) return '';
-    return '<span class="badge pillar-' + pid + '">' + icon(p.icon) + (short ? '' : esc(p.name)) + '</span>';
+    return short ? '<span class="pill c' + p.cat + '" title="' + esc(p.name) + '">' + icon(p.icon, 'sm') + '</span>' : '<span class="pill c' + p.cat + '">' + esc(p.name) + '</span>';
   }
-  function channelBadge(cid) { const c = D.CHANNELS[cid]; return c ? '<span class="badge outline" title="' + c.name + '">' + esc(c.name) + '</span>' : ''; }
-  function formatBadge(f) { const x = D.FORMATS[f]; return x ? '<span class="badge outline">' + icon(x.icon) + esc(x.name) + '</span>' : ''; }
-  function statusBadge(s) { const x = D.STATUSES[s] || D.STATUSES.planned; return '<span class="badge ' + x.cls + '">' + icon(x.icon) + esc(x.name) + '</span>'; }
+  function channelBadge(cid) { const c = D.CHANNELS[cid]; return c ? '<span class="tag" title="' + c.name + '">' + esc(c.name) + '</span>' : ''; }
+  function formatBadge(f) { const x = D.FORMATS[f]; return x ? '<span class="tag">' + esc(x.name) + '</span>' : ''; }
+  function statusBadge(s) { const x = D.STATUSES[s] || D.STATUSES.planned; return '<span class="badge dot ' + x.cls + '">' + esc(x.name) + '</span>'; }
   function quoteHook(h) { h = String(h || ''); return /^[“"]/.test(h) ? h : '“' + h + '”'; }
   function angleName(aid) { const a = state.strategy.angles.find(a => a.id === aid); return a ? a.name : aid; }
 
@@ -419,18 +348,19 @@
   /* ---------- Shell ---------- */
   const NAV = [
     { key: 'home', href: 'index.html', label: 'Tổng quan', icon: 'home' },
-    { sep: 'Quy trình' },
-    { key: 'onboarding', href: 'onboarding.html', label: 'Bắt đầu · 5 câu', step: 1 },
-    { key: 'brand', href: 'brand.html', label: 'Hồ sơ thương hiệu', step: 2 },
-    { key: 'strategy', href: 'strategy.html', label: 'Chiến lược', step: 3 },
-    { key: 'plan', href: 'plan.html', label: 'Lịch 30 ngày', step: 4 },
-    { key: 'post', href: 'post.html', label: 'Bài viết', step: 5 },
-    { key: 'automation', href: 'automation.html', label: 'Tự động đăng', step: 6 },
+    { sep: 'Quy trình 6 bước' },
+    { key: 'onboarding', href: 'onboarding.html', label: 'Bắt đầu · 5 câu', icon: 'rocket', n: 1 },
+    { key: 'brand', href: 'brand.html', label: 'Hồ sơ thương hiệu', icon: 'brain', n: 2 },
+    { key: 'strategy', href: 'strategy.html', label: 'Chiến lược', icon: 'target', n: 3 },
+    { key: 'plan', href: 'plan.html', label: 'Lịch 30 ngày', icon: 'calendar', n: 4 },
+    { key: 'post', href: 'post.html', label: 'Bài viết', icon: 'article', n: 5 },
+    { key: 'automation', href: 'automation.html', label: 'Tự động đăng', icon: 'zap', n: 6 },
     { sep: 'Hằng tuần · hằng tháng' },
-    { key: 'review', href: 'review.html', label: 'Duyệt tuần', icon: 'checkCircle', badge: () => items().filter(i => i.content && ['generated', 'edited'].includes(i.status) && i.date >= today() && i.date <= D.addDays(today(), 6)).length },
+    { key: 'review', href: 'review.html', label: 'Duyệt tuần', icon: 'review', badge: () => reviewCount() },
     { key: 'publish', href: 'publish.html', label: 'Đăng bài này', icon: 'phone' },
     { key: 'report', href: 'report.html', label: 'Báo cáo tháng', icon: 'report' }
   ];
+  function reviewCount() { return items().filter(i => i.content && ['generated', 'edited'].includes(i.status) && i.date >= today() && i.date <= D.addDays(today(), 6)).length; }
 
   const MAP = [
     { href: 'index.html', t: 'Tổng quan', us: 'US-504 · CL-05, 13, 16' },
@@ -497,39 +427,125 @@
     const nav = NAV.map(n => {
       if (n.sep) return '<div class="nav-label">' + n.sep + '</div>';
       const cur = n.key === opts.active ? ' aria-current="page"' : '';
-      const leadFix = n.step ? '<span class="step-dot">' + n.step + '</span>' : icon(n.icon);
       const bd = n.badge ? n.badge() : 0;
-      return '<a href="' + n.href + '"' + cur + '>' + leadFix + '<span class="grow">' + n.label + '</span>' + (bd ? '<span class="badge warning">' + bd + '</span>' : '') + '</a>';
+      return '<a href="' + n.href + '"' + cur + ' title="' + esc(n.label) + '" aria-label="' + esc(n.label) + '">' + icon(n.icon) + '<span class="lbl grow">' + n.label + '</span>' +
+        (bd ? '<span class="badge">' + bd + '</span>' : (n.n ? '<span class="n">' + n.n + '</span>' : '')) + '</a>';
     }).join('');
-
-    const wrap = document.createElement('div'); wrap.className = 'shell';
-    wrap.innerHTML =
+    const rc = reviewCount();
+    const app = document.createElement('div'); app.className = 'app';
+    app.innerHTML =
+      '<header class="topbar">' +
+        '<button class="tb-btn menu-btn" data-menu aria-label="Mở menu">' + icon('menu') + '</button>' +
+        '<a class="brand" href="index.html" title="Marketing Agent — TuoiTreSoft"><img src="assets/brand/tuoitresoft-mark.png" alt="TuoiTreSoft" width="34" height="23"><span>Marketing Agent<small>by TuoiTreSoft</small></span></a>' +
+        '<button class="tb-search" type="button" data-cmdk aria-label="Tìm kiếm hoặc gõ lệnh">' + icon('search') + '<span class="grow truncate">Tìm bài viết, màn hình…</span><kbd>Ctrl K</kbd></button>' +
+        '<span class="grow"></span>' +
+        (state.sub.mode === 'trial' ? '<span class="tb-pill hide-md">' + icon('clock', 'sm') + 'Dùng thử · còn ' + trialDaysLeft() + ' ngày</span>' : '') +
+        '<span class="tb-saved hide-md" title="Mọi thay đổi được lưu tự động">' + icon('check', 'sm') + 'Đã lưu</span>' +
+        '<button class="tb-btn outline hide-sm" data-create aria-haspopup="menu">' + icon('plus', 'sm') + 'Tạo</button>' +
+        '<a class="tb-btn" href="review.html" title="Bài chờ duyệt tuần này" aria-label="Thông báo: ' + rc + ' bài chờ duyệt">' + icon('bell') + (rc ? '<span class="count">' + rc + '</span>' : '') + '</a>' +
+        '<button class="tb-btn" data-theme-toggle aria-label="Đổi giao diện sáng/tối">' + icon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon') + '</button>' +
+        '<span class="avatar round" title="TTS">TT</span>' +
+      '</header>' +
       '<aside class="sidebar" aria-label="Điều hướng chính">' +
-        '<a class="logo" href="index.html" title="Marketing Agent — TuoiTreSoft"><img class="logo-img" src="assets/brand/tuoitresoft-mark.png" alt="TuoiTreSoft" width="44" height="30"><span>Marketing Agent<small>by TuoiTreSoft</small></span></a>' +
-        '<button class="brand-switch" type="button" data-brand-switch><span class="avatar">' + esc(brandName.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()) + '</span><span class="grow"><b class="truncate" style="display:block">' + esc(brandName) + '</b><span class="subtle">' + esc((D.INDUSTRIES.find(i => i.id === state.brand.industry) || {}).name || '') + '</span></span>' + icon('down', 'sm') + '</button>' +
+        '<button class="brand-switch" type="button" data-brand-switch><span class="avatar">' + esc(brandName.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()) + '</span><span class="grow"><b class="truncate" style="display:block;font-size:13px">' + esc(brandName) + '</b><span class="subtle">' + esc((D.INDUSTRIES.find(i => i.id === state.brand.industry) || {}).name || '') + '</span></span>' + icon('down', 'sm') + '</button>' +
         '<nav class="nav">' + nav + '</nav>' +
         '<div class="sidebar-foot">' + quotaCard() + '</div>' +
       '</aside>' +
-      '<div class="main"><header class="topbar">' +
-        '<button class="btn ghost icon menu-btn" data-menu aria-label="Mở menu">' + icon('menu') + '</button>' +
-        '<div class="crumbs">' + (opts.crumbs || []).map((c, i, a) => i === a.length - 1 ? '<b class="truncate">' + esc(c) + '</b>' : '<span class="hide-sm">' + esc(c) + '</span><span class="hide-sm">' + icon('right', 'sm') + '</span>').join('') + '</div>' +
-        '<div class="grow"></div>' +
-        (state.sub.mode === 'trial' ? '<span class="badge warning hide-sm">' + icon('clock') + 'Dùng thử · còn ' + trialDaysLeft() + ' ngày</span>' : '') +
-        '<span class="badge success hide-sm" title="Mọi thay đổi được lưu tự động">' + icon('check') + 'Đã lưu</span>' +
-        '<button class="btn ghost icon" data-theme-toggle aria-label="Đổi giao diện sáng/tối">' + icon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon') + '</button>' +
-        '<span class="avatar round" title="TTS">TT</span>' +
-      '</header><div class="content ' + (opts.narrow ? 'narrow' : '') + '" id="content"></div></div>';
-    page.parentNode.insertBefore(wrap, page);
-    wrap.querySelector('#content').appendChild(page);
+      '<div class="main"><div class="frame t-' + (opts.template || 'config') + '" id="frame"><div class="content ' + (opts.narrow ? 'narrow' : '') + '" id="content"></div></div></div>';
+    page.parentNode.insertBefore(app, page);
+    app.querySelector('#content').appendChild(page);
     page.hidden = false;
 
-    wrap.querySelector('[data-menu]').onclick = () => document.body.classList.toggle('nav-open');
+    app.querySelector('[data-menu]').onclick = e => { e.stopPropagation(); document.body.classList.toggle('nav-open'); };
     document.addEventListener('click', e => { if (document.body.classList.contains('nav-open') && !e.target.closest('.sidebar') && !e.target.closest('[data-menu]')) document.body.classList.remove('nav-open'); });
-    wrap.querySelector('[data-brand-switch]').onclick = () => toast('Nhiều brand có ở gói Chuyên nghiệp — prototype chỉ có 1 brand mẫu', 'info');
-    bindThemeToggle(wrap); bindUpgrade(wrap);
+    app.querySelector('[data-brand-switch]').onclick = () => toast('Nhiều brand có ở gói Chuyên nghiệp — prototype chỉ có 1 brand mẫu', 'info');
+    app.querySelector('[data-cmdk]').onclick = cmdk;
+    app.querySelector('[data-create]').onclick = e => menu(e.currentTarget, [
+      { h: 'Tạo mới' },
+      { icon: 'rocket', label: 'Kế hoạch mới (5 câu)', href: 'onboarding.html?fresh=1' },
+      { icon: 'article', label: 'Viết bài cho một ngày', href: 'plan.html' },
+      { icon: 'photos', label: 'Thêm ảnh vào kho', href: 'brand.html#images' },
+      { sep: 1 },
+      { icon: 'review', label: 'Duyệt tuần', href: 'review.html' }
+    ]);
+    // Popover gắn body không chạy theo khung cuộn → đóng khi cuộn frame (bỏ qua 400ms đầu, §6.12)
+    const fr = app.querySelector('#frame'); let opened = 0;
+    new MutationObserver(() => { opened = Date.now(); }).observe(document.body, { childList: true });
+    fr.addEventListener('scroll', () => { if (Date.now() - opened < 400) return; document.querySelectorAll('body > .popover.regen, body > .term-pop, body > .qf-pop, body > .popover.menu').forEach(p => p.remove()); }, { passive: true });
+    bindThemeToggle(app); bindUpgrade(app);
     protoMap();
     hydrateIcons(page);
   }
+
+  /* ---------- Menu gắn nút (§6.12): fixed theo nút, canh phải khi sát mép, lật lên khi thiếu chỗ ---------- */
+  function menu(anchor, list) {
+    document.querySelectorAll('.popover.menu').forEach(p => p.remove());
+    const pop = document.createElement('div'); pop.className = 'popover menu'; pop.setAttribute('role', 'menu'); pop.style.position = 'fixed';
+    pop.innerHTML = list.map(x => x.h ? '<div class="mh">' + esc(x.h) + '</div>' : x.sep ? '<div class="msep"></div>' :
+      (x.href ? '<a class="mi" role="menuitem" href="' + x.href + '">' : '<button type="button" class="mi" role="menuitem">') + icon(x.icon || 'right') + '<span class="grow">' + esc(x.label) + '</span>' + (x.href ? '</a>' : '</button>')).join('');
+    document.body.appendChild(pop);
+    const r = anchor.getBoundingClientRect(); const w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w)) + 'px';
+    pop.style.top = (r.bottom + 6 + h > window.innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+    anchor.setAttribute('aria-expanded', 'true');
+    let i = 0; pop.querySelectorAll('button.mi').forEach(bt => { const x = list.filter(y => !y.h && !y.sep && !y.href)[i++]; bt.onclick = () => { close(); x.onClick && x.onClick(); }; });
+    const close = () => { pop.remove(); anchor.setAttribute('aria-expanded', 'false'); document.removeEventListener('mousedown', out); document.removeEventListener('keydown', key); };
+    const out = e => { if (!pop.contains(e.target) && !anchor.contains(e.target)) close(); };
+    const key = e => { if (e.key === 'Escape') { close(); anchor.focus(); } };
+    setTimeout(() => { document.addEventListener('mousedown', out); document.addEventListener('keydown', key); }, 0);
+    return { el: pop, close };
+  }
+
+  /* ---------- Panel phải (§6.10): 460px phủ + scrim, hoặc dock 400px trong vùng nội dung ---------- */
+  function drawer(opts) {
+    document.querySelectorAll('.drawer, .drawer-scrim').forEach(x => x.remove());
+    const dock = !!opts.dock && window.innerWidth >= 1240;
+    const d = document.createElement('aside'); d.className = 'drawer' + (dock ? ' dock' : ''); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', opts.title);
+    d.innerHTML = '<div class="drawer-head"><h2>' + esc(opts.title) + '</h2>' + (opts.headExtra || '') + '<button class="btn ghost sm icon" data-dclose aria-label="Đóng">' + icon('x') + '</button></div>' +
+      '<div class="drawer-body">' + (opts.body || '') + '</div>' + (opts.foot ? '<div class="drawer-foot">' + opts.foot + '</div>' : '');
+    let sc = null;
+    if (!dock) { sc = document.createElement('div'); sc.className = 'drawer-scrim'; document.body.appendChild(sc); sc.onclick = () => close(); }
+    document.body.appendChild(d);
+    const content = document.getElementById('content'); if (dock && content) content.style.paddingRight = '408px';
+    const close = () => { d.remove(); if (sc) sc.remove(); if (dock && content) content.style.paddingRight = ''; document.removeEventListener('keydown', key); opts.onClose && opts.onClose(); };
+    const key = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', key);
+    d.querySelector('[data-dclose]').onclick = close;
+    setTimeout(() => { const f = d.querySelector('[data-dclose]'); f && f.focus(); }, 30);
+    return { el: d, close };
+  }
+
+  /* ---------- Command palette (§6.17): Ctrl+K ---------- */
+  function cmdk() {
+    if (document.querySelector('.cmdk')) return;
+    const bd = document.createElement('div'); bd.className = 'cmdk-bd';
+    const box = document.createElement('div'); box.className = 'cmdk'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Tìm kiếm');
+    box.innerHTML = '<input type="text" placeholder="Tìm bài viết, màn hình… (vd: routine, duyệt, ảnh)" aria-label="Tìm"><div class="res" role="listbox"></div>';
+    document.body.appendChild(bd); document.body.appendChild(box);
+    const inp = box.querySelector('input'); const res = box.querySelector('.res'); let sel = 0, rows = [];
+    const pages = NAV.filter(n => !n.sep).map(n => ({ icon: n.icon, t: n.label, href: n.href, r: 'Màn hình' }));
+    const norm = x => String(x).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
+    function draw() {
+      const q = norm(inp.value.trim());
+      const pg = pages.filter(p => !q || norm(p.t).includes(q));
+      const posts = items().filter(i => q && (norm(i.title).includes(q) || norm(i.hook).includes(q))).slice(0, 8).map(i => ({ icon: 'article', t: 'Ngày ' + i.day + ' · ' + i.title, href: 'post.html?id=' + i.id, r: fmtDate(i.date, 'short') }));
+      rows = pg.concat(posts); if (sel >= rows.length) sel = 0;
+      res.innerHTML = (pg.length ? '<div class="mh">Đi tới</div>' + pg.map((x, k) => row(x, k)).join('') : '') +
+        (posts.length ? '<div class="mh">Bài viết</div>' + posts.map((x, k) => row(x, k + pg.length)).join('') : '') +
+        (!rows.length ? '<div class="subtle" style="padding:12px 10px">Không tìm thấy — thử từ khác.</div>' : '');
+    }
+    const row = (x, k) => '<a class="it ' + (k === sel ? 'on' : '') + '" role="option" href="' + x.href + '">' + icon(x.icon) + '<span class="truncate">' + esc(x.t) + '</span><span class="r">' + esc(x.r) + '</span></a>';
+    const close = () => { bd.remove(); box.remove(); document.removeEventListener('keydown', key); };
+    const key = e => {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(rows.length - 1, sel + 1); draw(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); draw(); }
+      else if (e.key === 'Enter' && rows[sel]) { location.href = rows[sel].href; }
+    };
+    inp.oninput = () => { sel = 0; draw(); }; bd.onclick = close; document.addEventListener('keydown', key);
+    draw(); inp.focus();
+  }
+  document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && document.querySelector('.app')) { e.preventDefault(); cmdk(); } });
 
   function bindThemeToggle(root) {
     const b = root.querySelector('[data-theme-toggle]'); if (!b) return;
@@ -591,7 +607,7 @@
     lineDiff, diffModal,
     D, get state() { return state; }, save, reset, icon, hydrateIcons, esc, fmtDate, today, dayNo, ago, items, item, poolItem,
     quoteHook, pillarBadge, channelBadge, formatBadge, statusBadge, angleName, quota, autoInfo, KIND_LABEL, copy, download, toast, modal, regenPopover, runSteps,
-    shell, bindThemeToggle, protoMap, params: new URLSearchParams(location.search),
+    shell, menu, drawer, cmdk, bindThemeToggle, protoMap, params: new URLSearchParams(location.search),
     sub, trialDaysLeft, trialIds, isLocked, regenLeft, useRegen, usePosts, postsLeft, refreshQuota, notifyText, checkText, replaceWord,
     choiceHtml, readChoice, bindChoice, imageOf, imageTile, needsImage, passCheck, whyPost, isVague, track, term, termInfo, askPush
   };

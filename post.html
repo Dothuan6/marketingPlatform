@@ -7,42 +7,49 @@
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <meta name="theme-color" content="#27AAE1">
+  <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930">
-  <script src="assets/theme.js?v=20260930"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
+  <script src="assets/theme.js?v=20260930hs"></script>
 </head>
 <body data-page="post">
 <main id="page" hidden>
-  <a class="btn ghost sm mb-3" href="plan.html" style="margin-left:-8px"><i data-icon="arrowLeft" class="sm"></i>Lịch 30 ngày</a>
-  <div class="page-header">
-    <div class="grow">
-      <div class="eyebrow" id="eyebrow"></div>
-      <h1 id="title"></h1>
-      <div class="row wrap mt-2" id="meta"></div>
-      <div class="why-line" id="why"></div>
-    </div>
-    <div class="actions">
-      <a class="btn icon" id="prev" aria-label="Ngày trước"><i data-icon="left"></i></a>
-      <a class="btn icon" id="next" aria-label="Ngày sau"><i data-icon="right"></i></a>
-      <button class="btn" id="regen"><i data-icon="refresh"></i>Tạo lại</button>
-      <button class="btn primary" id="approve"><i data-icon="check"></i>Duyệt &amp; hẹn giờ</button>
-    </div>
-  </div>
-
-  <div class="split" id="layout">
-    <div class="stack lg" id="main-col"></div>
-    <aside class="stack" id="side-col"></aside>
+  <div class="record" id="layout">
+    <aside class="rec-col rec-left">
+      <div class="card id-card">
+        <div class="id-top">
+          <a class="back-link" href="plan.html"><i data-icon="left" class="sm"></i>Lịch 30 ngày</a>
+          <div class="row" style="gap:2px"><a class="btn ghost sm icon" id="prev" aria-label="Bài ngày trước"><i data-icon="left" class="sm"></i></a><a class="btn ghost sm icon" id="next" aria-label="Bài ngày sau"><i data-icon="right" class="sm"></i></a></div>
+        </div>
+        <div class="id-main">
+          <span class="id-av" id="id-av"></span>
+          <div class="grow"><div class="eyebrow" id="eyebrow"></div><h1 id="title"></h1></div>
+        </div>
+        <div class="row wrap" id="meta" style="gap:6px"></div>
+        <div class="why-line" id="why"></div>
+        <div class="qa-row" id="qa-row">
+          <button class="qa" id="qa-copy" type="button"><span class="c"><i data-icon="copy"></i></span>Chép</button>
+          <button class="qa" id="regen" type="button"><span class="c"><i data-icon="refresh"></i></span><span class="qa-l">Tạo lại</span></button>
+          <button class="qa" id="qa-hook" type="button"><span class="c"><i data-icon="zap"></i></span>Câu mở đầu</button>
+          <button class="qa" id="qa-img" type="button"><span class="c"><i data-icon="image"></i></span>Ảnh</button>
+          <button class="qa" id="qa-sched" type="button"><span class="c"><i data-icon="send"></i></span>Lịch đăng</button>
+        </div>
+        <button class="btn primary block" id="approve"><i data-icon="check" class="sm"></i>Duyệt &amp; hẹn giờ</button>
+      </div>
+      <div id="props-card"></div>
+    </aside>
+    <div class="rec-col rec-mid" id="main-col"></div>
+    <aside class="rec-col rec-right" id="side-col"></aside>
   </div>
 </main>
 
-<script src="assets/data.js?v=20260930"></script>
-<script src="assets/app.js?v=20260930"></script>
+<script src="assets/data.js?v=20260930hs"></script>
+<script src="assets/app.js?v=20260930hs"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
-  MP.shell({ active: 'post', crumbs: ['Quy trình', 'Bài viết'] });
+  MP.shell({ active: 'post', template: 'record', crumbs: ['Quy trình', 'Bài viết'] });
 
   const all = MP.items();
   let id = Number(MP.params.get('id'));
@@ -59,18 +66,20 @@
   function head() {
     const x = it(); const k = all.findIndex(i => i.id === id);
     document.title = 'Ngày ' + x.day + ' · ' + x.title;
-    document.getElementById('eyebrow').innerHTML = `<span class="step-dot">5</span>Ngày ${x.day} · ${MP.fmtDate(x.date, 'long')}`;
+    document.getElementById('eyebrow').textContent = `Ngày ${x.day} · ${MP.fmtDate(x.date, 'long')}`;
+    const PP = D.PILLARS[x.pillar]; const av = document.getElementById('id-av'); av.style.background = 'var(--cat-' + PP.cat + ')'; av.innerHTML = icon(PP.icon);
     document.getElementById('title').textContent = x.title;
-    document.getElementById('meta').innerHTML = MP.pillarBadge(x.pillar) + MP.channelBadge(x.channel) + MP.formatBadge(x.format) + (locked() ? '<span class="badge">' + icon('lock') + 'Khoá · dùng thử</span>' : MP.statusBadge(x.status)) + (x.event ? '<span class="badge info">' + icon('star') + esc(x.event) + '</span>' : '') + (x.regen ? `<span class="badge outline">${icon('refresh')}Đã tạo lại ${x.regen} lần</span>` : '');
+    document.getElementById('meta').innerHTML = (locked() ? '<span class="badge dot">Khoá · dùng thử</span>' : MP.statusBadge(x.status)) + MP.pillarBadge(x.pillar) + (x.event ? '<span class="tag pk">' + esc(x.event) + '</span>' : '') + (x.regen ? `<span class="tag">Đã tạo lại ${x.regen} lần</span>` : '');
     document.getElementById('why').innerHTML = icon('info', 'sm') + '<span><b>Vì sao bài này?</b> ' + esc(MP.whyPost(x)) + '</span>';
     const prev = all[k - 1], next = all[k + 1];
-    const pv = document.getElementById('prev'), nx = document.getElementById('next');
+    const pv = document.getElementById('prev'), nx = document.getElementById('next'); pv.classList.toggle('is-off', !prev); nx.classList.toggle('is-off', !next);
     pv.href = prev ? 'post.html?id=' + prev.id : '#'; pv.setAttribute('aria-disabled', !prev); nx.href = next ? 'post.html?id=' + next.id : '#'; nx.setAttribute('aria-disabled', !next);
     pv.title = prev ? 'Ngày ' + prev.day + ': ' + prev.title : ''; nx.title = next ? 'Ngày ' + next.day + ': ' + next.title : '';
     const ap = document.getElementById('approve');
-    ap.hidden = !p.content || closed(); ap.innerHTML = p.status === 'approved' ? icon('check') + 'Đã duyệt' : icon('check') + 'Duyệt & hẹn giờ';
-    ap.className = 'btn ' + (p.status === 'approved' ? 'is-done' : 'primary'); ap.title = p.status === 'approved' ? 'Bấm để bỏ duyệt (huỷ hẹn)' : '';
-    const rg = document.getElementById('regen'); rg.hidden = !p.content || closed(); rg.innerHTML = icon('refresh') + 'Tạo lại <span class="subtle">· còn ' + MP.regenLeft() + '</span>';
+    ap.hidden = !p.content || closed(); ap.innerHTML = p.status === 'approved' ? icon('check', 'sm') + 'Đã duyệt · bấm để bỏ duyệt' : icon('check', 'sm') + 'Duyệt & hẹn giờ';
+    ap.className = 'btn block ' + (p.status === 'approved' ? 'is-done' : 'primary'); ap.title = p.status === 'approved' ? 'Bấm để bỏ duyệt (huỷ hẹn)' : '';
+    const rg = document.getElementById('regen'); rg.disabled = !p.content || closed(); rg.querySelector('.qa-l').textContent = 'Tạo lại · ' + MP.regenLeft();
+    ['qa-copy', 'qa-hook'].forEach(k => { document.getElementById(k).disabled = !p.content || (k === 'qa-hook' && closed()); });
   }
 
   // ---------- Kiểm tự động 2 mức (US-406, US-502, CL-06, CL-15) ----------
@@ -109,7 +118,7 @@
   function scheduleCard(x) {
     const ai = MP.autoInfo(x); const done = closed(); const C = D.CHANNELS[x.channel]; const level0 = C.level === 0 || !state.automation.connections[x.channel].connected;
     const cls = { warning: 'warning', success: 'success', danger: 'danger' }[ai.cls] || '';
-    return `<div class="card"><div class="card-head"><h3>${icon('send')}Lịch đăng</h3><a class="btn ghost sm" href="automation.html">${icon('branch', 'sm')}Workflow</a></div>
+    return `<div class="card" id="sched-card"><div class="card-head"><h3>${icon('send')}Lịch đăng</h3><a class="btn ghost sm" href="automation.html">${icon('branch', 'sm')}Workflow</a></div>
       <div class="card-body stack">
         <div class="grid c2" style="gap:10px">
           <div class="field"><label for="sch-time">Giờ đăng</label><input class="input" type="time" id="sch-time" value="${x.time}" ${done ? 'disabled' : ''}></div>
@@ -175,7 +184,7 @@
   function imageCard(x) {
     const img = MP.imageOf(x); const C = D.CHANNELS[x.channel]; const c = p.content;
     const shots = D.SHOT_LIST[x.pillar] || D.SHOT_LIST.prod;
-    return `<div class="card"><div class="card-head"><h3>${icon('image')}Ảnh</h3>${img && !closed() ? `<button class="btn sm" id="swap-img">${icon('refresh', 'sm')}Đổi ảnh</button>` : ''}</div>
+    return `<div class="card" id="img-card"><div class="card-head"><h3>${icon('image')}Ảnh</h3>${img && !closed() ? `<button class="btn sm" id="swap-img">${icon('refresh', 'sm')}Đổi ảnh</button>` : ''}</div>
       <div class="card-body"><div class="row" style="align-items:flex-start;gap:16px">
         <div style="width:150px;flex:none">${MP.imageTile(img)}</div>
         <div class="grow stack sm">${img ? `<b>${esc(img.label)}</b><div class="row wrap">${img.tags.map(t => '<span class="badge outline">' + esc(t) + '</span>').join('')}</div><p class="subtle">Tự chọn từ kho ảnh của bạn, tránh ảnh đã dùng 3 ngày gần đây.</p>`
@@ -196,13 +205,15 @@
   function render() {
     head();
     const x = it(); const main = document.getElementById('main-col'); const side = document.getElementById('side-col');
-    side.innerHTML = scheduleCard(x) + `<div class="card"><div class="card-head"><h3>${icon('info')}Thông tin</h3></div><div class="card-body"><dl class="kv" style="grid-template-columns:132px 1fr">
-        <dt>Ngày đăng</dt><dd>${MP.fmtDate(x.date, 'long')}</dd>
-        <dt>Nhóm nội dung${MP.termInfo('pillar')}</dt><dd>${MP.pillarBadge(x.pillar)}</dd>
-        <dt>Góc kể chuyện${MP.termInfo('angle')}</dt><dd>${esc(MP.angleName(x.angle))}</dd>
-        <dt>Kênh</dt><dd>${esc(D.CHANNELS[x.channel].name)}</dd>
-        <dt>Định dạng</dt><dd>${esc(D.FORMATS[x.format].name)}</dd>
-        <dt>Giọng</dt><dd>${esc(D.TONES.find(t => t.id === state.brand.tone).name)} · <a href="brand.html#voice">đổi</a></dd></dl></div></div>` +
+    document.getElementById('props-card').innerHTML = `<div class="card"><div class="card-head"><h3>${icon('down', 'sm')}Về bài này</h3><a class="btn ghost sm icon" href="strategy.html" title="Chỉnh chiến lược" aria-label="Chỉnh chiến lược">${icon('settings', 'sm')}</a></div><div class="card-body"><div class="props">
+        <div class="prop"><div class="l">Ngày đăng</div><div class="v">${MP.fmtDate(x.date, 'long')}</div></div>
+        <div class="prop"><div class="l">Nhóm nội dung${MP.termInfo('pillar')}</div><div class="v">${MP.pillarBadge(x.pillar)}</div></div>
+        <div class="prop"><div class="l">Góc kể chuyện${MP.termInfo('angle')}</div><div class="v">${esc(MP.angleName(x.angle))}</div></div>
+        <div class="prop"><div class="l">Kênh</div><div class="v">${esc(D.CHANNELS[x.channel].name)} <span class="tag">${D.CHANNELS[x.channel].level ? 'Mức 1 · tự đăng' : 'Mức 0 · đăng tay'}</span></div></div>
+        <div class="prop"><div class="l">Định dạng</div><div class="v">${esc(D.FORMATS[x.format].name)}</div></div>
+        <div class="prop"><div class="l">Giọng</div><div class="v">${esc(D.TONES.find(t => t.id === state.brand.tone).name)} <a href="brand.html#voice" style="font-size:13px;font-weight:600">Đổi</a></div></div>
+      </div><p class="subtle mt-2">Tạo lúc lập kế hoạch · lô ${esc(state.plan.lot || 'L-đầu')}</p></div></div>`;
+    side.innerHTML = scheduleCard(x) +
       (p.content ? `<div class="card"><div class="card-head"><h3>${icon('shield')}Kiểm tự động</h3></div><div class="card-body" id="checks">${checks(p.content)}</div></div>` : '');
     bindSchedule(); if (p.content) bindChecks(side);
 
@@ -294,7 +305,7 @@
   document.getElementById('regen').onclick = e => MP.regenPopover(e.currentTarget, {
     title: 'Tạo lại bài ngày ' + it().day, defaultChip: DEFAULT_CHIP[p.pillar],
     onGo: (note, chips) => {
-      const cb = document.getElementById('cap-body'); const rg = document.getElementById('regen'); rg.disabled = true; rg.innerHTML = icon('refresh') + 'Đang viết lại…';
+      const cb = document.getElementById('cap-body'); const rg = document.getElementById('regen'); rg.disabled = true; rg.querySelector('.qa-l').textContent = 'Đang viết lại…';
       cb.innerHTML = '<div class="stack"><p class="subtle">' + icon('sparkles', 'sm') + ' Đang viết lại theo hướng “' + esc(note) + '”…</p><div class="skeleton" style="width:92%"></div><div class="skeleton" style="width:80%"></div><div class="skeleton" style="width:86%"></div><div class="skeleton" style="width:50%"></div></div>';
       setTimeout(() => {
         rg.disabled = false;
@@ -324,6 +335,13 @@
     state.activity.unshift({ t: 0, icon: 'check', text: 'Duyệt bài ngày ' + x.day + ' · ' + p.title }); MP.track('post_approved', { ngày: x.day, dùng_ngay: !p.edited, loại_sửa: (p.editKinds || []).join('+') || '—' }); MP.save(); render();
     const ai = MP.autoInfo(it()); MP.toast(ai.kind === 'auto' ? 'Đã duyệt · đã hẹn ' + x.time + ' ' + MP.fmtDate(x.date, 'short') : ai.kind === 'manual' ? 'Đã duyệt · ' + x.time + ' gửi gói nhận bài để bạn đăng' : 'Đã duyệt bài ngày ' + x.day, ai.kind === 'auto' ? 'zap' : 'checkCircle');
   };
+
+  // Nút nhanh trong card định danh (§6.9)
+  document.getElementById('qa-copy').onclick = e => { if (!p.content) return; MP.copy(p.content.caption + '\n\n' + p.content.hashtags.join(' ')); if (isAutoScheduled() && !copyWarn) { copyWarn = true; render(); } };
+  document.getElementById('qa-hook').onclick = () => { const b = document.getElementById('alt-hook'); if (b && !b.hidden) { b.scrollIntoView({ behavior: 'smooth', block: 'center' }); b.click(); } };
+  const jump = sel => { const el = document.querySelector(sel); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1200); } };
+  document.getElementById('qa-img').onclick = () => jump('#img-card');
+  document.getElementById('qa-sched').onclick = () => jump('#sched-card');
 
   render();
 })();
