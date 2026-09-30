@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bài viết · Marketing Agent</title>
+  <title>Bài viết · Digital Marketing</title>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
-  <script src="assets/theme.js?v=20260930hs"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20261001cal">
+  <script src="assets/theme.js?v=20261001cal"></script>
 </head>
 <body data-page="post">
 <main id="page" hidden>
@@ -44,8 +44,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260930hs"></script>
-<script src="assets/app.js?v=20260930hs"></script>
+<script src="assets/data.js?v=20261001cal"></script>
+<script src="assets/app.js?v=20261001cal"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -103,6 +103,8 @@
     out += len >= L[0] && len <= L[1] ? row('ok', 'Độ dài phù hợp · ' + len + ' ký tự', L[2]) : row('warn', 'Độ dài ' + len + ' ký tự', L[2]);
     out += nt >= T[0] && nt <= T[1] ? row('ok', nt + ' hashtag', 'Hợp chuẩn ' + D.CHANNELS[x.channel].name) : row('warn', nt + ' hashtag', 'Nên ' + T[0] + '–' + T[1] + ' cho ' + D.CHANNELS[x.channel].name);
     out += x.flag ? row('warn', 'Gần trùng ý với ngày khác', 'Xem cảnh báo ở lịch 30 ngày') : row('ok', 'Không trùng ý bài khác', 'Độ tương đồng cao nhất 0,71');
+    const sc = MP.slotTaken(x.date, x.channel, x.time, x.id);
+    out += sc ? row('bad', 'Trùng khung giờ ' + MP.slotLabel(x.time) + ' trên ' + D.CHANNELS[x.channel].name, 'Đã có bài “' + esc(sc.title) + '” — đổi giờ ở khối Lịch đăng') : row('ok', 'Không trùng khung giờ', 'Khung ' + MP.slotLabel(x.time) + ' trên ' + D.CHANNELS[x.channel].name + ' chỉ có bài này');
     return '<div class="checks">' + out + '</div><p class="subtle mt-2">Danh sách Cấm/Cảnh báo là bản mẫu theo ngành — chờ người am hiểu quy định quảng cáo rà. <a href="brand.html#forbidden">Xem danh sách</a></p>';
   }
   function bindChecks(root) {
@@ -124,7 +126,8 @@
           <div class="field"><label for="sch-time">Giờ đăng</label><input class="input" type="time" id="sch-time" value="${x.time}" ${done ? 'disabled' : ''}></div>
           <div class="field"><label for="sch-ch">Kênh</label><select class="select" id="sch-ch" ${done ? 'disabled' : ''}>${state.plan.channels.map(c => `<option value="${c}" ${c === x.channel ? 'selected' : ''}>${D.CHANNELS[c].name} · ${D.CHANNELS[c].level ? 'tự đăng' : 'đăng tay'}</option>`).join('')}</select></div>
         </div>
-        <p class="subtle">${MP.fmtDate(x.date, 'long')} · đổi ngày ở <a href="plan.html">Lịch 30 ngày</a> · ${level0 ? 'Mức 0 — gửi gói nhận bài' : 'Mức 1 — ' + esc(C.via)}</p>
+        <div id="sch-clash"></div>
+        <p class="subtle">${MP.fmtDate(x.date, 'long')} · khung ${MP.slotLabel(x.time)}${(n => n > 1 ? ' · ngày này có ' + n + ' bài' : '')(MP.items().filter(i => i.date === x.date).length)} · đổi ngày ở <a href="plan.html?cal=day&ngay=${x.date}">Lịch</a> · ${level0 ? 'Mức 0 — gửi gói nhận bài' : 'Mức 1 — ' + esc(C.via)}</p>
         <div class="callout ${cls}">${icon(ai.icon)}<div class="grow">${esc(ai.text)}${x.status === 'published' && x.url ? ` · <a href="${x.url}" target="_blank" rel="noopener">Xem bài</a>` : ''}
           ${x.status === 'approved' && !level0 ? '<div class="row wrap mt-2"><button class="btn sm" data-self-posted>' + icon('check', 'sm') + 'Tôi đã tự đăng bài này</button><button class="btn sm ghost" id="unsched">' + icon('x', 'sm') + 'Huỷ hẹn</button></div>' : ''}
           ${level0 && x.content && x.status !== 'published' ? '<div class="mt-2"><a class="btn sm" href="publish.html?id=' + x.id + '">' + icon('phone', 'sm') + 'Xem màn “Đăng bài này”</a></div>' : ''}</div></div>
@@ -132,8 +135,25 @@
   }
   function bindSchedule() {
     const t = document.getElementById('sch-time'), c = document.getElementById('sch-ch');
-    if (t) t.onchange = () => { if (!t.value) return; p.time = t.value; if (p.status === 'approved') p.maHen = Math.random().toString(36).slice(2, 8); MP.save(); render(); MP.toast(p.status === 'approved' ? 'Đã hẹn lại ' + t.value + ' — lượt hẹn cũ tự huỷ' : 'Đổi giờ đăng thành ' + t.value); };
-    if (c) c.onchange = () => { p.channel0 = c.value; p.time = D.CHANNELS[c.value].defaultTime; if (p.content) p.content.hashtags = D.genContent(Object.assign({}, p, { channel: c.value }), state.brand, p.regen || 0).hashtags; MP.save(); render(); MP.toast('Chuyển sang ' + D.CHANNELS[c.value].name + ' · giờ gợi ý ' + p.time); };
+    // Mỗi khung giờ (1 tiếng) chỉ 1 bài trên mỗi kênh — trùng thì chặn và gợi ý khung trống gần nhất
+    const clashBox = (x, want) => {
+      const c0 = MP.slotTaken(x.date, x.channel, want, x.id); const f = MP.freeTime(x.date, x.channel, want, x.id);
+      document.getElementById('sch-clash').innerHTML = `<div class="callout danger">${icon('alert')}<div class="grow">Không đổi được sang ${want}: khung ${MP.slotLabel(want)} trên ${esc(D.CHANNELS[x.channel].name)} đã có bài <a href="post.html?id=${c0.id}">“${esc(c0.title)}”</a>. Mỗi khung giờ chỉ đăng 1 bài/kênh.
+        ${f ? `<div class="mt-2"><button class="btn sm" id="use-free">${icon('clock', 'sm')}Dùng ${f}</button> <span class="subtle">khung trống gần nhất</span></div>` : ''}</div></div>`;
+      const b = document.getElementById('use-free'); if (b) b.onclick = () => { t.value = f; t.onchange(); };
+      MP.track('slot_blocked', { bài: x.id, giờ: want });
+    };
+    if (t) t.onchange = () => {
+      const x = it(); if (!t.value || t.value === x.time) return;
+      if (MP.slotTaken(x.date, x.channel, t.value, x.id)) { const want = t.value; t.value = x.time; return clashBox(x, want); }
+      MP.setTime(p.id, t.value); MP.save(); render(); MP.toast(p.status === 'approved' ? 'Đã hẹn lại ' + p.time + ' — lượt hẹn cũ tự huỷ' : 'Đổi giờ đăng thành ' + p.time);
+    };
+    if (c) c.onchange = () => {
+      const x = it(); const nt = MP.freeTime(x.date, c.value, D.CHANNELS[c.value].defaultTime, x.id);
+      if (!nt) { c.value = x.channel; MP.toast('Ngày này đã kín mọi khung giờ trên ' + D.CHANNELS[c.value].name, 'alert'); return; }
+      p.channel0 = c.value; MP.setTime(p.id, nt); if (p.content) p.content.hashtags = D.genContent(Object.assign({}, p, { channel: c.value }), state.brand, p.regen || 0).hashtags; MP.save(); render();
+      MP.toast('Chuyển sang ' + D.CHANNELS[c.value].name + ' · giờ ' + p.time + (nt !== D.CHANNELS[c.value].defaultTime ? ' (giờ gợi ý ' + D.CHANNELS[c.value].defaultTime + ' đã có bài)' : ''));
+    };
     const u = document.getElementById('unsched');
     if (u) u.onclick = () => { p.status = p.edited ? 'edited' : 'generated'; p.maHen = null; MP.save(); render(); MP.toast('Đã huỷ hẹn — bài không tự đăng. Duyệt lại để hẹn giờ mới', 'x'); };
   }

@@ -1,5 +1,5 @@
 /* =========================================================================
-   Marketing Agent — Prototype
+   Digital Marketing — Prototype
    Theme HubSpot (DESIGN-SYSTEM-HUBSPOT.md v1.0, `data-brand="crm"`) trên nền
    DESIGN-SYSTEM.md của XBuild ERP: token 3 tầng · component-first · Material Symbols.
    Giá trị ở đây = theme CRM; tên biến semantic giữ nguyên để map sang @xbuild/ui.
@@ -959,3 +959,90 @@ body.plain { background: var(--surface); }
 .flash { animation: flash 1.2s ease; }
 @keyframes flash { 0%, 40% { box-shadow: 0 0 0 3px var(--primary); } 100% { box-shadow: 0 0 0 0 transparent; } }
 .rec-mid .card-head h3 { font-size: 15px; }
+
+/* ===== Lịch tháng · tuần · ngày + chiến dịch (01/10) ===== */
+.cal-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 16px; border-top: 1px solid var(--border); }
+.cal-title { font-size: 15px; font-weight: 700; margin-left: 4px; }
+.cal-bar .segmented button { height: 28px; padding: 0 12px; font-size: 13px; }
+.cal.month { border-left: 0; }
+.cal.month .cal-d { min-height: 128px; gap: 3px; position: relative; }
+.cal-d.np { background: var(--surface-2); }
+.cal-d.np .dn { opacity: .55; }
+.cal-n { align-items: center; gap: 4px; padding: 0 2px; }
+.cal-n .dn { background: none; border: 0; padding: 2px 6px; border-radius: var(--p-radius-full); font: inherit; font-weight: 700; color: var(--text); cursor: pointer; }
+.cal-n .dn:hover { background: var(--surface-sunken); }
+.cal-d.today .dn { background: var(--primary); color: #fff; }
+.cal-n .cnt { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--primary-soft-text); background: var(--primary-soft); padding: 1px 6px; border-radius: var(--p-radius-full); }
+.cal-n > span:not(.cnt) { margin-left: auto; }
+.cal-n .add { width: 22px; height: 22px; border-radius: 6px; border: 0; background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; opacity: 0; }
+.cal-d:hover .add, .cal-n .add:focus-visible { opacity: 1; }
+.cal-n .add:hover { background: var(--surface-sunken); color: var(--text); }
+.ev { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 3px 6px; border-radius: 6px; font-size: 12px; line-height: 1.3; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--c, var(--border-strong)); text-decoration: none; cursor: pointer; }
+.ev:hover { text-decoration: none; border-color: var(--border-strong); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.12)); }
+.ev.edu { --c: var(--cat-1); } .ev.prod { --c: var(--cat-2); } .ev.proof { --c: var(--cat-3); } .ev.fun { --c: var(--cat-4); }
+.ev.cp { background: color-mix(in srgb, var(--cp) 9%, var(--surface)); }
+.ev.cp.c5, .cp-band.c5, .cp-dot.c5, .tag.cp.c5 { --cp: var(--cat-5); } .ev.cp.c6, .cp-band.c6, .cp-dot.c6, .tag.cp.c6 { --cp: var(--cat-6); } .ev.cp.c7, .cp-band.c7, .cp-dot.c7, .tag.cp.c7 { --cp: var(--cat-7); }
+.ev.clash { border-color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
+.ev.dragging { opacity: .45; }
+.ev .tm { font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
+.ev .chn { flex: none; font-size: 10.5px; font-weight: 700; color: var(--text-2); background: var(--surface-sunken); border-radius: 4px; padding: 0 4px; }
+.ev .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-d .more { background: none; border: 0; padding: 2px 6px; text-align: left; font: inherit; font-size: 12px; font-weight: 600; color: var(--link); cursor: pointer; }
+.cp-band { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #fff; background: var(--cp); border-radius: 4px; padding: 1px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cp-band.c5 { color: var(--cat-5-fg); }
+.cp-band .ic { font-size: 13px; }
+.cp-band.inline { display: inline-flex; height: 22px; }
+.tag.cp { background: color-mix(in srgb, var(--cp) 14%, var(--surface)); color: var(--text); border-radius: 4px; }
+.tag.cp .ic { color: var(--cp); }
+.cp-dot { width: 12px; height: 12px; border-radius: 3px; background: var(--cp); flex: none; }
+.badge.sm { height: 18px; font-size: 11px; padding: 0 6px; }
+.badge.sm .ic { font-size: 12px; }
+
+/* Lưới giờ (tuần/ngày) */
+.tg-wrap { overflow: auto; max-height: 720px; border-top: 1px solid var(--border); }
+.tg { display: grid; grid-template-columns: 56px repeat(var(--cols), minmax(0, 1fr)); }
+.tg.week { min-width: 820px; }
+.tg.day { min-width: calc(56px + var(--cols) * 220px); }
+.tg-c, .tg-h { position: sticky; top: 0; z-index: 2; background: var(--surface); border-bottom: 1px solid var(--border); }
+.tg-c { left: 0; z-index: 3; }
+.tg-h { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 8px 4px; border: 0; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); font: inherit; color: var(--text-2); cursor: pointer; }
+.tg-h.ch { cursor: default; align-items: flex-start; padding: 8px 10px; }
+.tg-h b { font-size: 15px; color: var(--text); }
+.tg-h span { font-size: 12px; font-weight: 600; }
+.tg-h small { font-size: 11px; }
+.tg-h.today b { color: #fff; background: var(--primary); border-radius: var(--p-radius-full); padding: 0 8px; }
+.tg-h.np b { opacity: .5; }
+.tg-h:not(.ch):hover { background: var(--surface-2); }
+.tg-t { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 11px; color: var(--text-2); text-align: right; padding: 4px 8px 0 0; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.tg-s { min-height: 46px; padding: 3px; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; min-width: 0; position: relative; }
+.tg-s.np { background: var(--surface-2); }
+.tg-s.today { background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
+.tg-s.over { background: var(--primary-soft); box-shadow: inset 0 0 0 2px var(--primary); }
+.tg.week .ev { flex-direction: column; align-items: stretch; gap: 1px; padding: 3px 5px; }
+.tg.day .ev { flex-direction: column; align-items: stretch; gap: 3px; padding: 6px 8px; }
+.tg.day .ev .t { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; }
+.tg .row { flex-wrap: wrap; }
+.add-s { position: absolute; inset: 2px; border: 1px dashed transparent; border-radius: 6px; background: none; color: var(--text-2); font: inherit; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; opacity: 0; }
+.tg-s:hover .add-s, .add-s:focus-visible { opacity: 1; border-color: var(--border-strong); }
+.add-s:hover { background: var(--surface-2); color: var(--text); }
+.day-sum { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; font-size: 13px; color: var(--text-2); border-top: 1px solid var(--border); }
+.day-sum b { color: var(--text); }
+.day-sum .btn { margin-left: auto; }
+
+/* Modal chiến dịch */
+.camp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.camp-prev { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 470px; overflow: auto; }
+.rep-mini { font-size: 13px; color: var(--text-2); }
+.rep-mini .big { font-size: 28px; color: var(--text); margin-right: 4px; }
+.cp-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; min-width: 0; }
+.cp-row b { font-variant-numeric: tabular-nums; width: 42px; flex: none; }
+.cp-row .subtle { flex: none; font-size: 12px; }
+.camp-row + .camp-row { padding-top: 10px; border-top: 1px solid var(--border); }
+@media (max-width: 760px) {
+  .camp-grid { grid-template-columns: 1fr; }
+  .cal.month .cal-d { min-height: 84px; padding: 3px; }
+  .cal.month .ev .t, .cal.month .ev .chn, .cal.month .cp-band { display: none; }
+  .cal.month .ev { padding: 2px 4px; font-size: 11px; }
+  .cal-bar { padding: 10px 12px; }
+  .cal-title { width: 100%; order: -1; margin: 0; }
+}

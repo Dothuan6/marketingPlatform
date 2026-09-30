@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chiến lược · Marketing Agent</title>
+  <title>Chiến lược · Digital Marketing</title>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
-  <script src="assets/theme.js?v=20260930hs"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20261001cal">
+  <script src="assets/theme.js?v=20261001cal"></script>
 </head>
 <body data-page="strategy">
 <main id="page" hidden>
@@ -67,8 +67,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260930hs"></script>
-<script src="assets/app.js?v=20260930hs"></script>
+<script src="assets/data.js?v=20261001cal"></script>
+<script src="assets/app.js?v=20261001cal"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -253,7 +253,9 @@
   document.getElementById('reset-pillars').onclick = () => { draftP = [{ id: 'edu', ratio: 40 }, { id: 'prod', ratio: 30 }, { id: 'proof', ratio: 20 }, { id: 'fun', ratio: 10 }]; renderPillars(); };
   document.getElementById('apply').onclick = () => {
     S.pillars = draftP.map(p => Object.assign({}, p)); state.plan.channels = draftCh.slice(); state.plan.frequency = draftF;
-    state.plan.schedule = D.buildSchedule(state.plan.pool, S.pillars, draftF, state.plan.start);
+    // Bài chiến dịch / bài thêm tay giữ nguyên ngày giờ; chỉ lập lại phần lịch thường, rồi tự dời nếu trùng khung giờ
+    const keep = state.plan.schedule.filter(x => { const q = MP.poolItem(x.id); return q && (q.campaign || q.added); });
+    state.plan.schedule = D.buildSchedule(state.plan.pool.filter(q => !q.campaign && !q.added), S.pillars, draftF, state.plan.start).concat(keep); MP.autoFixSlots();
     state.activity.unshift({ t: 0, icon: 'layers', text: `Cập nhật nhóm nội dung & tần suất ${draftF} bài/tuần` });
     MP.save(); renderPillars(); renderAngles();
     MP.toast('Đã lập lại lịch: ' + state.plan.schedule.length + ' bài');

@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tự động đăng bài · Marketing Agent</title>
+  <title>Tự động đăng bài · Digital Marketing</title>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
-  <script src="assets/theme.js?v=20260930hs"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20261001cal">
+  <script src="assets/theme.js?v=20261001cal"></script>
 </head>
 <body data-page="automation">
 <main id="page" hidden>
@@ -57,8 +57,8 @@
   <section data-panel="runs" hidden><div class="card"><div class="table-wrap" id="runs"></div></div></section>
 </main>
 
-<script src="assets/data.js?v=20260930hs"></script>
-<script src="assets/app.js?v=20260930hs"></script>
+<script src="assets/data.js?v=20261001cal"></script>
+<script src="assets/app.js?v=20261001cal"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -83,7 +83,7 @@
       { id: 'wait', kind: 'trigger', icon: 'clock', title: 'Chờ đến giờ đăng', desc: 'Lượt chạy nhớ mã hẹn lúc bắt đầu rồi ngủ tới giờ đăng' },
       { id: 'recheck', kind: 'cond', icon: 'branch', title: 'Bài vẫn đúng lịch hẹn?', desc: 'Đọc lại chính bài đó: còn “Đã duyệt” và mã hẹn không đổi', yes: 'Đúng',
         branch: { label: 'Không', text: 'Thoát lặng lẽ — bạn đã đổi giờ (có lượt hẹn mới hơn) hoặc đã huỷ hẹn. Không bao giờ đăng hai lần.' } },
-      { id: 'checks', kind: 'action', icon: 'shield', title: 'Kiểm tra trước khi đăng', desc: 'Từ Cấm · cảnh báo đã xác nhận · có ảnh nếu kênh bắt buộc · độ dài', yes: 'Đạt',
+      { id: 'checks', kind: 'action', icon: 'shield', title: 'Kiểm tra trước khi đăng', desc: 'Từ Cấm · cảnh báo đã xác nhận · có ảnh nếu kênh bắt buộc · độ dài · không trùng khung giờ trên kênh (1 bài/khung 1 tiếng)', yes: 'Đạt',
         branch: { label: 'Không đạt', text: 'Tạm dừng bài này, báo bạn lý do + gợi ý sửa 1 chạm.' } },
       { id: 'channel', kind: 'cond', icon: 'plug', title: 'Kênh tự đăng được (Mức 1)?', desc: 'Facebook/Instagram qua app Meta của TTS, token còn hạn', yes: 'Mức 1',
         branch: { label: 'Mức 0 · đăng tay', text: 'Gửi gói nhận bài qua ' + MP.notifyText() + ' (link “Đăng bài này”). Mở link → Đã nhận. Quá giờ 30 phút chưa đăng → nhắc 1 lần: “Đã đăng / Bỏ qua”.' + (lv0.length ? ' Hiện áp dụng cho ' + lv0.join(', ') + '.' : '') } },
@@ -272,7 +272,7 @@
   function connect(k) {
     const ch = D.CHANNELS[k]; const info = CONN_INFO[k];
     const m = MP.modal({ title: 'Kết nối ' + ch.name, subtitle: 'Bước 1: đăng nhập ' + ch.name + ' (mô phỏng) · Bước 2: chọn tài khoản',
-      body: `<div class="stack"><div class="callout">${icon('shield')}<div>Qua app Meta của công ty TTS. Marketing Agent chỉ xin quyền: <b>${esc(info.perm)}</b>. Không đọc tin nhắn, không xem dữ liệu cá nhân.</div></div>
+      body: `<div class="stack"><div class="callout">${icon('shield')}<div>Qua app Meta của công ty TTS. Digital Marketing chỉ xin quyền: <b>${esc(info.perm)}</b>. Không đọc tin nhắn, không xem dữ liệu cá nhân.</div></div>
         <div class="stack sm">${info.pages.map((p, i) => `<label class="radio-card"><input type="radio" name="pg" value="${esc(p)}" ${i === 0 ? 'checked' : ''}><span><b>${esc(p)}</b><div class="subtle">${ch.account}</div></span></label>`).join('')}</div></div>`,
       foot: '<button class="btn" data-close>Huỷ</button><button class="btn primary" data-ok>' + icon('check', 'sm') + 'Cấp quyền & kết nối</button>' });
     m.el.querySelector('[data-ok]').onclick = () => {

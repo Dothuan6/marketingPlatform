@@ -49,10 +49,112 @@
       if (!ch.includes(it.channel0)) it.channel = ch[0] || it.channel0; else it.channel = it.channel0;
       it.time = it.time || D.CHANNELS[it.channel].defaultTime;
       return it;
-    }).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    }).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.time < b.time ? -1 : a.time > b.time ? 1 : 0);
   }
   function poolItem(id) { return state.plan.pool.find(p => p.id === Number(id)); }
   function item(id) { return items().find(p => p.id === Number(id)); }
+
+  /* ---------- Khung giờ & chiến dịch ----------
+     Quy tắc: trên MỘT kênh, mỗi khung giờ (1 tiếng, vd 19:00–19:59) chỉ có 1 bài.
+     Một ngày được nhiều bài (khác khung giờ hoặc khác kênh). Chiến dịch tạo nhiều bài/ngày, vẫn theo quy tắc này.
+     Bản thật: ràng buộc UNIQUE (kênh, ngày, khung giờ) trên Collection Bài viết + bước kiểm trong workflow trước khi đăng. */
+  const SLOT_FROM = 6, SLOT_TO = 23;
+  const pad2 = n => String(n).padStart(2, '0');
+  const slotOf = t => Number(String(t || '00').slice(0, 2));
+  const slotLabel = t => { const h = slotOf(t); return pad2(h) + ':00–' + pad2(h) + ':59'; };
+  function slotTaken(date, channel, time, exceptId) {
+    return items().find(i => i.id !== Number(exceptId) && i.date === date && i.channel === channel && slotOf(i.time) === slotOf(time) && i.status !== 'skipped') || null;
+  }
+  // Giờ trống gần nhất trên kênh đó (ưu tiên sau giờ mong muốn), null nếu cả ngày đã kín
+  function freeTime(date, channel, pref, exceptId, taken) {
+    const h0 = Math.min(SLOT_TO, Math.max(SLOT_FROM, slotOf(pref))); const mm = String(pref || '').slice(3, 5) || '00';
+    const busy = h => (taken && taken.has(date + '|' + channel + '|' + h)) || slotTaken(date, channel, pad2(h) + ':00', exceptId);
+    for (let d = 0; d <= SLOT_TO - SLOT_FROM; d++) for (const s of d ? [1, -1] : [1]) {
+      const h = h0 + d * s; if (h < SLOT_FROM || h > SLOT_TO) continue;
+      if (!busy(h)) return pad2(h) + ':' + (d ? '00' : mm);
+    }
+    return null;
+  }
+  function slotConflicts() {
+    const map = {}; items().forEach(i => { if (i.status === 'skipped') return; const k = i.date + '|' + i.channel + '|' + slotOf(i.time); (map[k] = map[k] || []).push(i); });
+    return Object.values(map).filter(g => g.length > 1);
+  }
+  function setTime(id, t) { const p = poolItem(id); if (p.time === t) return; p.time = t; if (p.status === 'approved') p.maHen = Math.random().toString(36).slice(2, 8); }
+  function autoFixSlots() {
+    let n = 0; slotConflicts().forEach(g => g.slice(1).forEach(it => { if (it.status === 'published') return; const t = freeTime(it.date, it.channel, it.time, it.id); if (t) { setTime(it.id, t); n++; } })); return n;
+  }
+  // Đặt bài vào ngày/giờ/kênh. strict: khung đã có bài → chặn; không strict → tự dời sang khung trống gần nhất
+  function placeItem(id, date, time, opts) {
+    opts = opts || {}; const it = item(id); const ch = opts.channel || it.channel; const want = time || it.time;
+    const clash = slotTaken(date, ch, want, id);
+    if (clash && opts.strict) return { ok: false, clash, channel: ch, time: want };
+    const t = clash ? freeTime(date, ch, want, id) : want;
+    if (!t) return { ok: false, full: true, clash, channel: ch, time: want };
+    state.plan.schedule.find(x => x.id === Number(id)).date = date;
+    if (opts.channel && opts.channel !== it.channel) poolItem(id).channel0 = opts.channel;
+    setTime(id, t);
+    return { ok: true, time: t, shifted: !!clash, clash, channel: ch };
+  }
+  function slotMsg(r) { return 'Khung ' + slotLabel(r.time) + ' trên ' + D.CHANNELS[r.channel].name + ' đã có bài “' + (r.clash ? r.clash.title : '') + '”. Mỗi khung giờ chỉ 1 bài/kênh.'; }
+
+  const CAMP_COLORS = [6, 7, 5];
+  function campaign(id) { return (state.campaigns || []).find(c => c.id === id); }
+  function campaignTag(p) { const c = p && p.campaign && campaign(p.campaign); return c ? '<span class="tag cp c' + c.color + '" title="Chiến dịch">' + icon('campaign') + esc(c.name) + '</span>' : ''; }
+  function newPost(f) {
+    const pool = state.plan.pool; const id = pool.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+    const p = { id, pillar: f.pillar || 'prod', angle: f.angle || 'A1', channel: f.channel, channel0: f.channel, format: f.format || 'post', title: f.title, hook: f.hook || '', status: 'planned', regen: 0, edited: false, time: f.time, added: true };
+    if (f.campaign) p.campaign = f.campaign;
+    p.imageId = D.pickImage(p); pool.push(p); state.plan.schedule.push({ id, date: f.date }); return p;
+  }
+  function removeCampaign(cid) {
+    const ids = state.plan.pool.filter(p => p.campaign === cid && p.status !== 'published').map(p => p.id);
+    state.plan.pool = state.plan.pool.filter(p => !ids.includes(p.id)); state.plan.schedule = state.plan.schedule.filter(s => !ids.includes(s.id));
+    state.plan.pool.forEach(p => { if (p.campaign === cid) p.campaign = null; });
+    state.campaigns = state.campaigns.filter(c => c.id !== cid); return ids.length;
+  }
+  // Tiêu đề bài chiến dịch — xoay vòng theo vị trí trong ngày
+  function campaignPosts(c, opts) {
+    opts = opts || {}; const out = []; const taken = new Set(); let shifted = 0, dropped = 0;
+    const product = (state.brand.answers.q2 && state.brand.answers.q2.value) || 'sản phẩm';
+    const days = []; for (let d = c.from; d <= c.to; d = D.addDays(d, 1)) days.push(d);
+    const OPEN = ['prod', 'Mở màn', [c.name + ': bắt đầu từ hôm nay — ' + c.offer, 'Chờ cả tháng cho đúng hôm nay: ' + c.offer + '.']];
+    const LAST = ['prod', 'Chốt đơn', ['Giờ chót ' + c.name + ': ' + c.offer + ' đến 23:59', 'Tối nay là hết — chốt đơn trước 23:59 nha.']];
+    const MID = [
+      ['proof', 'Chứng thực', ['Khách nói gì về ' + product + ' — trước giờ ' + c.name, '“Mua dịp này năm ngoái, giờ mình quay lại mua thêm 2 món.”'], ['Ảnh khách thật đeo ' + product + ' mùa ' + c.name, 'Không filter — đây là ảnh khách gửi tụi mình tuần này.']],
+      ['prod', 'Sản phẩm', [product + ' trong ' + c.name + ': ' + c.offer, 'Món đáng săn nhất ' + c.name + ' — xem vì sao.'], ['3 món bán chạy nhất ' + c.name + ' (kèm giá sau ưu đãi)', 'Chưa biết chọn gì? Bắt đầu từ 3 món này.']],
+      ['fun', 'Tương tác', ['Bình luận “' + c.name + '” — nhận mã ưu đãi riêng', 'Chỉ 1 bình luận, mã ưu đãi gửi tận inbox.'], ['Mini game ' + c.name + ': đoán giá — trúng quà', 'Đoán đúng giá sau ưu đãi, nhận quà tận nhà.']],
+      ['prod', 'Đếm ngược', ['Đếm ngược ' + c.name + ': ' + c.offer, 'Còn vài giờ nữa thôi — đừng để giỏ hàng chờ.'], ['Nhắc nhẹ: ' + c.name + ' vẫn đang chạy — ' + c.offer, 'Lưu bài này lại để không lỡ ưu đãi.']]
+    ];
+    const total = days.length * c.times.length;
+    days.forEach((date, di) => {
+      c.times.forEach((time, ti) => c.channels.forEach(ch => {
+        let t = time; const k = date + '|' + ch + '|' + slotOf(time);
+        const clash = taken.has(k) || slotTaken(date, ch, time);
+        if (clash) { if (opts.onClash === 'skip') { dropped++; return; } t = freeTime(date, ch, time, null, taken); if (!t) { dropped++; return; } shifted++; }
+        taken.add(date + '|' + ch + '|' + slotOf(t));
+        const pos = di * c.times.length + ti; let tp;
+        if (pos === 0 && total > 1) tp = [OPEN[0], OPEN[1], OPEN[2]];
+        else if (pos === total - 1) tp = [LAST[0], LAST[1], LAST[2]];
+        else { const m = MID[(pos - 1 + MID.length) % MID.length]; const v = Math.floor((pos - 1) / MID.length) % 2; tp = [m[0], m[1], m[2 + v]]; }
+        const [title, hook] = tp[2];
+        out.push({ date, time: t, channel: ch, pillar: tp[0], role: tp[1], title: c.channels.length > 1 && ch !== c.channels[0] ? title + ' · ' + D.CHANNELS[ch].short : title, hook, format: ch === 'instagram' ? 'carousel' : 'post', angle: 'A1', campaign: c.id });
+      }));
+    });
+    return { posts: out, shifted, dropped };
+  }
+  function createCampaign(c, opts) {
+    state.campaigns = state.campaigns || []; c.id = c.id || 'cp-' + Date.now().toString(36); c.color = c.color || CAMP_COLORS[state.campaigns.length % CAMP_COLORS.length];
+    const r = campaignPosts(c, opts); r.posts.forEach(f => newPost(f)); c.count = r.posts.length; state.campaigns.push(c); return r;
+  }
+  // Chiến dịch mẫu (chỉ tạo 1 lần cho dữ liệu demo): 2 ngày cuối tuần, 3 bài/ngày trên Facebook
+  if (!state.campaigns) {
+    state.campaigns = [];
+    if (!state.firstRun && state.plan && state.plan.pool) {
+      let d = D.addDays(today(), 5); while (new Date(d + 'T00:00:00').getDay() !== 6) d = D.addDays(d, 1);
+      if (d < D.addDays(state.plan.start, 29)) createCampaign({ name: 'Flash sale cuối tuần', from: d, to: D.addDays(d, 1), times: ['08:00', '12:00', '21:00'], channels: ['facebook'], offer: 'giảm 20% toàn bộ nhẫn bạc' });
+    }
+    save();
+  }
 
   function pillarBadge(pid, short) {
     const p = D.PILLARS[pid]; if (!p) return '';
@@ -229,11 +331,13 @@
     if (it.date < today() || (it.date === today() && it.time < hm)) return { kind: 'missed', icon: 'clock', cls: 'warning', text: 'Đã qua giờ đăng ' + when + (it.status === 'approved' ? ' — bấm Đăng ngay hoặc đổi giờ' : ' — bài chưa được duyệt nên chưa đăng') };
     if (!it.content) return { kind: 'nocontent', icon: 'sparkles', cls: '', text: 'Chưa có nội dung — sinh bài trước ' + when };
     if (needsImage(it) && !it.imageId) return { kind: 'noimage', icon: 'camera', cls: 'warning', text: 'Thiếu ảnh — ' + ch + ' không đăng được bài không ảnh. Thêm ảnh trước ' + when };
+    const sc = slotTaken(it.date, it.channel, it.time, it.id);
+    if (sc && sc.id < it.id) return { kind: 'slot', icon: 'alert', cls: 'danger', text: 'Trùng khung ' + slotLabel(it.time) + ' trên ' + ch + ' với bài “' + sc.title + '” — bài này sẽ không tự đăng, đổi giờ giúp nhé' };
     if (it.status !== 'approved') return { kind: 'approval', icon: 'clock', cls: 'warning', text: 'Chờ bạn duyệt — có trong Duyệt tuần, nhắc thêm 1 lần trước giờ đăng qua ' + notifyText() };
     if (level0) return { kind: 'manual', icon: 'phone', cls: 'warning', text: ch + ' đăng tay (Mức 0) — ' + when + ' gửi gói nhận bài qua ' + notifyText() + ', bạn đăng trong 5 chạm' };
     return { kind: 'auto', icon: 'zap', cls: 'primary', text: 'Đã hẹn ' + when + ' · tự đăng lên ' + ch + (con.account ? ' (' + con.account + ')' : '') };
   }
-  const KIND_LABEL = { auto: 'Đã hẹn', approval: 'Chờ duyệt', manual: 'Đăng tay', nocontent: 'Chưa có bài', off: 'Tắt', missed: 'Quá giờ', failed: 'Lỗi', done: 'Đã đăng', received: 'Đã nhận', needcheck: 'Cần kiểm tra', noimage: 'Thiếu ảnh', locked: 'Khoá (dùng thử)', skipped: 'Bỏ qua' };
+  const KIND_LABEL = { auto: 'Đã hẹn', approval: 'Chờ duyệt', manual: 'Đăng tay', nocontent: 'Chưa có bài', off: 'Tắt', missed: 'Quá giờ', failed: 'Lỗi', done: 'Đã đăng', received: 'Đã nhận', needcheck: 'Cần kiểm tra', noimage: 'Thiếu ảnh', locked: 'Khoá (dùng thử)', skipped: 'Bỏ qua', slot: 'Trùng khung giờ' };
 
   function copy(text, btn) {
     const done = () => {
@@ -395,7 +499,7 @@
   function refreshQuota() { const f = document.querySelector('.sidebar-foot'); if (f) { f.innerHTML = quotaCard(); bindUpgrade(f); } }
   function bindUpgrade(root) {
     root.querySelectorAll('[data-upgrade]').forEach(b => b.onclick = () => {
-      const m = modal({ title: 'Tiếp tục dùng Marketing Agent', subtitle: 'Chọn gói để mở nội dung 23 bài còn lại của kế hoạch 30 ngày.',
+      const m = modal({ title: 'Tiếp tục dùng Digital Marketing', subtitle: 'Chọn gói để mở nội dung 23 bài còn lại của kế hoạch 30 ngày.',
         body: '<div class="stack">' + [['Cơ bản', '299k', '30 bài · 15 lần tạo lại / tháng'], ['Chuyên nghiệp', '599k', '60 bài · 30 lần tạo lại / tháng · tự đăng FB/IG']].map((p, i) => '<label class="radio-card"><input type="radio" name="plan" ' + (i ? 'checked' : '') + '><span><b>' + p[0] + ' · ' + p[1] + '/tháng</b><div class="subtle">' + p[2] + '</div></span></label>').join('') +
           '<p class="subtle">Prototype: bấm tiếp tục sẽ chuyển sang trạng thái “đã trả phí”.</p></div>',
         foot: '<button class="btn" data-close>Để sau</button><button class="btn primary" data-ok>Tiếp tục</button>' });
@@ -436,7 +540,7 @@
     app.innerHTML =
       '<header class="topbar">' +
         '<button class="tb-btn menu-btn" data-menu aria-label="Mở menu">' + icon('menu') + '</button>' +
-        '<a class="brand" href="index.html" title="Marketing Agent — TuoiTreSoft"><img src="assets/brand/tuoitresoft-mark.png" alt="TuoiTreSoft" width="34" height="23"><span>Marketing Agent<small>by TuoiTreSoft</small></span></a>' +
+        '<a class="brand" href="index.html" title="Digital Marketing — TuoiTreSoft"><img src="assets/brand/tuoitresoft-mark.png" alt="TuoiTreSoft" width="34" height="23"><span>Digital Marketing<small>by TuoiTreSoft</small></span></a>' +
         '<button class="tb-search" type="button" data-cmdk aria-label="Tìm kiếm hoặc gõ lệnh">' + icon('search') + '<span class="grow truncate">Tìm bài viết, màn hình…</span><kbd>Ctrl K</kbd></button>' +
         '<span class="grow"></span>' +
         (state.sub.mode === 'trial' ? '<span class="tb-pill hide-md">' + icon('clock', 'sm') + 'Dùng thử · còn ' + trialDaysLeft() + ' ngày</span>' : '') +
@@ -464,6 +568,7 @@
       { h: 'Tạo mới' },
       { icon: 'rocket', label: 'Kế hoạch mới (5 câu)', href: 'onboarding.html?fresh=1' },
       { icon: 'article', label: 'Viết bài cho một ngày', href: 'plan.html' },
+      { icon: 'campaign', label: 'Chiến dịch (nhiều bài/ngày)', href: 'plan.html?camp=new' },
       { icon: 'photos', label: 'Thêm ảnh vào kho', href: 'brand.html#images' },
       { sep: 1 },
       { icon: 'review', label: 'Duyệt tuần', href: 'review.html' }
@@ -605,7 +710,7 @@
 
   window.MP = {
     lineDiff, diffModal,
-    D, get state() { return state; }, save, reset, icon, hydrateIcons, esc, fmtDate, today, dayNo, ago, items, item, poolItem,
+    D, get state() { return state; }, save, reset, icon, SLOT_FROM, SLOT_TO, pad2, slotOf, slotLabel, slotTaken, freeTime, slotConflicts, autoFixSlots, placeItem, slotMsg, setTime, campaign, campaignTag, newPost, removeCampaign, campaignPosts, createCampaign, hydrateIcons, esc, fmtDate, today, dayNo, ago, items, item, poolItem,
     quoteHook, pillarBadge, channelBadge, formatBadge, statusBadge, angleName, quota, autoInfo, KIND_LABEL, copy, download, toast, modal, regenPopover, runSteps,
     shell, menu, drawer, cmdk, bindThemeToggle, protoMap, params: new URLSearchParams(location.search),
     sub, trialDaysLeft, trialIds, isLocked, regenLeft, useRegen, usePosts, postsLeft, refreshQuota, notifyText, checkText, replaceWord,

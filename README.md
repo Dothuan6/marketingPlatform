@@ -1,11 +1,23 @@
-# Marketing Agent — Prototype MVP (HTML tĩnh)
+# Digital Marketing — Prototype MVP (HTML tĩnh)
 
-Prototype bấm được cho **Phase 1 (MVP)** của nền tảng Marketing Agent cho SME, bám theo bộ tài liệu `00-ROADMAP.md` → `20-RUI-RO-VA-QUYET-DINH-MO.md`.
+Prototype bấm được cho **Phase 1 (MVP)** của nền tảng Digital Marketing cho SME, bám theo bộ tài liệu `00-ROADMAP.md` → `20-RUI-RO-VA-QUYET-DINH-MO.md`.
 
 - Thuần HTML/CSS/JS, **không có bước build**, không framework.
 - Dữ liệu mẫu: thương hiệu **Phát Đạt Jewelry** (ngành Trang sức & Phụ kiện — trang sức bạc nữ S925 đính đá CZ lấp lánh, giá mềm: nhẫn, lắc tay, bông tai, dây chuyền). Đổi từ Mộc Lan Cosmetics ngày 30/09/2026.
 - **Không gọi AI thật** — nội dung "AI sinh" được ghép từ mẫu viết sẵn trong `assets/data.js`.
 - Thay đổi của người xem được lưu trong trình duyệt (localStorage). Nút **Bản đồ prototype → Đặt lại dữ liệu demo** để về trạng thái ban đầu.
+
+## Cập nhật 01/10/2026 — tên hệ thống, khung giờ, chiến dịch, lịch 3 kiểu xem
+
+- **Tên hệ thống:** Digital Marketing (by TuoiTreSoft).
+- **Quy tắc khung giờ:** trên **một kênh**, mỗi khung giờ **1 tiếng** (vd 19:00–19:59) chỉ có **1 bài**. Một ngày được nhiều bài (khác khung giờ hoặc khác kênh). Được chặn/kiểm ở mọi chỗ đổi giờ:
+  - Bài viết → khối Lịch đăng: đổi giờ trùng thì chặn và gợi ý khung trống gần nhất; đổi kênh thì tự chọn giờ trống; thêm dòng kiểm “Không trùng khung giờ”.
+  - Lịch: kéo-thả trên **Tuần/Ngày** vào khung đã có bài thì chặn; kéo trên **Tháng** giữ giờ, trùng thì tự dời sang khung trống gần nhất; kéo đổi ngày trong Bảng cũng tự dời.
+  - Dữ liệu cũ có trùng → cảnh báo đỏ ở Lịch 30 ngày + nút “Tự dời sang khung trống gần nhất”; hàng đợi Tự động đăng hiện trạng thái “Trùng khung giờ” (bài sau không tự đăng); workflow WF-05 bước “Kiểm tra trước khi đăng” có kiểm khung giờ.
+  - Bản thật: ràng buộc UNIQUE (kênh, ngày, khung giờ) trên Collection Bài viết.
+- **Chiến dịch** (nút “Tạo chiến dịch” ở Lịch 30 ngày hoặc menu “+ Tạo”): chọn khoảng ngày, kênh, các khung giờ mỗi ngày → sinh nhiều bài/ngày (Mở màn → Chứng thực/Sản phẩm/Tương tác/Đếm ngược → Chốt đơn), xem trước trước khi tạo; khung đã có bài thường thì **dời** hoặc **bỏ**. Có thẻ quản lý (xem lịch, xoá chiến dịch — bài đã đăng được giữ). Dữ liệu demo có sẵn chiến dịch “Flash sale cuối tuần”. Bài chiến dịch không tính vào tỷ lệ nhóm nội dung.
+- **Thêm bài vào một ngày** (nút + ở ô ngày/ô giờ): gợi ý nhóm nội dung đang thiếu, kiểm khung giờ trực tiếp.
+- **Lịch 3 kiểu xem:** Tháng (lịch tháng thật, tối đa 3 bài/ô + “+N”) → Tuần (lưới giờ 06:00–23:00 × 7 ngày) → Ngày (lưới giờ × kênh: mỗi ô = 1 khung giờ của 1 kênh). Có Hôm nay, ‹ ›, bấm ngày để mở kiểu Ngày. Link trực tiếp: `plan.html?cal=day&ngay=2026-10-10`.
 
 ## Cập nhật 29/09/2026 — theo kết quả brainstorm đa AI
 
@@ -73,7 +85,7 @@ Mở thẳng file `index.html` bằng trình duyệt cũng chạy được.
 cd Prototytpe
 git init
 git add .
-git commit -m "Prototype MVP Marketing Agent"
+git commit -m "Prototype MVP Digital Marketing"
 git branch -M main
 git remote add origin https://github.com/tts-org/marketing-platform-prototype.git
 git push -u origin main

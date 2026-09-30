@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tổng quan · Marketing Agent</title>
-  <meta name="description" content="Prototype nền tảng Marketing Agent cho SME — hồ sơ thương hiệu, chiến lược, lịch 30 ngày, duyệt tuần, bài viết và workflow tự động đăng bài.">
+  <title>Tổng quan · Digital Marketing</title>
+  <meta name="description" content="Prototype nền tảng Digital Marketing cho SME — hồ sơ thương hiệu, chiến lược, lịch 30 ngày, duyệt tuần, bài viết và workflow tự động đăng bài.">
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
-  <script src="assets/theme.js?v=20260930hs"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20261001cal">
+  <script src="assets/theme.js?v=20261001cal"></script>
 </head>
 <body data-page="home">
 <main id="page" hidden>
@@ -48,8 +48,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260930hs"></script>
-<script src="assets/app.js?v=20260930hs"></script>
+<script src="assets/data.js?v=20261001cal"></script>
+<script src="assets/app.js?v=20261001cal"></script>
 <script>
 (function () {
   const { state, icon, esc } = MP;
@@ -64,12 +64,12 @@
   // Hôm nay / Ngày mai
   const t = MP.today(); const tm = MP.D.addDays(t, 1);
   function dayCard(label, iso, accent) {
-    const it = all.find(i => i.date === iso);
+    const its = all.filter(i => i.date === iso); const it = its.find(i => i.status !== 'published' && i.status !== 'skipped') || its[0];
     if (!it) return `<div class="card card-pad"><div class="eyebrow">${icon('calendar', 'sm')}${label} · ${MP.fmtDate(iso)}</div><div class="empty" style="padding:20px"><p>Không có bài theo lịch. Tần suất hiện tại: ${state.plan.frequency} bài/tuần.</p></div></div>`;
     const href = `post.html?id=${it.id}`; const ai = MP.autoInfo(it);
     return `<div class="card ${accent ? 'accent' : ''}">
       <div class="card-body stack">
-        <div class="row between wrap"><span class="eyebrow" style="margin:0">${icon('calendar', 'sm')}${label} · ${MP.fmtDate(iso)} · Ngày ${it.day}</span>${MP.statusBadge(it.status)}</div>
+        <div class="row between wrap"><span class="eyebrow" style="margin:0">${icon('calendar', 'sm')}${label} · ${MP.fmtDate(iso)} · Ngày ${it.day}${its.length > 1 ? ` · <a href="plan.html?cal=day&ngay=${iso}">${its.length} bài trong ngày</a>` : ''}</span>${MP.statusBadge(it.status)}</div>
         <h2>${esc(it.title)}</h2>
         <p class="muted">${esc(MP.quoteHook(it.hook))}</p>
         <div class="row wrap">${MP.pillarBadge(it.pillar)}${MP.channelBadge(it.channel)}${MP.formatBadge(it.format)}<span class="badge outline">${icon('clock')}${it.time}</span></div>

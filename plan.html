@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lịch 30 ngày · Marketing Agent</title>
+  <title>Lịch 30 ngày · Digital Marketing</title>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#333333">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260930hs">
-  <script src="assets/theme.js?v=20260930hs"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20261001cal">
+  <script src="assets/theme.js?v=20261001cal"></script>
 </head>
 <body data-page="plan">
 <main id="page" hidden>
@@ -26,6 +26,7 @@
           <button class="mi" data-export="csv"><i data-icon="file"></i>CSV — mở được bằng Notion</button>
         </div>
       </div>
+      <button class="btn" id="new-camp"><i data-icon="campaign" class="sm"></i>Tạo chiến dịch</button>
       <button class="btn primary" id="gen-all"><i data-icon="sparkles" class="sm"></i>Sinh toàn bộ nội dung</button>
     </div>
   </div>
@@ -36,6 +37,7 @@
     <div class="grid c2 mb-3" id="top-row"><div id="summary"></div><div id="tier2"></div></div>
     <div id="first-week"></div>
     <div id="seasonal" class="stack mb-3"></div>
+    <div id="campaigns"></div>
     <div id="auto-banner"></div>
     <div id="alerts" class="stack mb-3"></div>
     <div class="grid c4" id="pillar-check"></div>
@@ -48,7 +50,7 @@
     <div class="segmented icons" role="group" aria-label="Kiểu hiển thị">
       <button data-view="table" aria-pressed="true" title="Bảng" aria-label="Bảng"><i data-icon="table" class="sm"></i></button>
       <button data-view="board" aria-pressed="false" title="Board theo trạng thái" aria-label="Board"><i data-icon="board" class="sm"></i></button>
-      <button data-view="cal" aria-pressed="false" title="Lịch tháng" aria-label="Lịch"><i data-icon="calendar" class="sm"></i></button>
+      <button data-view="cal" aria-pressed="false" title="Lịch: tháng · tuần · ngày" aria-label="Lịch"><i data-icon="calendar" class="sm"></i></button>
     </div>
     <button class="btn icon" id="dense" title="Dòng gọn" aria-label="Bật/tắt dòng gọn" aria-pressed="false"><i data-icon="sliders" class="sm"></i></button>
   </div>
@@ -56,11 +58,11 @@
   <div id="view-table" class="lt-wrap"></div>
   <div id="view-board" hidden></div>
   <div id="view-cal" hidden></div>
-  <div class="tfoot"><span class="count-pill" id="count"></span><span class="subtle grow"><i data-icon="grip" class="sm"></i> Kéo-thả để đổi ngày · lưu ngay</span><span class="subtle hide-sm" id="count2"></span></div>
+  <div class="tfoot"><span class="count-pill" id="count"></span><span class="subtle grow"><i data-icon="grip" class="sm"></i> Kéo-thả để đổi ngày/giờ · mỗi khung giờ 1 bài/kênh · lưu ngay</span><span class="subtle hide-sm" id="count2"></span></div>
 </main>
 
-<script src="assets/data.js?v=20260930hs"></script>
-<script src="assets/app.js?v=20260930hs"></script>
+<script src="assets/data.js?v=20261001cal"></script>
+<script src="assets/app.js?v=20261001cal"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -100,7 +102,7 @@
 
   // ---------- Kiểm tỷ lệ pillar (US-302) ----------
   function pillarCheck() {
-    const all = MP.items(); const n = all.length;
+    const all = MP.items().filter(i => !i.campaign && !i.added); const n = all.length || 1;
     document.getElementById('pillar-check').innerHTML = state.strategy.pillars.map(p => {
       const P = D.PILLARS[p.id]; const c = all.filter(i => i.pillar === p.id).length; const pct = Math.round(c / n * 100); const dev = Math.abs(pct - p.ratio);
       return `<div class="kpi"><div class="row between" style="gap:6px;flex-wrap:nowrap"><span class="l" style="min-width:0;overflow:hidden">${MP.pillarBadge(p.id)}</span>${dev <= 5 ? `<span class="badge dot success" title="Lệch ${dev}% — đúng tỷ lệ" style="flex:none">Đạt</span>` : `<span class="badge dot warning" style="flex:none">Lệch ${dev}%</span>`}</div>
@@ -113,11 +115,14 @@
   function alerts() {
     const box = document.getElementById('alerts'); const all = MP.items();
     const flagged = all.filter(i => i.flag);
-    box.innerHTML = flagged.map(it => {
+    const clashes = MP.slotConflicts();
+    box.innerHTML = (clashes.length ? `<div class="callout danger">${icon('alert')}<div class="grow"><b>${clashes.length} khung giờ đang có hơn 1 bài trên cùng kênh</b> — mỗi khung giờ chỉ đăng 1 bài/kênh, bài sau sẽ không tự đăng. ${clashes.slice(0, 3).map(g => MP.fmtDate(g[0].date, 'short') + ' ' + MP.slotLabel(g[0].time) + ' ' + D.CHANNELS[g[0].channel].short).join(' · ')}
+        <div class="row mt-2 wrap"><button class="btn sm primary" id="fix-slots">${icon('clock', 'sm')}Tự dời sang khung trống gần nhất</button></div></div></div>` : '') + flagged.map(it => {
       const other = all.find(x => x.id === it.flag.similarTo);
       return `<div class="callout warning">${icon('alert')}<div class="grow"><b>Hai bài gần giống ý nhau</b> — Ngày ${it.day} “${esc(it.title)}” và Ngày ${other ? other.day : '?'} “${esc(other ? other.title : '')}” (độ tương đồng ${String(it.flag.score).replace('.', ',')} &gt; ngưỡng 0,88). Hệ thống đã thử sinh lại 3 lần, bạn quyết định giúp nhé.
         <div class="row mt-2 wrap"><button class="btn sm primary" data-refix="${it.id}">${icon('refresh', 'sm')}Tạo lại ngày ${it.day}</button><button class="btn sm ghost" data-keep="${it.id}">Giữ cả hai</button></div></div></div>`;
     }).join('');
+    const fx = document.getElementById('fix-slots'); if (fx) fx.onclick = () => { const n = MP.autoFixSlots(); MP.save(); render(); MP.toast('Đã dời ' + n + ' bài sang khung trống', 'clock'); };
     box.querySelectorAll('[data-keep]').forEach(b => b.onclick = () => { delete MP.poolItem(b.dataset.keep).flag; MP.save(); render(); });
     box.querySelectorAll('[data-refix]').forEach(b => b.onclick = () => {
       const p = MP.poolItem(b.dataset.refix);
@@ -140,7 +145,7 @@
         <td><span class="grip" title="Kéo để đổi ngày">${icon('grip', 'sm')}</span></td>
         <td><div class="name-cell"><span class="av" style="background:var(--cat-${P.cat})">${icon(P.icon, 'sm')}</span><span class="nm"><a href="${hrefOf(it)}" tabindex="-1">${esc(it.title)}</a><span class="h">${esc(MP.quoteHook(it.hook))}</span></span>${it.flag ? '<span class="badge warning" title="Gần trùng ý bài khác">' + icon('alert') + '</span>' : ''}<button class="prev-btn" data-prev="${it.id}">Xem trước</button></div></td>
         <td class="nowrap">${MP.fmtDate(it.date)}<div class="subtle">Ngày ${it.day}${it.date === t ? ' · <b style="color:var(--link)">Hôm nay</b>' : ''}</div></td>
-        <td>${MP.pillarBadge(it.pillar)}${it.event ? ' <span class="tag pk">' + esc(it.event) + '</span>' : ''}</td>
+        <td>${MP.pillarBadge(it.pillar)}${it.event ? ' <span class="tag pk">' + esc(it.event) + '</span>' : ''} ${MP.campaignTag(it)}</td>
         <td><span class="truncate" style="display:inline-block;max-width:190px;vertical-align:bottom">${esc(MP.angleName(it.angle))}</span></td>
         <td class="nowrap">${MP.channelBadge(it.channel)} <span title="${esc(ai.text)}">${it.time}</span><div class="subtle">${(MP.KIND_LABEL[ai.kind] || '').toLowerCase()}</div></td>
         <td>${MP.isLocked(it) && !it.content ? '<span class="badge dot">Khoá · dùng thử</span>' : MP.statusBadge(it.status)}</td></tr>`; }).join('') + '</tbody></table>';
@@ -185,46 +190,226 @@
     MP.track('preview_open', { ngày: it.day });
   }
 
+  // Đổi ngày 2 bài (kéo dòng trong bảng). Giờ đi theo bài; nếu trùng khung trên kênh → tự dời sang khung trống gần nhất
   function swap(a, b) {
     const sa = PL.schedule.find(s => s.id === a), sb = PL.schedule.find(s => s.id === b);
-    const d = sa.date; sa.date = sb.date; sb.date = d; MP.save(); render();
-    MP.toast('Đã đổi ngày: ' + MP.fmtDate(sb.date, 'short') + ' ↔ ' + MP.fmtDate(sa.date, 'short'));
+    const da = sa.date, db = sb.date; if (da === db) return;
+    sa.date = '0000-00-00'; sb.date = '0000-00-00';
+    const ra = MP.placeItem(a, db), rb = MP.placeItem(b, da);
+    if (!ra.ok || !rb.ok) { sa.date = da; sb.date = db; MP.toast('Không đổi được — ngày kia đã kín khung giờ trên kênh này', 'alert'); render(); return; }
+    MP.save(); render();
+    const sh = [ra, rb].filter(r => r.shifted);
+    MP.toast('Đã đổi ngày: ' + MP.fmtDate(db, 'short') + ' ↔ ' + MP.fmtDate(da, 'short') + (sh.length ? ' · dời ' + sh.map(r => r.time).join(', ') + ' để không trùng khung giờ' : ''), sh.length ? 'clock' : 'checkCircle');
   }
-  function moveTo(id, date) {
-    const other = PL.schedule.find(s => s.date === date); const me = PL.schedule.find(s => s.id === id);
-    if (other && other.id === id) return;
-    if (other) { swap(id, other.id); return; }
-    me.date = date; MP.save(); render(); MP.toast('Đã dời sang ' + MP.fmtDate(date));
+  // Dời 1 bài sang ngày khác (kéo trên lịch tháng) — ngày được nhiều bài; chỉ chặn trùng khung giờ trên cùng kênh
+  function moveTo(id, date, time, channel) {
+    const it = MP.item(id); if (!it) return;
+    if (it.date === date && (!time || MP.slotOf(time) === MP.slotOf(it.time)) && (!channel || channel === it.channel)) return;
+    if (it.status === 'published') { MP.toast('Bài đã đăng — không dời được', 'alert'); return; }
+    const r = MP.placeItem(id, date, time, { strict: !!time, channel });
+    if (!r.ok) { MP.toast(r.full ? 'Ngày ' + MP.fmtDate(date, 'short') + ' đã kín mọi khung giờ trên ' + D.CHANNELS[r.channel].name : MP.slotMsg(r), 'alert'); return; }
+    MP.save(); render();
+    MP.toast(r.shifted ? 'Đã dời sang ' + MP.fmtDate(date, 'short') + ' · ' + r.time + ' (khung ' + MP.slotLabel(it.time) + ' đã có bài)' : 'Đã dời sang ' + MP.fmtDate(date, 'short') + ' · ' + r.time + (channel && channel !== it.channel ? ' · ' + D.CHANNELS[channel].name : ''), r.shifted ? 'clock' : 'checkCircle');
   }
 
-  // ---------- Lịch (US-307) ----------
+  // ---------- Lịch: Tháng · Tuần · Ngày (US-307) ----------
+  // Quy tắc hiển thị: 1 ô giờ × 1 kênh = 1 khung giờ = tối đa 1 bài. Một ngày được nhiều bài.
+  const HOURS = []; for (let h = MP.SLOT_FROM; h <= MP.SLOT_TO; h++) HOURS.push(h);
+  const WDN = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  let calMode = 'month', calCur = null;
+  try { calMode = localStorage.getItem('mp-cal-mode') || 'month'; } catch (e) {}
+  if (MP.params.get('cal')) calMode = MP.params.get('cal');
+  if (MP.params.get('ngay')) calCur = MP.params.get('ngay');
+  const planEnd = () => D.addDays(PL.start, 29);
+  const inPlan = d => d >= PL.start && d <= planEnd();
+  const canAdd = d => inPlan(d) && d >= MP.today();
+  const wdOf = d => new Date(d + 'T00:00:00').getDay();
+  const mondayOf = d => D.addDays(d, -((wdOf(d) + 6) % 7));
+  function calTitle() {
+    const d = new Date(calCur + 'T00:00:00');
+    if (calMode === 'month') return 'Tháng ' + (d.getMonth() + 1) + ', ' + d.getFullYear();
+    if (calMode === 'week') { const m = mondayOf(calCur); return 'Tuần ' + MP.fmtDate(m, 'short') + ' – ' + MP.fmtDate(D.addDays(m, 6), 'short'); }
+    return WDN[d.getDay()] + ', ' + MP.fmtDate(calCur, 'short') + '/' + calCur.slice(0, 4) + (inPlan(calCur) ? ' · Ngày ' + MP.dayNo(calCur) : '');
+  }
+  function calNav(dir) {
+    if (calMode === 'month') { const d = new Date(calCur + 'T00:00:00'); d.setDate(1); d.setMonth(d.getMonth() + dir); calCur = D.isoDate(d); }
+    else calCur = D.addDays(calCur, dir * (calMode === 'week' ? 7 : 1));
+    cal();
+  }
+  function setCal(mode, date) { calMode = mode; if (date) calCur = date; try { localStorage.setItem('mp-cal-mode', mode); } catch (e) {} cal(); }
+  function statusMini(it) {
+    return it.status === 'published' ? '<span class="badge success sm">' + icon('checkCircle') + 'Đã đăng</span>' : it.status === 'approved' ? '<span class="badge primary sm">' + icon('clock') + 'Đã hẹn</span>' : it.status === 'planned' ? '<span class="badge sm">Khung</span>' : '<span class="badge info sm">Có nội dung</span>';
+  }
+  function chip(it, cls) {
+    const cp = it.campaign && MP.campaign(it.campaign); const ai = MP.autoInfo(it);
+    return `<a class="ev ${cls || ''} ${it.pillar} ${cp ? 'cp c' + cp.color : ''} ${ai.kind === 'slot' ? 'clash' : ''}" draggable="${it.status !== 'published'}" data-id="${it.id}" href="${hrefOf(it)}" title="${esc(it.time + ' · ' + D.CHANNELS[it.channel].name + ' · ' + it.title + (cp ? ' · Chiến dịch ' + cp.name : ''))}">`;
+  }
   function cal() {
+    if (!calCur) calCur = calMode === 'month' ? D.addDays(PL.start, 14) : inPlan(MP.today()) ? MP.today() : PL.start;
+    if (!['month', 'week', 'day'].includes(calMode)) calMode = 'month';
     const rows = visible(); const byDate = {}; rows.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
-    const start = new Date(PL.start + 'T00:00:00'); const off = (start.getDay() + 6) % 7;
-    const first = D.addDays(PL.start, -off); const last = D.addDays(PL.start, 29);
-    const cells = []; let d = first;
-    while (d <= last || cells.length % 7) { cells.push(d); d = D.addDays(d, 1); }
-    const t = MP.today();
-    document.getElementById('view-cal').innerHTML = '<div class="cal">' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => `<div class="cal-h">${x}</div>`).join('') +
-      cells.map(c => {
-        const inR = c >= PL.start && c <= last; const its = byDate[c] || [];
-        return `<div class="cal-d ${inR ? '' : 'out'} ${c === t ? 'today' : ''}" data-date="${inR ? c : ''}">
-          <div class="cal-n"><b>${Number(c.slice(8))}${c.slice(8) === '01' || c === first ? '/' + Number(c.slice(5, 7)) : ''}</b>${inR ? `<span>N${MP.dayNo(c)}</span>` : ''}</div>
-          ${its.map(it => `<a class="ci ${it.pillar}" draggable="true" data-id="${it.id}" href="${hrefOf(it)}" title="${esc(it.title)}">
-            <span class="row" style="gap:4px">${MP.pillarBadge(it.pillar, true)}<span class="subtle">${D.CHANNELS[it.channel].short} · ${D.FORMATS[it.format].name.replace(' ngắn', '')}</span></span>
-            <span class="t" style="color:var(--text)">${esc(it.title)}</span>
-            <span class="row" style="gap:4px">${it.status === 'published' ? '<span class="badge success" style="height:18px">' + icon('checkCircle') + 'Đã đăng</span>' : it.status === 'approved' ? '<span class="badge primary" style="height:18px">' + icon('clock') + it.time + '</span>' : it.status === 'planned' ? '<span class="badge" style="height:18px">Khung</span>' : '<span class="badge info" style="height:18px">Có nội dung</span>'}${it.flag ? '<span class="badge warning" style="height:18px">' + icon('alert') + '</span>' : ''}</span></a>`).join('')}
+    const t = MP.today(); const root = document.getElementById('view-cal');
+    const bar = `<div class="cal-bar">
+      <button class="btn sm" data-cal-today>Hôm nay</button>
+      <span class="row" style="gap:2px"><button class="btn ghost sm icon" data-cal-nav="-1" aria-label="Trước">${icon('left', 'sm')}</button><button class="btn ghost sm icon" data-cal-nav="1" aria-label="Sau">${icon('right', 'sm')}</button></span>
+      <b class="cal-title">${esc(calTitle())}</b><span class="grow"></span>
+      <span class="subtle hide-sm">${icon('info', 'sm')} Mỗi khung giờ 1 bài/kênh · một ngày được nhiều bài</span>
+      <div class="segmented" role="group" aria-label="Kiểu lịch">${[['month', 'Tháng'], ['week', 'Tuần'], ['day', 'Ngày']].map(([k, l]) => `<button data-cal-mode="${k}" aria-pressed="${calMode === k}">${l}</button>`).join('')}</div>
+    </div>`;
+    let body = '';
+    if (calMode === 'month') {
+      const d0 = new Date(calCur + 'T00:00:00'); const m = d0.getMonth();
+      const first = mondayOf(D.isoDate(new Date(d0.getFullYear(), m, 1))); const lastD = D.isoDate(new Date(d0.getFullYear(), m + 1, 0));
+      const cells = []; let d = first; while (d <= lastD || cells.length % 7) { cells.push(d); d = D.addDays(d, 1); }
+      body = '<div class="cal month">' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => `<div class="cal-h">${x}</div>`).join('') + cells.map(c => {
+        const its = byDate[c] || []; const inM = new Date(c + 'T00:00:00').getMonth() === m; const cps = (state.campaigns || []).filter(x => c >= x.from && c <= x.to);
+        return `<div class="cal-d ${inM ? '' : 'out'} ${inPlan(c) ? '' : 'np'} ${c === t ? 'today' : ''}" data-date="${inPlan(c) ? c : ''}">
+          <div class="cal-n"><button class="dn" data-goday="${c}" title="Xem ngày">${Number(c.slice(8))}${c.slice(8) === '01' ? '/' + Number(c.slice(5, 7)) : ''}</button>${its.length > 1 ? `<span class="cnt">${its.length} bài</span>` : inPlan(c) && its.length ? `<span>N${MP.dayNo(c)}</span>` : ''}${canAdd(c) ? `<button class="add" data-add="${c}" title="Thêm bài ngày này" aria-label="Thêm bài">${icon('plus', 'sm')}</button>` : ''}</div>
+          ${cps.map(x => `<span class="cp-band c${x.color}" title="Chiến dịch ${esc(x.name)}">${icon('campaign')}${esc(x.name)}</span>`).join('')}
+          ${its.slice(0, 3).map(it => chip(it) + `<b class="tm">${it.time}</b><span class="chn">${D.CHANNELS[it.channel].short}</span><span class="t">${esc(it.title)}</span></a>`).join('')}
+          ${its.length > 3 ? `<button class="more" data-goday="${c}">+${its.length - 3}<span class="hide-sm"> bài nữa</span></button>` : ''}
         </div>`;
       }).join('') + '</div>';
-    const root = document.getElementById('view-cal'); let dragId = null;
-    root.querySelectorAll('.ci').forEach(ci => ci.addEventListener('dragstart', e => { dragId = Number(ci.dataset.id); try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {} }));
-    root.querySelectorAll('.cal-d[data-date]').forEach(cell => {
+    } else if (calMode === 'week') {
+      const mon = mondayOf(calCur); const days = [0, 1, 2, 3, 4, 5, 6].map(i => D.addDays(mon, i));
+      body = `<div class="tg-wrap"><div class="tg week" style="--cols:7"><div class="tg-c"></div>` + days.map(d => { const n = (byDate[d] || []).length;
+        return `<button class="tg-h ${d === t ? 'today' : ''} ${inPlan(d) ? '' : 'np'}" data-goday="${d}"><span>${['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][wdOf(d)]}</span><b>${Number(d.slice(8))}/${Number(d.slice(5, 7))}</b><small>${n ? n + ' bài' : inPlan(d) ? 'Trống' : 'Ngoài KH'}</small></button>`; }).join('') +
+        HOURS.map(h => `<div class="tg-t">${MP.pad2(h)}:00</div>` + days.map(d => { const its = (byDate[d] || []).filter(i => MP.slotOf(i.time) === h);
+          return `<div class="tg-s ${inPlan(d) ? '' : 'np'} ${d === t ? 'today' : ''}" data-date="${inPlan(d) ? d : ''}" data-h="${h}">${its.map(it => chip(it, 'w') + `<span class="row" style="gap:4px"><b class="tm">${it.time}</b><span class="chn">${D.CHANNELS[it.channel].short}</span></span><span class="t">${esc(it.title)}</span></a>`).join('')}${!its.length && canAdd(d) ? `<button class="add-s" data-add="${d}" data-h="${h}" aria-label="Thêm bài ${h}:00">${icon('plus', 'sm')}</button>` : ''}</div>`; }).join('')).join('') + '</div></div>';
+    } else {
+      const d = calCur; const its = byDate[d] || []; const chs = PL.channels.slice(); its.forEach(i => { if (!chs.includes(i.channel)) chs.push(i.channel); });
+      const cps = (state.campaigns || []).filter(x => d >= x.from && d <= x.to);
+      const free = chs.reduce((s, c) => s + HOURS.filter(h => !its.some(i => i.channel === c && MP.slotOf(i.time) === h)).length, 0);
+      body = `<div class="day-sum">${its.length ? `<b>${its.length} bài</b> trong ngày · ${chs.map(c => D.CHANNELS[c].short + ' ' + its.filter(i => i.channel === c).length).join(' · ')} · còn ${free} khung trống` : inPlan(d) ? 'Chưa có bài nào ngày này.' : 'Ngày này nằm ngoài kế hoạch 30 ngày.'}
+          ${cps.map(x => `<span class="cp-band inline c${x.color}">${icon('campaign')}Chiến dịch ${esc(x.name)}</span>`).join('')}
+          ${canAdd(d) ? `<button class="btn sm" data-add="${d}">${icon('plus', 'sm')}Thêm bài</button>` : ''}</div>
+        <div class="tg-wrap"><div class="tg day" style="--cols:${chs.length}"><div class="tg-c"></div>` + chs.map(c => `<div class="tg-h ch"><b>${esc(D.CHANNELS[c].name)}</b><small>${D.CHANNELS[c].level === 0 ? 'Đăng tay (Mức 0)' : 'Tự đăng (Mức 1)'}</small></div>`).join('') +
+        HOURS.map(h => `<div class="tg-t">${MP.pad2(h)}:00</div>` + chs.map(c => { const it = its.find(i => i.channel === c && MP.slotOf(i.time) === h); const more = its.filter(i => i.channel === c && MP.slotOf(i.time) === h).length - 1;
+          return `<div class="tg-s ${d === t ? 'today' : ''} ${inPlan(d) ? '' : 'np'}" data-date="${inPlan(d) ? d : ''}" data-h="${h}" data-ch="${c}">${it ? chip(it, 'd') + `<span class="row" style="gap:6px"><b class="tm">${it.time}</b>${MP.pillarBadge(it.pillar)}${statusMini(it)}${MP.campaignTag(it)}</span><span class="t">${esc(it.title)}</span></a>${more > 0 ? `<span class="badge danger sm" title="Trùng khung giờ">${icon('alert')}+${more} trùng</span>` : ''}` : canAdd(d) ? `<button class="add-s" data-add="${d}" data-h="${h}" data-ch="${c}">${icon('plus', 'sm')}<span>Thêm bài ${MP.pad2(h)}:00</span></button>` : ''}</div>`; }).join('')).join('') + '</div></div>';
+    }
+    root.innerHTML = bar + body;
+    // Điều hướng
+    root.querySelector('[data-cal-today]').onclick = () => { calCur = MP.today(); cal(); };
+    root.querySelectorAll('[data-cal-nav]').forEach(b => b.onclick = () => calNav(Number(b.dataset.calNav)));
+    root.querySelectorAll('[data-cal-mode]').forEach(b => b.onclick = () => setCal(b.dataset.calMode));
+    root.querySelectorAll('[data-goday]').forEach(b => b.onclick = e => { e.preventDefault(); setCal('day', b.dataset.goday); });
+    root.querySelectorAll('[data-add]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); addPost(b.dataset.add, b.dataset.h ? MP.pad2(Number(b.dataset.h)) + ':00' : null, b.dataset.ch); });
+    // Kéo-thả: tháng → giữ giờ (trùng thì tự dời) · tuần/ngày → chọn đúng khung (trùng thì chặn)
+    let dragId = null;
+    root.querySelectorAll('.ev[draggable="true"]').forEach(ev => {
+      ev.addEventListener('dragstart', e => { dragId = Number(ev.dataset.id); ev.classList.add('dragging'); try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {} });
+      ev.addEventListener('dragend', () => ev.classList.remove('dragging'));
+    });
+    root.querySelectorAll('[data-date]').forEach(cell => {
       if (!cell.dataset.date) return;
       cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('over'); });
       cell.addEventListener('dragleave', () => cell.classList.remove('over'));
-      cell.addEventListener('drop', e => { e.preventDefault(); cell.classList.remove('over'); if (dragId) moveTo(dragId, cell.dataset.date); });
+      cell.addEventListener('drop', e => {
+        e.preventDefault(); cell.classList.remove('over'); if (!dragId) return;
+        const it = MP.item(dragId); let time = null;
+        if (cell.dataset.h) time = MP.pad2(Number(cell.dataset.h)) + ':' + (MP.slotOf(it.time) === Number(cell.dataset.h) ? it.time.slice(3) : String(it.time).slice(3) || '00');
+        moveTo(dragId, cell.dataset.date, time, cell.dataset.ch || null); dragId = null;
+      });
     });
   }
+
+  // ---------- Thêm 1 bài vào ngày (một ngày được nhiều bài) ----------
+  function slotHint(date, ch, time, exceptId) {
+    const c = MP.slotTaken(date, ch, time, exceptId);
+    if (!c) return { ok: true, html: `<div class="callout success">${icon('checkCircle')}<div>Khung ${MP.slotLabel(time)} trên ${esc(D.CHANNELS[ch].name)} còn trống.</div></div>` };
+    const f = MP.freeTime(date, ch, time, exceptId);
+    return { ok: false, free: f, html: `<div class="callout danger">${icon('alert')}<div class="grow">Khung ${MP.slotLabel(time)} trên ${esc(D.CHANNELS[ch].name)} đã có bài “${esc(c.title)}”. Mỗi khung giờ chỉ 1 bài/kênh.${f ? `<div class="mt-2"><button type="button" class="btn sm" data-use-free="${f}">${icon('clock', 'sm')}Dùng khung trống gần nhất: ${f}</button></div>` : ' Ngày này đã kín khung trên kênh này.'}</div></div>` };
+  }
+  function addPost(date, time, ch) {
+    ch = ch || PL.channels[0]; time = time || MP.freeTime(date, ch, D.CHANNELS[ch].defaultTime) || D.CHANNELS[ch].defaultTime;
+    const base = MP.items().filter(i => !i.campaign && !i.added); const n = base.length || 1;
+    const need = state.strategy.pillars.map(p => ({ id: p.id, gap: p.ratio / 100 - base.filter(i => i.pillar === p.id).length / n })).sort((a, b) => b.gap - a.gap)[0].id;
+    const dayCount = MP.items().filter(i => i.date === date).length;
+    const m = MP.modal({ title: 'Thêm bài · ' + MP.fmtDate(date), subtitle: dayCount ? `Ngày này đã có ${dayCount} bài — vẫn thêm được, miễn khác khung giờ trên cùng kênh.` : 'Bài mới vào lịch ở trạng thái “Đã lên khung”, sinh nội dung sau.',
+      body: `<div class="stack">
+        <div class="grid c2"><div class="field"><label for="ap-ch">Kênh</label><select class="select" id="ap-ch">${PL.channels.map(c => `<option value="${c}" ${c === ch ? 'selected' : ''}>${esc(D.CHANNELS[c].name)}</option>`).join('')}</select></div>
+        <div class="field"><label for="ap-t">Giờ đăng</label><input class="input" type="time" id="ap-t" value="${time}" step="900"></div></div>
+        <div id="ap-slot"></div>
+        <div class="field"><label for="ap-p">Nhóm nội dung</label><select class="select" id="ap-p">${state.strategy.pillars.map(p => `<option value="${p.id}" ${p.id === need ? 'selected' : ''}>${esc(D.PILLARS[p.id].name)}${p.id === need ? ' — đang thiếu so với tỷ lệ' : ''}</option>`).join('')}</select></div>
+        <div class="field"><label for="ap-title">Tiêu đề (để trống để AI đặt)</label><input class="input" id="ap-title" placeholder="Vd: Mẹo giữ nhẫn bạc luôn sáng khi đi biển"></div>
+      </div>`,
+      foot: '<button class="btn" data-close>Huỷ</button><button class="btn primary" id="ap-ok">' + icon('plus', 'sm') + 'Thêm vào lịch</button>' });
+    const $ = s => m.el.querySelector(s);
+    const check = () => { const r = slotHint(date, $('#ap-ch').value, $('#ap-t').value || '00:00'); $('#ap-slot').innerHTML = r.html; $('#ap-ok').disabled = !r.ok;
+      const u = $('[data-use-free]'); if (u) u.onclick = () => { $('#ap-t').value = u.dataset.useFree; check(); }; };
+    $('#ap-ch').onchange = check; $('#ap-t').oninput = check; check();
+    $('#ap-ok').onclick = () => {
+      const c = $('#ap-ch').value, tm = $('#ap-t').value; if (!tm || MP.slotTaken(date, c, tm)) return check();
+      const pid = $('#ap-p').value; const ang = state.strategy.angles[Math.floor(Math.random() * state.strategy.angles.length)];
+      const title = $('#ap-title').value.trim() || D.PILLARS[pid].name + ': ' + ang.name;
+      const p = MP.newPost({ date, time: tm, channel: c, pillar: pid, angle: ang.id, title, hook: ang.message, format: c === 'instagram' ? 'carousel' : 'post' });
+      state.activity.unshift({ t: 0, icon: 'plus', text: 'Thêm bài ' + MP.fmtDate(date, 'short') + ' ' + tm + ' · ' + D.CHANNELS[c].name });
+      MP.save(); m.close(); render(); MP.track('post_add', { ngày: date, kênh: c }); MP.toast('Đã thêm bài ' + tm + ' ' + D.CHANNELS[c].short + ' · ' + MP.fmtDate(date, 'short'), 'plus');
+      void p;
+    };
+  }
+
+  // ---------- Chiến dịch: nhiều bài trong ngày, vẫn 1 bài/khung giờ/kênh ----------
+  const CAMP_TIMES = ['08:00', '10:00', '12:00', '15:00', '18:00', '20:00', '21:00'];
+  function campaignModal() {
+    const t0 = D.addDays(MP.today(), 1) > planEnd() ? MP.today() : D.addDays(MP.today(), 1);
+    const st = { name: 'Sale giữa tháng', offer: 'giảm 15% + tặng hộp nhung', from: t0, to: D.addDays(t0, 2) > planEnd() ? planEnd() : D.addDays(t0, 2), times: ['08:00', '12:00', '20:00'], channels: PL.channels.filter(c => D.CHANNELS[c].level === 1).slice(0, 1), onClash: 'shift' };
+    if (!st.channels.length) st.channels = [PL.channels[0]];
+    const m = MP.modal({ title: 'Tạo chiến dịch', subtitle: 'Chiến dịch được đăng nhiều bài trong một ngày. Quy tắc giữ nguyên: mỗi khung giờ chỉ 1 bài trên mỗi kênh.', wide: true,
+      body: `<div class="camp-grid"><div class="stack">
+        <div class="field"><label for="cp-n">Tên chiến dịch</label><input class="input" id="cp-n" value="${esc(st.name)}"></div>
+        <div class="field"><label for="cp-o">Ưu đãi / thông điệp chính</label><input class="input" id="cp-o" value="${esc(st.offer)}"></div>
+        <div class="grid c2"><div class="field"><label for="cp-f">Từ ngày</label><input class="input" type="date" id="cp-f" value="${st.from}" min="${MP.today() > PL.start ? MP.today() : PL.start}" max="${planEnd()}"></div>
+        <div class="field"><label for="cp-t">Đến ngày</label><input class="input" type="date" id="cp-t" value="${st.to}" min="${PL.start}" max="${planEnd()}"></div></div>
+        <div class="field"><span class="field-label">Kênh đăng</span><div class="chips" id="cp-ch">${PL.channels.map(c => `<button type="button" class="chip" data-ch="${c}" aria-pressed="${st.channels.includes(c)}">${esc(D.CHANNELS[c].name)}</button>`).join('')}</div></div>
+        <div class="field"><span class="field-label">Khung giờ đăng mỗi ngày <span class="subtle" style="font-weight:400">— mỗi giờ chọn = 1 bài/kênh</span></span><div class="chips" id="cp-tm">${CAMP_TIMES.map(x => `<button type="button" class="chip" data-tm="${x}" aria-pressed="${st.times.includes(x)}">${x}</button>`).join('')}</div></div>
+        <div class="field"><span class="field-label">Nếu khung giờ đã có bài thường</span><div class="chips" id="cp-cl"><button type="button" class="chip" data-cl="shift" aria-pressed="true">${icon('clock', 'sm')}Dời sang khung trống gần nhất</button><button type="button" class="chip" data-cl="skip" aria-pressed="false">${icon('ban', 'sm')}Bỏ bài ở khung đó</button></div></div>
+      </div><div id="cp-prev" class="camp-prev"></div></div>`,
+      foot: '<button class="btn" data-close>Huỷ</button><button class="btn primary" id="cp-ok">' + icon('campaign', 'sm') + 'Tạo chiến dịch</button>' });
+    const $ = s => m.el.querySelector(s);
+    const read = () => { st.name = $('#cp-n').value.trim() || 'Chiến dịch'; st.offer = $('#cp-o').value.trim() || 'ưu đãi đặc biệt'; st.from = $('#cp-f').value; st.to = $('#cp-t').value; };
+    const prev = () => {
+      read(); const bad = !st.from || !st.to || st.to < st.from || !inPlan(st.from) || !inPlan(st.to);
+      const c = Object.assign({}, st, { id: 'preview', times: st.times.slice().sort() });
+      const r = bad || !st.times.length || !st.channels.length ? null : MP.campaignPosts(c, { onClash: st.onClash });
+      $('#cp-ok').disabled = !r || !r.posts.length;
+      if (!r) { $('#cp-prev').innerHTML = `<div class="callout warning">${icon('info')}<div>${bad ? 'Chọn ngày trong kế hoạch (' + MP.fmtDate(PL.start, 'short') + ' → ' + MP.fmtDate(planEnd(), 'short') + ').' : 'Chọn ít nhất 1 kênh và 1 khung giờ.'}</div></div>`; return; }
+      const byD = {}; r.posts.forEach(p => { (byD[p.date] = byD[p.date] || []).push(p); });
+      $('#cp-prev').innerHTML = `<div class="rep-mini"><b class="big">${r.posts.length}</b> bài · ${Object.keys(byD).length} ngày · tối đa ${Math.max(...Object.values(byD).map(a => a.length))} bài/ngày</div>
+        ${r.shifted ? `<div class="callout warning mt-2">${icon('clock')}<div>${r.shifted} bài dời sang khung trống vì trùng giờ với bài đã có.</div></div>` : ''}${r.dropped ? `<div class="callout warning mt-2">${icon('ban')}<div>${r.dropped} bài bị bỏ vì khung giờ đã có bài.</div></div>` : ''}
+        <div class="stack sm mt-3">${Object.keys(byD).map(d => `<div><div class="subtle" style="font-weight:600">${MP.fmtDate(d)}</div>${byD[d].sort((a, b) => a.time < b.time ? -1 : 1).map(p => `<div class="cp-row"><b>${p.time}</b><span class="tag">${D.CHANNELS[p.channel].short}</span><span class="grow truncate">${esc(p.title)}</span><span class="subtle">${esc(p.role)}</span></div>`).join('')}</div>`).join('')}</div>`;
+    };
+    m.el.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => { const c = b.dataset.ch; st.channels = st.channels.includes(c) ? st.channels.filter(x => x !== c) : st.channels.concat(c); b.setAttribute('aria-pressed', st.channels.includes(c)); prev(); });
+    m.el.querySelectorAll('[data-tm]').forEach(b => b.onclick = () => { const x = b.dataset.tm; st.times = st.times.includes(x) ? st.times.filter(y => y !== x) : st.times.concat(x); b.setAttribute('aria-pressed', st.times.includes(x)); prev(); });
+    m.el.querySelectorAll('[data-cl]').forEach(b => b.onclick = () => { st.onClash = b.dataset.cl; m.el.querySelectorAll('[data-cl]').forEach(x => x.setAttribute('aria-pressed', x === b)); prev(); });
+    ['#cp-n', '#cp-o', '#cp-f', '#cp-t'].forEach(s => $(s).oninput = prev);
+    prev();
+    $('#cp-ok').onclick = () => {
+      read(); const c = { name: st.name, offer: st.offer, from: st.from, to: st.to, times: st.times.slice().sort(), channels: st.channels.slice() };
+      const r = MP.createCampaign(c, { onClash: st.onClash });
+      state.activity.unshift({ t: 0, icon: 'campaign', text: 'Tạo chiến dịch ' + c.name + ' · ' + r.posts.length + ' bài' });
+      MP.save(); m.close(); MP.track('campaign_create', { bài: r.posts.length });
+      view = 'cal'; try { localStorage.setItem('mp-plan-view', 'cal'); } catch (e) {} calMode = c.from === c.to ? 'day' : 'week'; calCur = c.from; render();
+      setTimeout(() => document.getElementById('view-cal').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      MP.toast('Đã tạo chiến dịch ' + c.name + ' · ' + r.posts.length + ' bài', 'campaign');
+    };
+  }
+  function campaignsBox() {
+    const el = document.getElementById('campaigns'); const cs = state.campaigns || [];
+    if (!cs.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `<div class="card mb-3"><div class="card-head"><h3>${icon('campaign')}Chiến dịch</h3><span class="subtle">Nhiều bài trong ngày · mỗi khung giờ 1 bài/kênh</span></div><div class="card-body stack sm">` +
+      cs.map(c => { const its = MP.items().filter(i => i.campaign === c.id); const days = new Set(its.map(i => i.date)).size;
+        return `<div class="row wrap camp-row" style="gap:10px"><span class="cp-dot c${c.color}"></span><div class="grow" style="min-width:200px"><b>${esc(c.name)}</b> <span class="subtle">· ${esc(c.offer)}</span>
+          <div class="subtle">${MP.fmtDate(c.from, 'short')}${c.to !== c.from ? ' → ' + MP.fmtDate(c.to, 'short') : ''} · ${its.length} bài / ${days} ngày · ${c.times.join(', ')} · ${c.channels.map(x => D.CHANNELS[x].short).join(', ')}</div></div>
+          <button class="btn sm" data-cp-view="${c.id}">${icon('calendar', 'sm')}Xem lịch</button><button class="btn sm ghost" data-cp-del="${c.id}">${icon('trash', 'sm')}Xoá</button></div>`; }).join('') + '</div></div>';
+    el.querySelectorAll('[data-cp-view]').forEach(b => b.onclick = () => { const c = MP.campaign(b.dataset.cpView); view = 'cal'; calMode = c.from === c.to ? 'day' : 'week'; calCur = c.from; render(); document.getElementById('view-cal').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    el.querySelectorAll('[data-cp-del]').forEach(b => b.onclick = () => {
+      const c = MP.campaign(b.dataset.cpDel);
+      const m = MP.modal({ title: 'Xoá chiến dịch “' + c.name + '”?', subtitle: 'Các bài chiến dịch chưa đăng sẽ bị gỡ khỏi lịch. Bài đã đăng được giữ lại.', foot: '<button class="btn" data-close>Huỷ</button><button class="btn danger" id="cp-del-ok">Xoá chiến dịch</button>' });
+      m.el.querySelector('#cp-del-ok').onclick = () => { const n = MP.removeCampaign(c.id); state.activity.unshift({ t: 0, icon: 'trash', text: 'Xoá chiến dịch ' + c.name }); MP.save(); m.close(); render(); MP.toast('Đã xoá chiến dịch · gỡ ' + n + ' bài', 'trash'); };
+    });
+  }
+  document.getElementById('new-camp').onclick = campaignModal;
 
   // ---------- View đã lưu (§6.3) · bộ lọc nhanh (§6.5) ----------
   function clearAll() { fPillar.clear(); fChannel.clear(); fStatus.clear(); q = ''; document.getElementById('q').value = ''; syncUrl(); render(); }
@@ -284,7 +469,7 @@
   }
 
   function render() {
-    header(); firstHero(); summary(); tier2(); firstWeek(); seasonal(); autoBanner(); pillarCheck(); alerts(); filters();
+    header(); firstHero(); summary(); tier2(); firstWeek(); seasonal(); campaignsBox(); autoBanner(); pillarCheck(); alerts(); filters();
     document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
     document.getElementById('dense').setAttribute('aria-pressed', dense); document.getElementById('dense').hidden = view !== 'table';
     ['table', 'board', 'cal'].forEach(k => { document.getElementById('view-' + k).hidden = view !== k; });
@@ -396,7 +581,7 @@
       let n = 0;
       [[-4, 'Báo trước'], [0, 'Ngày chính'], [1, 'Nhắc lại']].forEach(([d, l]) => {
         const date = D.addDays(e.date, d); if (date < MP.today() || date > end) return;
-        const sc = PL.schedule.find(x => x.date === date); if (!sc) return; const p = MP.poolItem(sc.id);
+        const sc = PL.schedule.find(x => x.date === date && !MP.poolItem(x.id).campaign); if (!sc) return; const p = MP.poolItem(sc.id);
         p.title = T[l][0]; p.hook = T[l][1]; p.event = dm + ' · ' + l.toLowerCase(); p.angle = ang.id;
         if (p.content) { p.content = D.genContent(p, state.brand, 0); p.status = 'generated'; }
         n++;
@@ -472,7 +657,7 @@
     return MP.items().map(it => ({
       'Ngày': it.day, 'Ngày đăng': MP.fmtDate(it.date, 'short') + '/' + it.date.slice(0, 4), 'Thứ': MP.fmtDate(it.date).split(',')[0],
       'Nhóm nội dung': D.PILLARS[it.pillar].name, 'Góc kể chuyện': MP.angleName(it.angle), 'Kênh': D.CHANNELS[it.channel].name, 'Định dạng': D.FORMATS[it.format].name,
-      'Giờ đăng': it.time, 'Tiêu đề': it.title, 'Câu mở đầu': it.hook, 'Trạng thái': D.STATUSES[it.status].name,
+      'Giờ đăng': it.time, 'Tiêu đề': it.title, 'Câu mở đầu': it.hook, 'Trạng thái': D.STATUSES[it.status].name, 'Chiến dịch': it.campaign && MP.campaign(it.campaign) ? MP.campaign(it.campaign).name : '',
       'Caption': it.content ? it.content.caption : '', 'Hashtag': it.content ? it.content.hashtags.join(' ') : '', 'Gợi ý hình': it.content ? it.content.imageBrief : ''
     }));
   }
@@ -486,7 +671,7 @@
   function exportXLSX() {
     const go = () => {
       const ws = XLSX.utils.json_to_sheet(rowsForExport());
-      ws['!cols'] = [6, 12, 6, 12, 26, 11, 12, 9, 44, 44, 16, 60, 34, 40].map(w => ({ wch: w }));
+      ws['!cols'] = [6, 12, 6, 12, 26, 11, 12, 9, 44, 44, 16, 20, 60, 34, 40].map(w => ({ wch: w }));
       const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Kế hoạch 30 ngày');
       XLSX.writeFile(wb, fname('xlsx')); MP.toast('Đã xuất Excel');
     };
@@ -497,7 +682,9 @@
   }
   document.querySelectorAll('[data-export]').forEach(b => b.onclick = () => { menu.hidden = true; b.dataset.export === 'csv' ? exportCSV() : exportXLSX(); });
 
+  if (MP.params.get('cal')) view = 'cal';
   render();
+  if (MP.params.get('camp') === 'new') setTimeout(campaignModal, 100);
   if (FIRST && !state.notify.asked) setTimeout(() => MP.askPush(), 1400);
 })();
 </script>
