@@ -10,8 +10,8 @@
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
-  <script src="assets/theme.js?v=20260929b"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260930">
+  <script src="assets/theme.js?v=20260930"></script>
 </head>
 <body data-page="brand">
 <main id="page" hidden>
@@ -94,8 +94,8 @@
   </section>
 </main>
 
-<script src="assets/data.js?v=20260929b"></script>
-<script src="assets/app.js?v=20260929b"></script>
+<script src="assets/data.js?v=20260930"></script>
+<script src="assets/app.js?v=20260930"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -147,16 +147,11 @@
     let html = '';
     if (q.type === 'text' || q.type === 'money') html = `<input class="input" value="${esc(tmp)}">`;
     else if (q.type === 'textarea') html = `<textarea class="textarea" rows="3">${esc(tmp)}</textarea>`;
-    else if (q.type === 'multi') html = `<div class="chips">${q.options.map(o => `<button type="button" class="chip" data-v="${esc(o)}" aria-pressed="${tmp.includes(o)}">${esc(o)}</button>`).join('')}</div>`;
-    else if (q.type === 'single') html = `<div class="chips">${q.options.map(o => `<button type="button" class="chip" data-v="${esc(o.v)}" aria-pressed="${tmp === o.v}">${esc(o.v)}</button>`).join('')}</div>`;
-    else if (q.type === 'tone') html = `<div class="chips">${D.TONES.map(t => `<button type="button" class="chip" data-v="${t.id}" aria-pressed="${tmp === t.id}">${t.name}</button>`).join('')}</div>`;
+    else html = MP.choiceHtml(q, tmp, { industry: B.industry, sm: true });
     val.innerHTML = html + `<div class="row mt-2"><button class="btn primary sm" data-save>${icon('check', 'sm')}Lưu</button><button class="btn ghost sm" data-cancel>Huỷ</button></div>`;
     row.querySelector('[data-edit]').hidden = true;
-    const inp = val.querySelector('.input, .textarea'); if (inp) inp.focus();
-    val.querySelectorAll('.chip').forEach(c => c.onclick = () => {
-      if (q.type === 'multi') { const on = tmp.includes(c.dataset.v); tmp = on ? tmp.filter(x => x !== c.dataset.v) : tmp.concat(c.dataset.v); c.setAttribute('aria-pressed', !on); }
-      else { tmp = c.dataset.v; val.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === c)); }
-    });
+    const inp = val.querySelector(':scope > .input, :scope > .textarea'); if (inp) inp.focus();
+    const ch = val.querySelector('[data-choice]'); if (ch) MP.bindChoice(ch, v => { tmp = v; });
     val.querySelector('[data-cancel]').onclick = renderGroups;
     let vagueShown = false;
     val.querySelector('[data-save]').onclick = () => {

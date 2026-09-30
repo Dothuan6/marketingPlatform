@@ -61,20 +61,54 @@
     { id: 'q2', group: 'g1', type: 'text', required: true, label: 'Sản phẩm chủ lực bạn muốn bán nhiều nhất?', labelBy: { spa: 'Dịch vụ chủ lực bạn muốn đẩy mạnh?' }, placeholder: 'Vd: Serum rau má phục hồi da 30ml', uses: ['②', '④', '⑤'], tier: 1 },
     { id: 'q3', group: 'g1', type: 'money', required: true, label: 'Giá bán', placeholder: 'Vd: 289000', hint: 'Nhập số, không cần dấu chấm.', uses: ['⑤'], tier: 1 },
     { id: 'q4', group: 'g1', type: 'textarea', required: true, label: 'Sản phẩm giải quyết vấn đề gì cho khách?', placeholder: 'Mô tả ngắn nỗi khổ của khách trước khi dùng sản phẩm', suggestBy: { fashion_beauty: ['Da mụn, nhạy cảm', 'Da kích ứng sau treatment', 'Da xỉn màu', 'Lão hoá sớm', 'Mặc gì cũng không vừa'], spa: ['Căng thẳng, mất ngủ', 'Mụn, thâm', 'Đau mỏi vai gáy', 'Muốn trẻ hoá'], _: ['Tiết kiệm thời gian', 'Tiết kiệm chi phí', 'Chất lượng ổn định'] }, uses: ['②', '③'] },
-    { id: 'q5', group: 'g2', type: 'multi', required: true, label: 'Khách hàng chính của bạn là ai?', hint: 'Chọn tất cả nhóm phù hợp.', options: ['Nữ 18–24', 'Nữ 25–34', 'Nữ 35–44', 'Nam 18–34', 'Sinh viên', 'Dân văn phòng', 'Mẹ bỉm sữa', 'Thu nhập khá'], uses: ['②'], tier: 1 },
-    { id: 'q6', group: 'g2', type: 'multi', required: true, label: 'Khách thường thấy và mua hàng của bạn ở đâu?', options: ['Facebook', 'TikTok', 'Instagram', 'Shopee', 'Zalo', 'Website'], uses: ['③'] },
-    { id: 'q7', group: 'g2', type: 'multi', required: false, label: 'Điều gì khiến khách còn chần chừ khi mua?', options: ['Giá cao hơn hàng bình dân', 'Sợ hàng giả trôi nổi', 'Không chắc hợp với mình', 'Chưa nghe tên thương hiệu', 'Phí ship', 'Sợ tác dụng phụ'], uses: ['②', '④'] },
+    { id: 'q5', group: 'g2', type: 'multi', required: true, label: 'Khách hàng chính của bạn là ai?', hint: 'Chọn tất cả nhóm phù hợp.', options: ['Nữ 18–24', 'Nữ 25–34', 'Nữ 35–44', 'Nam 18–34', 'Sinh viên', 'Dân văn phòng', 'Mẹ bỉm sữa', 'Thu nhập khá'], uses: ['②'], tier: 1, other: 'Vd: Nam 25–40 chơi xe' },
+    { id: 'q6', group: 'g2', type: 'multi', required: true, label: 'Khách thường thấy và mua hàng của bạn ở đâu?', options: ['Facebook', 'TikTok', 'Instagram', 'Shopee', 'Zalo', 'Website'], uses: ['③'], other: 'Vd: Lazada, cửa hàng' },
+    { id: 'q7', group: 'g2', type: 'multi', required: false, label: 'Điều gì khiến khách còn chần chừ khi mua?', options: ['Giá cao hơn hàng bình dân', 'Sợ hàng giả trôi nổi', 'Không chắc hợp với mình', 'Chưa nghe tên thương hiệu', 'Phí ship', 'Sợ tác dụng phụ'], uses: ['②', '④'], other: 'Vd: Chưa thấy ai quen dùng' },
     { id: 'q8', group: 'g3', type: 'textarea', required: true, label: 'Bạn khác đối thủ ở điểm nào?', placeholder: 'Nguyên liệu, quy trình, bảo hành, dịch vụ… càng cụ thể càng tốt', uses: ['②'] },
-    { id: 'q9', group: 'g3', type: 'text', required: false, label: 'Khách hay so sánh bạn với ai?', placeholder: 'Vd: Serum rau má của các brand Hàn', uses: ['②'] },
-    { id: 'q10', group: 'g3', type: 'multi', required: false, label: 'Bạn đang có bằng chứng nào?', hint: 'Dùng cho nhóm bài Chứng thực.', options: ['Đánh giá 5★ trên sàn', 'Giấy kiểm nghiệm / chứng nhận', 'Ảnh before/after', 'KOL/KOC đã dùng', 'Số lượng đã bán', 'Cam kết đổi trả'], uses: ['③', '⑤'] },
+    { id: 'q9', group: 'g3', type: 'text', required: false, label: 'Khách hay so sánh bạn với ai?', placeholder: 'Vd: shop cùng khu vực, thương hiệu lớn cùng loại', uses: ['②'] },
+    { id: 'q10', group: 'g3', type: 'multi', required: false, label: 'Bạn đang có bằng chứng nào?', hint: 'Dùng cho nhóm bài Chứng thực.', options: ['Đánh giá 5★ trên sàn', 'Giấy kiểm nghiệm / chứng nhận', 'Ảnh before/after', 'KOL/KOC đã dùng', 'Số lượng đã bán', 'Cam kết đổi trả'], uses: ['③', '⑤'], other: 'Vd: Giải thưởng, báo chí' },
     { id: 'q11', group: 'g4', type: 'single', required: true, label: 'Mục tiêu 30 ngày tới', options: [
       { v: 'Tăng đơn sản phẩm chủ lực', d: 'Ưu tiên nhóm Sản phẩm & Chứng thực', icon: 'zap' },
       { v: 'Ra mắt sản phẩm mới', d: 'Chuỗi teaser → ra mắt → review', icon: 'sparkles' },
       { v: 'Tăng nhận diện thương hiệu', d: 'Ưu tiên Giáo dục & Giải trí', icon: 'users' },
       { v: 'Xả hàng tồn', d: 'Ưu đãi có thời hạn, lời kêu gọi mạnh', icon: 'package' }
-    ], uses: ['③', '④'], tier: 1 },
+    ], uses: ['③', '④'], tier: 1, other: 'Vd: Kéo khách cũ quay lại' },
     { id: 'q12', group: 'g4', type: 'tone', required: true, label: 'Giọng thương hiệu', hint: 'Đổi được bất cứ lúc nào ở Hồ sơ thương hiệu.', uses: ['⑤'] }
   ];
+
+  /* ---------- Lựa chọn theo ngành + "Khác…" (bổ sung 30/09) ---------- */
+  const OPTIONS_BY = {
+    q5: {
+      spa: ['Nữ 25–34', 'Nữ 35–50', 'Dân văn phòng', 'Mẹ bỉm sữa', 'Nam 30+ đau mỏi vai gáy', 'Thu nhập khá'],
+      fnb: ['Dân văn phòng gần quán', 'Sinh viên', 'Gia đình có con nhỏ', 'Khách đặt giao tận nơi', 'Nhóm bạn tụ tập', 'Khách du lịch'],
+      edu: ['Phụ huynh có con cấp 1', 'Phụ huynh có con cấp 2–3', 'Sinh viên', 'Người đi làm cần chứng chỉ', 'Người mất gốc'],
+      realestate: ['Vợ chồng trẻ mua nhà lần đầu', 'Nhà đầu tư', 'Chủ nhà cần làm nội thất', 'Người thuê căn hộ', 'Chủ quán cần setup']
+    },
+    q6: { fnb: ['Facebook', 'TikTok', 'Instagram', 'GrabFood/ShopeeFood', 'Zalo', 'Google Maps'], edu: ['Facebook', 'TikTok', 'Zalo', 'YouTube', 'Website', 'Giới thiệu truyền miệng'] }
+  };
+  const GOAL_EXTRA = {
+    spa: { v: 'Lấp lịch giờ vắng', d: 'Ưu đãi khung giờ trống, lời kêu gọi đặt lịch', icon: 'clock' },
+    fnb: { v: 'Kéo khách quay lại quán', d: 'Món mới, ưu đãi khách quen, Giải trí', icon: 'smile' },
+    edu: { v: 'Tuyển sinh khoá mới', d: 'Chứng thực học viên, lịch khai giảng', icon: 'book' },
+    realestate: { v: 'Tìm khách xem nhà/xem mẫu', d: 'Chứng thực công trình, lời kêu gọi đặt lịch xem', icon: 'home' }
+  };
+  // Danh sách lựa chọn của một câu theo ngành (chuỗi với câu multi; {v,d,icon,label} với câu single/tone)
+  function optionsOf(q, industry) {
+    if (q.type === 'tone') return TONES.map(t => ({ v: t.id, label: t.name, d: t.desc }));
+    if (q.type === 'single') return q.options.concat(GOAL_EXTRA[industry] && q.id === 'q11' ? [GOAL_EXTRA[industry]] : []);
+    return (OPTIONS_BY[q.id] && OPTIONS_BY[q.id][industry]) || q.options || [];
+  }
+  // Mục tiêu tự gõ → cách lập kế hoạch gần nhất (AI chọn, người dùng sửa được)
+  function goalTemplate(v) {
+    const base = ['Tăng đơn sản phẩm chủ lực', 'Ra mắt sản phẩm mới', 'Tăng nhận diện thương hiệu', 'Xả hàng tồn'];
+    const all = base.concat(Object.values(GOAL_EXTRA).map(g => g.v));
+    if (!v || all.includes(v)) return null;
+    const t = String(v).toLowerCase();
+    if (/ra mắt|mới|launch/.test(t)) return base[1];
+    if (/xả|tồn|thanh lý|sale/.test(t)) return base[3];
+    if (/đơn|bán|doanh số|quay lại|khách cũ|tuyển|đặt lịch/.test(t)) return base[0];
+    return base[2];
+  }
 
   const SAMPLE_ANSWERS = {
     q1: { value: 'Mộc Lan Cosmetics', source: 'scraped' },
@@ -462,9 +496,10 @@
     const s = initialState(); const today = isoDate(new Date());
     const ind = INDUSTRIES.find(i => i.id === industry) || INDUSTRIES[0];
     s.firstRun = true;
-    s.brand.industry = ind.id; s.brand.tone = ind.tone;
+    s.brand.industry = ind.id;
     s.brand.answers = JSON.parse(JSON.stringify(answers));
-    s.brand.answers.q12 = { value: ind.tone, source: 'default' };
+    if (!s.brand.answers.q12 || !s.brand.answers.q12.value) s.brand.answers.q12 = { value: ind.tone, source: 'default' };
+    s.brand.tone = s.brand.answers.q12.value;
     s.strategy.version = 1; s.strategy.versions = [{ v: 1, label: 'v1 · bản AI đầu tiên', date: 0 }]; s.strategy.edited = {};
     s.plan.start = today; s.plan.lot = 'L-' + today.slice(5).replace('-', '') + '-01';
     s.plan.pool.forEach(p => { p.status = 'planned'; delete p.content; delete p.flag; delete p.publishedAt; delete p.url; delete p.manual; delete p.feedback; p.edited = false; delete p.editKinds; p.regen = 0; });
@@ -482,5 +517,5 @@
     return s;
   }
 
-  window.MP_DATA = { INDUSTRIES, TONES, PILLARS, CHANNELS, FORMATS, STATUSES, QUESTION_GROUPS, QUESTIONS, SAMPLE_ANSWERS, ANGLES, HASHTAGS, TIER2, COMPLETENESS, VAGUE_WORDS, VAGUE_FOLLOWUP, TERMS, FORBIDDEN_PRESET, IMAGES, SHOT_LIST, ALT_HOOKS, SCREENSHOT_RESULT, EVENTS, CHANNEL_CTA, genContent, buildSchedule, scheduleDates, initialState, freshState, pickImage, fmtPrice, isoDate, addDays };
+  window.MP_DATA = { optionsOf, goalTemplate, INDUSTRIES, TONES, PILLARS, CHANNELS, FORMATS, STATUSES, QUESTION_GROUPS, QUESTIONS, SAMPLE_ANSWERS, ANGLES, HASHTAGS, TIER2, COMPLETENESS, VAGUE_WORDS, VAGUE_FOLLOWUP, TERMS, FORBIDDEN_PRESET, IMAGES, SHOT_LIST, ALT_HOOKS, SCREENSHOT_RESULT, EVENTS, CHANNEL_CTA, genContent, buildSchedule, scheduleDates, initialState, freshState, pickImage, fmtPrice, isoDate, addDays };
 })();

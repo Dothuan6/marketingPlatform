@@ -10,8 +10,8 @@
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
-  <script src="assets/theme.js?v=20260929b"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260930">
+  <script src="assets/theme.js?v=20260930"></script>
 </head>
 <body data-page="post">
 <main id="page" hidden>
@@ -37,8 +37,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260929b"></script>
-<script src="assets/app.js?v=20260929b"></script>
+<script src="assets/data.js?v=20260930"></script>
+<script src="assets/app.js?v=20260930"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -167,7 +167,7 @@
     const a = state.brand.answers.q10; if (x.pillar !== 'proof' || (a && a.value && a.value.length)) return '';
     const q = D.QUESTIONS.find(z => z.id === 'q10');
     return `<div class="card accent"><div class="card-body stack sm"><b>${icon('sparkles', 'sm')} Trả lời 1 câu để bài này hay hơn: bạn đang có bằng chứng nào?</b>
-      <div class="chips">${q.options.map(o => `<button type="button" class="chip sm" data-q10="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>
+      <div id="q10-choice">${MP.choiceHtml(q, [], { sm: true })}</div>
       <div class="row"><button class="btn sm primary" id="q10-save">Lưu vào hồ sơ</button><span class="subtle">Dùng cho mọi bài Chứng thực.</span></div></div></div>`;
   }
 
@@ -285,8 +285,8 @@
   }
   function bindTier2() {
     const b = document.getElementById('q10-save'); if (!b) return;
-    document.querySelectorAll('[data-q10]').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') !== 'true'));
-    b.onclick = () => { const v = [...document.querySelectorAll('[data-q10][aria-pressed="true"]')].map(c => c.dataset.q10); if (!v.length) return MP.toast('Chọn ít nhất 1 bằng chứng', 'alert');
+    const ch = document.querySelector('#q10-choice [data-choice]'); MP.bindChoice(ch);
+    b.onclick = () => { const v = MP.readChoice(ch); if (!v.length) return MP.toast('Chọn ít nhất 1 bằng chứng', 'alert');
       state.brand.answers.q10 = { value: v, source: 'user' }; MP.save(); MP.track('tier2_answered', { q: 'q10' }); render(); MP.toast('Đã lưu — bấm Tạo lại để bài dùng bằng chứng này'); };
   }
 

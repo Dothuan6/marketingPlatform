@@ -15,6 +15,7 @@ Prototype đã được cập nhật theo **21 ý Phase 1** trong `outputs/30-BR
 - **Tên tiếng Việt thống nhất:** Hồ sơ thương hiệu · Lý do khách chọn bạn · Góc kể chuyện · Khách hàng điển hình · Nhóm nội dung · Câu mở đầu · Lời kêu gọi (nút ⓘ giải thích 1 dòng).
 - **Kênh đăng:** Facebook/Instagram tự đăng (Mức 1, app Meta của công ty TTS); Zalo OA đăng tay (Mức 0) qua màn **Đăng bài này**. Nhắc bằng **thông báo đẩy + email** (không cần Zalo OA).
 - **Dùng thử 7 ngày / hạn mức:** Bản đồ prototype → *Xem như: Dùng thử / Đã trả phí*.
+- **Bổ sung 30/09:** câu chọn nào cũng có "Khác…" + lựa chọn theo ngành; sau 5 câu có nút "Trả lời thêm" (không bắt buộc); nút "Tôi đã tự đăng" chống đăng trùng.
 
 ## Phạm vi Phase 1
 

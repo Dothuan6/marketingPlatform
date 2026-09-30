@@ -184,6 +184,56 @@
     return { ok: true, reason: 'Đạt kiểm', kind: 'ok', ban: [], warn: [] };
   }
 
+  /* ---------- Ô chọn có "Khác…" (bổ sung 30/09) ----------
+     Câu chọn nào cũng có "Khác…": gõ ngắn ≤ 60 ký tự, lưu nguyên văn, nguồn "Bạn nhập". */
+  function choiceHtml(q, value, opts) {
+    opts = opts || {}; const ind = opts.industry || state.brand.industry; const list = D.optionsOf(q, ind);
+    const single = q.type !== 'multi'; const cards = !!opts.cards;
+    const known = list.map(o => typeof o === 'string' ? o : o.v);
+    const vals = single ? (value ? [value] : []) : (value || []);
+    const custom = vals.filter(v => !known.includes(v));
+    const item = (o, pressed, isCustom) => {
+      const v = typeof o === 'string' ? o : o.v; const label = typeof o === 'string' ? o : (o.label || o.v);
+      if (cards) return `<button type="button" class="option" data-v="${esc(v)}" aria-pressed="${pressed}"><span class="opt-ic">${icon(isCustom ? 'pencil' : (o.icon || 'check'))}</span><b>${esc(label)}</b><span>${esc(isCustom ? 'Bạn tự nhập' : (o.d || ''))}</span></button>`;
+      return `<button type="button" class="chip ${opts.sm ? 'sm' : ''}" data-v="${esc(v)}" aria-pressed="${pressed}">${isCustom ? icon('pencil', 'sm') : ''}${esc(label)}</button>`;
+    };
+    const otherBtn = q.type === 'tone' ? '' : cards
+      ? `<button type="button" class="option" data-other><span class="opt-ic">${icon('plus')}</span><b>Khác…</b><span>Không có trong danh sách? Gõ ngắn gọn</span></button>`
+      : `<button type="button" class="chip ${opts.sm ? 'sm' : ''} other-chip" data-other>${icon('plus', 'sm')}Khác…</button>`;
+    return `<div class="choice" data-choice="${q.id}" data-type="${single ? 'single' : 'multi'}"><div class="${cards ? 'options' : 'chips'}" role="group">` +
+      list.map(o => item(o, vals.includes(typeof o === 'string' ? o : o.v), false)).join('') + custom.map(v => item(v, true, true)).join('') + otherBtn + '</div>' +
+      (q.type === 'tone' ? '' : `<div class="row other-row mt-2" hidden><input class="input grow" maxlength="60" placeholder="${esc(q.other || 'Gõ câu trả lời của bạn')}" aria-label="Câu trả lời khác"><button type="button" class="btn sm" data-other-add>Thêm</button></div>`) + '</div>';
+  }
+  function readChoice(el) { const v = [...el.querySelectorAll('[data-v][aria-pressed="true"]')].map(b => b.dataset.v); return el.dataset.type === 'single' ? (v[0] || '') : v; }
+  function bindChoice(el, onChange) {
+    const single = el.dataset.type === 'single'; const row = el.querySelector('.other-row'); const cards = !!el.querySelector('.options');
+    const fire = () => onChange && onChange(readChoice(el));
+    const wire = b => b.onclick = () => {
+      const on = b.getAttribute('aria-pressed') === 'true';
+      if (single) el.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      b.setAttribute('aria-pressed', String(single ? true : !on)); fire();
+    };
+    el.querySelectorAll('[data-v]').forEach(wire);
+    const ob = el.querySelector('[data-other]'); if (!ob || !row) return;
+    const inp = row.querySelector('input');
+    ob.onclick = () => { row.hidden = false; inp.focus(); };
+    const add = () => {
+      const v = inp.value.trim(); if (!v) return;
+      const exist = [...el.querySelectorAll('[data-v]')].find(x => x.dataset.v.toLowerCase() === v.toLowerCase());
+      if (single) el.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      if (exist) exist.setAttribute('aria-pressed', 'true');
+      else {
+        const t = document.createElement('div');
+        t.innerHTML = cards ? `<button type="button" class="option" data-v="${esc(v)}" aria-pressed="true"><span class="opt-ic">${icon('pencil')}</span><b>${esc(v)}</b><span>Bạn tự nhập</span></button>` : `<button type="button" class="chip ${ob.classList.contains('sm') ? 'sm' : ''}" data-v="${esc(v)}" aria-pressed="true">${icon('pencil', 'sm')}${esc(v)}</button>`;
+        const nb = t.firstChild; ob.parentNode.insertBefore(nb, ob); wire(nb);
+      }
+      track('other_used', { câu: el.dataset.choice, ký_tự: v.length });
+      inp.value = ''; row.hidden = true; fire();
+    };
+    row.querySelector('[data-other-add]').onclick = add;
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+  }
+
   /* ---------- Vì sao bài này? (CL-22) ---------- */
   function whyPost(it) {
     const a = state.strategy.angles.find(x => x.id === it.angle); const ps = state.strategy.personas;
@@ -543,6 +593,6 @@
     quoteHook, pillarBadge, channelBadge, formatBadge, statusBadge, angleName, quota, autoInfo, KIND_LABEL, copy, download, toast, modal, regenPopover, runSteps,
     shell, bindThemeToggle, protoMap, params: new URLSearchParams(location.search),
     sub, trialDaysLeft, trialIds, isLocked, regenLeft, useRegen, usePosts, postsLeft, refreshQuota, notifyText, checkText, replaceWord,
-    imageOf, imageTile, needsImage, passCheck, whyPost, isVague, track, term, termInfo, askPush
+    choiceHtml, readChoice, bindChoice, imageOf, imageTile, needsImage, passCheck, whyPost, isVague, track, term, termInfo, askPush
   };
 })();

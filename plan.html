@@ -10,8 +10,8 @@
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
-  <script src="assets/theme.js?v=20260929b"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260930">
+  <script src="assets/theme.js?v=20260930"></script>
 </head>
 <body data-page="plan">
 <main id="page" hidden>
@@ -59,8 +59,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260929b"></script>
-<script src="assets/app.js?v=20260929b"></script>
+<script src="assets/data.js?v=20260930"></script>
+<script src="assets/app.js?v=20260930"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -225,8 +225,8 @@
       <div class="card-body"><dl class="sum3">
         <dt>Nói với ai</dt><dd>${ps.map(p => esc(p.name) + ' (' + esc(p.age.replace(' tuổi', '')) + ', ' + esc(p.job.split(',')[0].toLowerCase()) + ')').join(' và ')}</dd>
         <dt>Nói gì</dt><dd>${esc(String(S.usp.primary).split(' — ')[0])}${MP.termInfo('usp')}</dd>
-        <dt>Vì sao</dt><dd>Mục tiêu “${esc(((A.q11 && A.q11.value) || '').toLowerCase())}” → ưu tiên nhóm ${esc(top)}</dd>
-      </dl></div></div>`;
+        <dt>Vì sao</dt><dd>Mục tiêu “${esc(((A.q11 && A.q11.value) || '').toLowerCase())}”${D.goalTemplate(A.q11 && A.q11.value) ? ' <span class="subtle">(AI lập kế hoạch gần với “' + esc(D.goalTemplate(A.q11.value).toLowerCase()) + '” — sửa được)</span>' : ''} → ưu tiên nhóm ${esc(top)}</dd>
+      </dl><p class="subtle mt-3">${icon('plus', 'sm')} Muốn AI hiểu kỹ hơn? <a href="brand.html">Bổ sung thông tin trong Hồ sơ thương hiệu</a> bất cứ lúc nào.</p></div></div>`;
   }
 
   // ---------- Câu hỏi tầng 2 — hỏi đúng lúc (CL-01, H7) ----------
@@ -234,19 +234,17 @@
   function missingTier2(scope) { return D.TIER2.find(t => (!scope || scope.includes(t.id)) && !hasAns(t.id)); }
   function tier2Form(t, required) {
     const q = D.QUESTIONS.find(x => x.id === t.id);
-    const inp = q.type === 'multi' ? `<div class="chips" data-t2multi>${q.options.map(o => `<button type="button" class="chip sm" data-v="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>`
-      : q.type === 'tone' ? `<div class="chips" data-t2single>${D.TONES.map(o => `<button type="button" class="chip sm" data-v="${o.id}" aria-pressed="false">${esc(o.name)}</button>`).join('')}</div>`
+    const inp = ['multi', 'single', 'tone'].includes(q.type) ? MP.choiceHtml(q, q.type === 'multi' ? [] : '', { sm: true })
       : `<textarea class="textarea" rows="2" data-t2text placeholder="${esc(q.placeholder || '')}"></textarea>`;
     return `<div class="stack sm"><b>${esc(q.label)}</b><div class="subtle">${icon('sparkles', 'sm')} ${esc(t.impact)}</div>${inp}<div data-t2vague></div>
       <div class="row"><button class="btn sm primary" data-t2save>${icon('check', 'sm')}Lưu</button>${required ? '' : '<button class="btn sm ghost" data-t2later>Để sau</button>'}</div></div>`;
   }
   function bindTier2(root, t, onSaved) {
     let vagueShown = false;
-    root.querySelectorAll('[data-t2multi] .chip').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') !== 'true'));
-    root.querySelectorAll('[data-t2single] .chip').forEach(c => c.onclick = () => root.querySelectorAll('[data-t2single] .chip').forEach(x => x.setAttribute('aria-pressed', x === c)));
+    const ch = root.querySelector('[data-choice]'); if (ch) MP.bindChoice(ch);
     root.querySelector('[data-t2save]').onclick = () => {
       const ta = root.querySelector('[data-t2text]'); let v;
-      if (ta) v = ta.value.trim(); else if (root.querySelector('[data-t2single]')) v = (root.querySelector('[data-t2single] [aria-pressed="true"]') || {}).dataset?.v; else v = [...root.querySelectorAll('[data-t2multi] [aria-pressed="true"]')].map(c => c.dataset.v);
+      if (ta) v = ta.value.trim(); else v = MP.readChoice(ch);
       if (!v || (Array.isArray(v) && !v.length)) { MP.toast('Chọn hoặc gõ câu trả lời trước nhé', 'alert'); return; }
       // CL-04: câu trả lời chung chung → gợi ý cụ thể hơn đúng 1 lần
       if (ta && !vagueShown && D.VAGUE_FOLLOWUP[t.id] && MP.isVague(v)) {

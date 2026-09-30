@@ -10,8 +10,8 @@
   <meta name="theme-color" content="#27AAE1">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260929b">
-  <script src="assets/theme.js?v=20260929b"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20260930">
+  <script src="assets/theme.js?v=20260930"></script>
 </head>
 <body data-page="strategy">
 <main id="page" hidden>
@@ -67,8 +67,8 @@
   </div>
 </main>
 
-<script src="assets/data.js?v=20260929b"></script>
-<script src="assets/app.js?v=20260929b"></script>
+<script src="assets/data.js?v=20260930"></script>
+<script src="assets/app.js?v=20260930"></script>
 <script>
 (function () {
   const { D, state, icon, esc } = MP;
@@ -83,7 +83,7 @@
     document.getElementById('sum3').innerHTML = `<div class="card-head"><h3>${icon('target')}Chiến lược trong 3 dòng</h3><span class="subtle">Đọc chừng này là đủ để bắt đầu</span></div><div class="card-body"><dl class="sum3">
       <dt>Nói với ai</dt><dd>${S.personas.map(p => esc(p.name) + ' (' + esc(p.age.replace(' tuổi', '')) + ', ' + esc(p.job.split(',')[0].toLowerCase()) + ')').join(' và ')}</dd>
       <dt>Nói gì</dt><dd>${esc(String(S.usp.primary).split(' — ')[0])}</dd>
-      <dt>Vì sao</dt><dd>Mục tiêu “${esc(((A.q11 && A.q11.value) || '').toLowerCase())}” → ưu tiên nhóm ${esc(top)}; ${S.angles.length} góc kể chuyện luân phiên để không lặp ý</dd></dl></div>`;
+      <dt>Vì sao</dt><dd>Mục tiêu “${esc(((A.q11 && A.q11.value) || '').toLowerCase())}”${D.goalTemplate(A.q11 && A.q11.value) ? ' (lập kế hoạch gần với “' + esc(D.goalTemplate(A.q11.value).toLowerCase()) + '”)' : ''} → ưu tiên nhóm ${esc(top)}; ${S.angles.length} góc kể chuyện luân phiên để không lặp ý</dd></dl></div>`;
   }
 
   // ---------- Câu tầng 2 đúng chỗ dùng: rào cản mua (CL-01) ----------
@@ -92,10 +92,10 @@
     if (a && a.value && a.value.length) { el.innerHTML = ''; return; }
     const q = D.QUESTIONS.find(x => x.id === 'q7');
     el.innerHTML = `<div class="card accent mb-4"><div class="card-body stack sm"><b>${icon('sparkles', 'sm')} Trả lời 1 câu để góc kể chuyện sát hơn: ${esc(q.label)}</b>
-      <div class="chips">${q.options.map(o => `<button type="button" class="chip sm" data-q7="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')}</div>
+      ${MP.choiceHtml(q, [], { sm: true })}
       <div class="row"><button class="btn sm primary" id="q7-save">Lưu</button><span class="subtle">Mỗi nỗi lo bạn chọn sẽ có một góc kể chuyện trả lời nó.</span></div></div></div>`;
-    el.querySelectorAll('[data-q7]').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') !== 'true'));
-    el.querySelector('#q7-save').onclick = () => { const v = [...el.querySelectorAll('[data-q7][aria-pressed="true"]')].map(c => c.dataset.q7); if (!v.length) return MP.toast('Chọn ít nhất 1 lý do', 'alert');
+    const ch = el.querySelector('[data-choice]'); MP.bindChoice(ch);
+    el.querySelector('#q7-save').onclick = () => { const v = MP.readChoice(ch); if (!v.length) return MP.toast('Chọn ít nhất 1 lý do', 'alert');
       state.brand.answers.q7 = { value: v, source: 'user' }; MP.save(); MP.track('tier2_answered', { q: 'q7' }); renderQ7(); MP.toast('Đã lưu — lần tạo lại góc kể chuyện sẽ dùng thông tin này'); };
   }
 

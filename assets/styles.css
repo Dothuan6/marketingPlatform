@@ -701,3 +701,5 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
 .rv-card .img-tile.empty span { display: block; font-size: 11px; }
 [hidden] { display: none !important; }
 .phone .img-tile { aspect-ratio: 16 / 9; }
+.choice .other-chip { border-style: dashed; }
+.choice .option[data-other] { border-style: dashed; }
