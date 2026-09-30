@@ -123,7 +123,7 @@
       const p = MP.poolItem(b.dataset.refix);
       b.disabled = true; b.innerHTML = icon('refresh', 'sm') + 'Đang tạo lại…';
       setTimeout(() => {
-        p.title = 'Da kích ứng mùa nồm: 5 phút xử lý trước khi đi ngủ'; p.hook = 'Trời ẩm, da đỏ, mặt ngứa? Làm đúng 5 phút này tối nay.';
+        p.title = 'Mùa nồm ẩm: cất trang sức bạc thế nào để không xỉn màu?'; p.hook = 'Trời nồm, bạc dễ xỉn? Làm đúng 1 việc này trước khi đi ngủ.';
         delete p.flag; if (p.content) p.content = D.genContent(p, state.brand, 1);
         MP.save(); render(); MP.toast('Đã tạo lại · độ tương đồng mới 0,62');
       }, 1200);
@@ -390,8 +390,8 @@
     el.querySelectorAll('[data-ev-skip]').forEach(b => b.onclick = () => { SS[b.dataset.evSkip] = 'skipped'; MP.save(); MP.track('season_skip', { id: b.dataset.evSkip }); render(); });
     el.querySelectorAll('[data-ev-add]').forEach(b => b.onclick = () => {
       const e = D.EVENTS.find(x => x.id === b.dataset.evAdd); const dm = MP.fmtDate(e.date, 'short');
-      const T = { 'Báo trước': [`Sắp ${e.name}: món quà “${ang.name.toLowerCase()}” cho người bạn thương`, `Quà ${dm} năm nay: thứ cô ấy dùng mỗi tối, không phải để trưng.`],
-        'Ngày chính': [`${e.name}: ${product} — ${String(state.strategy.usp.primary).split(/[—,]/)[0].trim().toLowerCase()}`, `Hôm nay ${dm} — dành 3 phút chăm làn da của chính bạn.`],
+      const T = { 'Báo trước': [`Sắp ${e.name}: món quà “${ang.name.toLowerCase()}” cho người bạn thương`, `Quà ${dm} năm nay: thứ cô ấy đeo mỗi ngày, không phải cất trong tủ.`],
+        'Ngày chính': [`${e.name}: ${product} — ${String(state.strategy.usp.primary).split(/[—,]/)[0].trim().toLowerCase()}`, `Hôm nay ${dm} — tự thưởng cho mình một chút lấp lánh.`],
         'Nhắc lại': [`Nhắc lại: ưu đãi ${e.name} còn đến hết hôm nay`, `Lỡ ${dm}? Vẫn kịp — ưu đãi đến 23:59 hôm nay.`] };
       let n = 0;
       [[-4, 'Báo trước'], [0, 'Ngày chính'], [1, 'Nhắc lại']].forEach(([d, l]) => {

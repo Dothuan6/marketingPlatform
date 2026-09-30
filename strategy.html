@@ -107,7 +107,7 @@
   }
 
   // ---------- Phiên bản ----------
-  const V1_USP = 'Serum rau má thiên nhiên giúp da khoẻ, dịu nhẹ, phù hợp mọi loại da.';
+  const V1_USP = 'Trang sức bạc đẹp, giá rẻ, chất lượng, hợp mọi phong cách.';
   const ver = document.getElementById('ver');
   let viewing = S.version;
   function renderVer() {
@@ -117,8 +117,8 @@
 
   // ---------- USP ----------
   const USP_ALT = [
-    { primary: 'Serum rau má chưng cất tươi, không cồn — cứu da đỏ rát sau treatment trong 7 ngày, có phiếu kiểm nghiệm, giá 289k.', secondary: ['Mỗi chai có mã QR truy xuất lô — mua là biết chính hãng.', 'Được hơn 1.200 khách da nhạy cảm chấm 5★.'] },
-    { primary: 'Phục hồi da sau BHA, retinol mà không phải bỏ liệu trình — rau má tươi Hậu Giang, không hương liệu, rẻ hơn hàng Hàn 1/3.', secondary: ['Kiểm nghiệm da liễu công khai theo từng lô.', 'Một chai dùng 60 ngày — chưa tới 5.000đ/ngày.'] }
+    { primary: 'Nhẫn bạc S925 đính đá CZ 199k — lấp lánh cho outfit đi làm mỗi ngày, không pha niken, làm sáng miễn phí trọn đời.', secondary: ['Mặt trong mỗi món khắc ký hiệu 925 — kiểm là biết bạc thật.', 'Được hơn 2.500 khách chấm 5★ trên Shopee.'] },
+    { primary: 'Lấp lánh như hàng hiệu, giá chỉ bằng 1/10 — bạc S925 xi bạch kim, đá CZ cắt 57 mặt, bảo hành rơi đá 6 tháng.', secondary: ['Đổi size nhẫn miễn phí 7 ngày, có hộp nhung sẵn để tặng.', 'Một chiếc nhẫn đeo cả năm — chưa tới 600đ/ngày.'] }
   ];
   let uspAlt = 0;
   function editable(path, text, tag) { tag = tag || 'p'; const name = tag.split(' ')[0]; const attrs = tag.slice(name.length); return `<${name}${attrs} contenteditable="true" data-path="${path}" spellcheck="false">${esc(text)}</${name}>`; }
@@ -156,7 +156,7 @@
   }
 
   // ---------- Personas ----------
-  const PERSONA_ALT = { name: 'Hạnh', age: '31 tuổi', job: 'Mẹ bỉm sữa, bán hàng online tại nhà', pains: ['Da nhạy cảm hơn sau sinh', 'Không dám dùng treatment mạnh', 'Ít thời gian chăm sóc bản thân'], objections: ['Lo thành phần không an toàn', 'Muốn thấy review của người giống mình'], channels: ['Facebook', 'Zalo', 'Shopee'] };
+  const PERSONA_ALT = { name: 'Tuấn', age: '27 tuổi', job: 'Kỹ sư, đang tìm quà cho bạn gái', pains: ['Không biết chọn quà gì, sợ sai size', 'Ngân sách quà 300–500k', 'Cần giao nhanh cho kịp ngày kỷ niệm'], objections: ['Sợ quà nhìn rẻ tiền', 'Muốn có hộp và thiệp sẵn'], channels: ['Facebook', 'Zalo', 'Shopee'] };
   function renderPersonas() {
     document.getElementById('blk-personas').innerHTML = S.personas.map((p, i) => `<div class="card"><div class="card-body stack">
       <div class="row"><span class="avatar round" style="width:44px;height:44px;font-size:16px">${esc(p.name[0])}</span><div class="grow">${editable('personas.' + i + '.name', p.name, 'h3')}<div class="subtle">${esc(p.age)} · ${esc(p.job)}</div></div></div>
@@ -216,7 +216,7 @@
         });
       } else {
         loading(document.getElementById('blk-personas'), ['Đọc câu 5–7 trong hồ sơ', 'Vẽ chân dung'], () => {
-          S.personas[1] = S.personas[1].name === 'Hạnh' ? D.initialState().strategy.personas[1] : JSON.parse(JSON.stringify(PERSONA_ALT));
+          S.personas[1] = S.personas[1].name === 'Tuấn' ? D.initialState().strategy.personas[1] : JSON.parse(JSON.stringify(PERSONA_ALT));
           MP.save(); renderPersonas(); MP.toast('Đã tạo lại khách hàng điển hình thứ hai');
         });
       }

@@ -3,7 +3,7 @@
 Prototype bấm được cho **Phase 1 (MVP)** của nền tảng Marketing Agent cho SME, bám theo bộ tài liệu `00-ROADMAP.md` → `20-RUI-RO-VA-QUYET-DINH-MO.md`.
 
 - Thuần HTML/CSS/JS, **không có bước build**, không framework.
-- Dữ liệu mẫu: thương hiệu giả lập **Mộc Lan Cosmetics** (ngành Thời trang & Mỹ phẩm).
+- Dữ liệu mẫu: thương hiệu **Phát Đạt Jewelry** (ngành Trang sức & Phụ kiện — trang sức bạc nữ S925 đính đá CZ lấp lánh, giá mềm: nhẫn, lắc tay, bông tai, dây chuyền). Đổi từ Mộc Lan Cosmetics ngày 30/09/2026.
 - **Không gọi AI thật** — nội dung "AI sinh" được ghép từ mẫu viết sẵn trong `assets/data.js`.
 - Thay đổi của người xem được lưu trong trình duyệt (localStorage). Nút **Bản đồ prototype → Đặt lại dữ liệu demo** để về trạng thái ban đầu.
 
@@ -100,7 +100,7 @@ Prototytpe/
    ├─ styles.css   theme HubSpot (`data-brand="crm"`): token sáng/tối + shell + component
    ├─ theme.js     đặt sáng/tối trước khi vẽ trang
    ├─ app.js       shell (sidebar, topbar), icon, toast, modal, tạo lại, diff, state
-   ├─ data.js      12 câu hỏi (5 câu tầng 1), preset ngành, từ Cấm/Cảnh báo, kho ảnh, sự kiện mùa vụ, 30 mục lịch, bộ ghép nội dung
+   ├─ data.js      12 câu hỏi (5 câu tầng 1), preset ngành (mặc định Trang sức & Phụ kiện), từ Cấm/Cảnh báo ngành trang sức, kho ảnh, sự kiện mùa vụ, 30 mục lịch, bộ ghép nội dung
    ├─ favicon.ico · favicon-32.png · apple-touch-icon.png · icon-512.png   (favicon từ logo TuoiTreSoft)
    ├─ favicon.svg  (giữ tương thích, nhúng PNG)
    ├─ fonts/material-symbols-subset.woff2   bộ icon Material Symbols Outlined rút gọn (~7 KB, 106 icon, tự host)

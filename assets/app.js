@@ -15,7 +15,7 @@
   /* ---------- State (localStorage có try/catch, không có vẫn chạy) ---------- */
   let state = null;
   function load() {
-    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 5) return s; } catch (e) {}
+    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 6) return s; } catch (e) {}
     return D.initialState();
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -196,7 +196,7 @@
       usp: 'Của bạn: “' + String(S.usp.primary).split(/[—,]/)[0].trim() + '…”',
       angle: 'Của bạn: “' + (S.angles[0] || {}).name + '” — ' + String((S.angles[0] || {}).message || '').toLowerCase(),
       persona: 'Của bạn: ' + (S.personas[0] || {}).name + ', ' + (S.personas[0] || {}).age + ' — ' + String((S.personas[0] || {}).job || '').toLowerCase(),
-      pillar: 'Vd: bài “Phiếu kiểm nghiệm da liễu” thuộc nhóm Chứng thực.',
+      pillar: 'Vd: bài “Chính sách bảo hành rơi đá 6 tháng” thuộc nhóm Chứng thực.',
       hook: 'Vd: ' + quoteHook(it.hook || ''),
       cta: 'Vd: ' + D.CHANNEL_CTA.facebook
     })[key] || '';
@@ -415,7 +415,7 @@
     m.el.querySelector('[data-no]').onclick = () => {
       m.close(); N.asked = true; N.push = false; save(); track('push_permission', { result: 'từ chối' });
       const m2 = modal({ title: 'Dùng email thay thế?', subtitle: 'Bạn vẫn cần được nhắc khi có bài chờ duyệt hoặc cần đăng tay.',
-        body: '<div class="field"><label for="em">Email nhận nhắc</label><input class="input" id="em" value="shop@moclan.vn"></div><p class="subtle">Đổi lại bất cứ lúc nào trong Tự động đăng → Báo lại.</p>',
+        body: '<div class="field"><label for="em">Email nhận nhắc</label><input class="input" id="em" value="shop@phatdatjewelry.vn"></div><p class="subtle">Đổi lại bất cứ lúc nào trong Tự động đăng → Báo lại.</p>',
         foot: '<button class="btn" data-close>Không nhắc</button><button class="btn primary" data-ok>Dùng email</button>' });
       m2.el.querySelector('[data-ok]').onclick = () => { N.email = true; N.pref = 'email'; save(); track('push_permission', { result: 'dùng email' }); m2.close(); toast('Sẽ nhắc qua email', 'mail'); onDone && onDone(); };
     };

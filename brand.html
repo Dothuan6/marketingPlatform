@@ -247,9 +247,9 @@
   };
 
   const SAMPLES = [
-    'Hôm nay mình kể bạn nghe chuyện chiếc serum đầu tiên của Mộc Lan nha 🌿 Hồi đó tụi mình chưng cất thử 12 mẻ mới ra được mùi rau má đúng ý. Bạn đã thử chưa?',
-    'Da bạn có hay đỏ lên sau khi dùng BHA không? Tụi mình cũng từng vậy nè. Thử giãn tần suất và thêm một bước phục hồi dịu nhẹ xem sao nha 💚',
-    'Cảm ơn chị Hà đã gửi ảnh sau 14 ngày dùng serum 🥹 Tụi mình đọc tin nhắn mà vui cả buổi. Ai cần tư vấn theo loại da thì inbox tụi mình nha!'
+    'Hôm nay mình kể bạn nghe chuyện chiếc nhẫn đầu tiên của Phát Đạt nha ✨ Hồi đó tụi mình làm lại 12 lần mới gắn được viên đá bắt sáng đúng ý. Bạn đeo thử chưa?',
+    'Đeo nhẫn rẻ vài tuần là đen, ngứa tay? Tụi mình cũng từng vậy nè. Thử chọn bạc S925 có khắc ký hiệu 925 và cất vào túi zip mỗi tối xem sao nha 💍',
+    'Cảm ơn chị Hằng đã gửi ảnh đeo nhẫn sau 6 tháng 🥹 Tụi mình đọc tin nhắn mà vui cả buổi. Ai cần tư vấn mẫu và size thì inbox tụi mình nha!'
   ];
   function renderSamples() {
     document.getElementById('samples').innerHTML = [0, 1, 2].map(i => `<div class="field"><label for="s${i}">Bài ${i + 1}</label><textarea class="textarea" id="s${i}" rows="5" placeholder="Dán nội dung bài cũ…">${esc(B.voiceSamples[i] || '')}</textarea></div>`).join('');

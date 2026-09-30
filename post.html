@@ -90,7 +90,7 @@
   }
   function checks(c) {
     const x = it(); const text = c.caption.toLowerCase(); const A = state.brand.answers; const r = checkResult(c); const ack = p.warnAck || [];
-    const ents = [A.q1 && A.q1.value, A.q2 && A.q2.value, D.fmtPrice(A.q3 && A.q3.value), 'rau má', 'không cồn', 'kiểm nghiệm'].filter(Boolean);
+    const ents = [A.q1 && A.q1.value, A.q2 && A.q2.value, D.fmtPrice(A.q3 && A.q3.value), 'S925', 'đá CZ', 'bảo hành'].filter(Boolean);
     const found = ents.filter(e => text.includes(String(e).toLowerCase()));
     const len = c.caption.length; const L = LIMITS[x.channel]; const T = TAGS[x.channel]; const nt = c.hashtags.length;
     const row = (k, t, sub, extra) => `<div class="check-item ${k}"><span class="ci-ic">${icon(k === 'ok' ? 'check' : k === 'bad' ? 'x' : 'alert')}</span><div class="grow"><b>${t}</b><div class="subtle">${sub}</div>${extra || ''}</div></div>`;
@@ -310,10 +310,10 @@
       setTimeout(() => {
         rg.disabled = false;
         const fresh = D.genContent(p, state.brand, (p.regen || 0) + 1); const has = k => chips.includes(k);
-        if (has('Ngắn hơn')) { const L = fresh.caption.split('\n'); const bl = L.filter(l => /^(🌿|•|👉|—) /.test(l)).slice(0, 2); fresh.caption = [L[0], ''].concat(bl, [''], L.slice(-2)).join('\n'); }
+        if (has('Ngắn hơn')) { const L = fresh.caption.split('\n'); const bl = L.filter(l => /^(✨|•|👉|—) /.test(l)).slice(0, 2); fresh.caption = [L[0], ''].concat(bl, [''], L.slice(-2)).join('\n'); }
         if (has('Thêm câu hỏi cuối bài')) fresh.caption += '\n\nBạn đang gặp tình trạng nào? Comment số 1, 2 hoặc 3 nhé!';
-        if (has('Nhấn giá/ưu đãi')) fresh.caption = fresh.caption.replace(/\n([^\n]*)$/, '\n🎁 Tuần này: tặng kèm mini size khi mua 1 chai ' + D.fmtPrice(state.brand.answers.q3.value) + '.\n$1');
-        if (has('Kể chuyện khách hàng')) fresh.caption = fresh.caption.replace('\n\n', '\n\nChị Hà (27 tuổi, dân văn phòng) kể: “Tuần đầu mình chỉ mong da bớt đỏ…”\n\n');
+        if (has('Nhấn giá/ưu đãi')) fresh.caption = fresh.caption.replace(/\n([^\n]*)$/, '\n🎁 Tuần này: tặng hộp nhung + khăn lau bạc khi mua 1 món ' + D.fmtPrice(state.brand.answers.q3.value) + '.\n$1');
+        if (has('Kể chuyện khách hàng')) fresh.caption = fresh.caption.replace('\n\n', '\n\nChị Hằng (28 tuổi, dân văn phòng) kể: “Mình đeo đi làm mỗi ngày, 6 tháng rồi đá vẫn chắc…”\n\n');
         if (has('Bớt emoji')) fresh.caption = fresh.caption.replace(/\p{Extended_Pictographic}️?/gu, '').replace(/ +\n/g, '\n');
         MP.diffModal('So sánh bản cũ và bản mới', p.content.caption, fresh.caption, use => {
           if (use) { fresh.imageBrief = p.content.imageBrief; p.content = fresh; p.regen = (p.regen || 0) + 1; p.edited = false; p.hookAlts = null; if (p.status !== 'approved') p.status = 'generated'; MP.save(); MP.toast('Đã dùng bản mới'); }

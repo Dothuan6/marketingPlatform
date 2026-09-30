@@ -227,7 +227,7 @@
       const id = 'RUN-' + String(A.runs.length + 1).padStart(4, '0');
       A.runs.unshift({ id, itemId: it.id, at, channel: it.channel, result: test ? 'test' : manual ? 'waiting_manual' : 'success', sec: Math.round((Date.now() - t0) / 100) / 10,
         steps: steps.map(s => [s.label.includes('Mức 0') ? 'warn' : 'ok', s.label, '']) });
-      if (!test && !manual) { const p = MP.poolItem(it.id); p.status = 'published'; p.publishedAt = at; p.url = 'https://' + (it.channel === 'instagram' ? 'instagram.com/p/' : 'facebook.com/moclan.cosmetics/posts/') + Date.now(); state.activity.unshift({ t: 0, icon: 'zap', text: 'Tự động đăng bài ngày ' + it.day + ' lên ' + ch }); }
+      if (!test && !manual) { const p = MP.poolItem(it.id); p.status = 'published'; p.publishedAt = at; p.url = 'https://' + (it.channel === 'instagram' ? 'instagram.com/p/' : 'facebook.com/phatdat.jewelry/posts/') + Date.now(); state.activity.unshift({ t: 0, icon: 'zap', text: 'Tự động đăng bài ngày ' + it.day + ' lên ' + ch }); }
       MP.save(); refresh();
       if (test) { MP.toast('Chạy thử thành công — không có bài nào bị đăng', 'checkCircle'); return; }
       if (!manual) { MP.toast('Đã đăng bài ngày ' + it.day + ' lên ' + ch, 'send'); return; }
@@ -249,8 +249,8 @@
 
   // ---------- Kênh kết nối ----------
   const CONN_INFO = {
-    facebook: { perm: 'Quản lý và đăng bài trên Page', pages: ['Mộc Lan Cosmetics', 'Mộc Lan — Kho sỉ', 'Test page'] },
-    instagram: { perm: 'Đăng ảnh & album lên tài khoản Business (liên kết với Facebook Page)', pages: ['@moclan.cosmetics'] },
+    facebook: { perm: 'Quản lý và đăng bài trên Page', pages: ['Phát Đạt Jewelry', 'Phát Đạt Jewelry — Kho sỉ', 'Test page'] },
+    instagram: { perm: 'Đăng ảnh & album lên tài khoản Business (liên kết với Facebook Page)', pages: ['@phatdat.jewelry'] },
     zalo: { perm: 'Gửi bài viết lên Official Account', pages: [] }
   };
   function renderConns() {

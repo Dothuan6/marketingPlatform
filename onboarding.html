@@ -55,7 +55,7 @@
   let draft = null;
   try { draft = JSON.parse(localStorage.getItem(DKEY)); } catch (e) {}
   const fresh = MP.params.get('fresh') === '1';
-  if (!draft || fresh || draft.v !== 5) draft = { v: 5, step: 0, industry: null, ans: {}, startedAt: Date.now(), src: 'link', vagueAsked: false };
+  if (!draft || fresh || draft.v !== 6) draft = { v: 6, step: 0, industry: null, ans: {}, startedAt: Date.now(), src: 'link', vagueAsked: false };
   const saveDraft = () => {
     try { localStorage.setItem(DKEY, JSON.stringify(draft)); } catch (e) {}
     const el = document.getElementById('draft-state'); el.innerHTML = icon('check') + 'Đã lưu nháp'; el.className = 'badge success hide-sm';
@@ -128,7 +128,7 @@
           <div class="segmented" role="group" aria-label="Nguồn điền nhanh"><button type="button" data-src="link" aria-pressed="${link}">${icon('link', 'sm')}Dán link</button><button type="button" data-src="shot" aria-pressed="${!link}">${icon('camera', 'sm')}Ảnh chụp màn hình</button></div></div>
         ${link ? `<div class="field">
           <div class="input-group">
-            <div class="input-affix grow">${icon('globe', 'sm')}<input class="input" id="url" type="url" placeholder="https://moclan.vn hoặc link fanpage" value="${esc(draft.url || '')}"></div>
+            <div class="input-affix grow">${icon('globe', 'sm')}<input class="input" id="url" type="url" placeholder="https://phatdatjewelry.vn hoặc link fanpage" value="${esc(draft.url || '')}"></div>
             <button class="btn" id="scrape" type="button">${icon('sparkles', 'sm')}Đọc trang</button>
           </div>
           <p class="hint" id="scrape-hint">Đọc tên shop, sản phẩm, giá nếu tìm thấy. Fanpage Facebook thường không đọc được — khi đó dùng ảnh chụp màn hình.</p>
@@ -207,7 +207,7 @@
         const shop = m.el.querySelector('#sh-shop').value.trim();
         if (shop) draft.ans.q1 = { value: shop, source: 'screenshot' };
         if (rows[0]) { draft.ans.q2 = { value: rows[0].product, source: 'screenshot' }; if (rows[0].price) draft.ans.q3 = { value: rows[0].price, source: 'screenshot' }; }
-        draft.products = rows; if (!draft.industry) draft.industry = 'fashion_beauty'; saveDraft(); m.close();
+        draft.products = rows; if (!draft.industry) draft.industry = 'jewelry'; saveDraft(); m.close();
         MP.track('prefill', { source: 'ảnh', fields: (shop ? 1 : 0) + (rows[0] ? (rows[0].price ? 2 : 1) : 0) });
         hint.innerHTML = '<span style="color:var(--success)">Đã điền sẵn tên shop' + (rows[0] ? ', sản phẩm' + (rows[0].price ? ' và giá' : ' (chưa có giá)') : '') + '. Ảnh đã được xoá.</span>';
         document.querySelectorAll('[data-ind]').forEach(x => x.setAttribute('aria-pressed', x.dataset.ind === draft.industry)); updateCount();
@@ -252,7 +252,7 @@
           MP.track('prefill_failed', { source: 'link facebook' }); return;
         }
         ['q1', 'q2', 'q3'].forEach(id => { draft.ans[id] = Object.assign(JSON.parse(JSON.stringify(D.SAMPLE_ANSWERS[id])), { source: 'scraped' }); });
-        if (!draft.industry) draft.industry = 'fashion_beauty';
+        if (!draft.industry) draft.industry = 'jewelry';
         saveDraft(); MP.track('prefill', { source: 'link', fields: 3 });
         hint.innerHTML = '<span style="color:var(--success)">Đã điền sẵn 3/5 câu: tên shop, sản phẩm, giá. Kiểm tra lại ở bước sau.</span>';
         box.querySelectorAll('[data-ind]').forEach(x => x.setAttribute('aria-pressed', x.dataset.ind === draft.industry)); updateCount();
